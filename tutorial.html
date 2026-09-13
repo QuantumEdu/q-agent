@@ -647,6 +647,34 @@
   <h3>Step 3 — Meta-Orchestration Gate</h3>
   <p>Agent decides: single-agent or multi-agent? Which executor runtime? Presents decision with rationale. User confirms → <strong style="color:var(--green)">autonomous mode begins</strong>.</p>
 
+  <div class="table-wrap" style="margin: 16px 0;">
+    <table>
+      <thead>
+        <tr>
+          <th>Tier</th>
+          <th>Capability Profile</th>
+          <th>Primary Models</th>
+          <th>Assigned Steps</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color:var(--accent)">Tier 1 (Frontier)</strong></td>
+          <td>Deliberation, spec design contracts, and strict compliance audits.</td>
+          <td><code>Gemini 3.8 Flash</code> / <code>Pro</code><br><code>GPT-6 Astra</code> / <code>GPT-5.6 Sol</code></td>
+          <td>Step 2 (Deliberation), Step 5 (Spec/Design), Step 7 (CAB-RP Audit)</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--green)">Tier 2 (Fast / Local)</strong></td>
+          <td>Deterministic coding, test execution, syntax fixes, and zero-latency linter hygiene.</td>
+          <td><code>Qwen 2.5 (3B/7B ROCm)</code><br><code>Gemini Flash-Lite</code> / <code>GPT-5.6 Luna</code></td>
+          <td>Step 6 (Linters / Hygiene), Step 8 (Atomic TDD), Fast-Track Patches</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
   <h3>Step 4 — Infrastructure Setup</h3>
   <p>Delegates via <code>q-delegate-context</code> (FirstMate pattern). Creates GitHub repo, CLAUDE.md, initializes <code>CONSTITUTION.md</code> (with stack, principles and ADR table), initial Issues ([SETUP], [ADR-001], [SCOPE]), and verifies subsystems (SkillVault, Engram, Telemetry).</p>
 

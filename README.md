@@ -224,6 +224,17 @@ The agent decides and presents:
 
 User confirms → **autonomous mode begins**.
 
+#### Model Tier Routing Matrix
+q-agent separates execution by cognitive capability rather than proprietary vendor lock-in:
+
+| Tier | Capability Profile | Primary Models | Assigned Lifecycle Steps |
+|------|--------------------|----------------|--------------------------|
+| **Tier 1 (Frontier / High-Reasoning)** | Deep architectural deliberation, complex constraint adherence, spec design, and strict compliance audits. | **Gemini 3.8 Flash** / Gemini Pro<br>**GPT-6 Astra** / GPT-5.6 Sol | **Step 2:** Deliberation & Grill-Me (`q-deliberate`, `q-grill-me`)<br>**Step 5:** Spec & Design Contracts (P05, P06)<br>**Step 7:** CAB-RP Compliance Audit (P09) |
+| **Tier 2 (Fast / Local Execution)** | Deterministic coding, test suite execution, syntax/type error patching, and zero-latency linter hygiene. | **Qwen 2.5 (3B / 7B ROCm)**<br>Gemini Flash-Lite / GPT-5.6 Luna | **Step 6:** Linters & Hygiene (`q-ci-fixer`)<br>**Step 8:** Atomic TDD tasks & parches<br>**Fast-Track:** Nivel 1 atomic patches via `q-delegate-context` |
+
+*Architectural Principle:* Never run heavy compliance audits (P09) on models < 14B. Always delegate mechanical lint repairs and single-test failures to Tier 2 (local Qwen on ROCm or Flash-Lite) to eliminate latency and token waste.
+
+
 ---
 
 ### Step 4 — Infrastructure Setup (Autonomous)

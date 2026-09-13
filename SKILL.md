@@ -125,8 +125,15 @@ Runtime decision:
 ```
 
 **Model tier routing:**
-- **Frontier / Deep Reasoning (Claude 3.7 / GPT-4o / Gemini Pro):** Step 2 (Deliberation), Step 5 (Spec & Design), Step 7 (CAB-RP Compliance Audit).
-- **Fast / Local Execution (Qwen 2.5 3B/7B / Flash):** Step 6 (Linters / Hygiene), Step 8 (Atomic TDD tasks), Fast-Track patches via `q-delegate-context`. Avoid running P09 or large context audits on models < 14B.
+| Tier | Capability Profile | Primary Models | Assigned Steps |
+|------|--------------------|----------------|----------------|
+| **Tier 1 (Frontier / High-Reasoning)** | Deep architectural deliberation, complex prompt adherence, contract specification, and compliance auditing. | **Gemini 3.8 Flash** / Gemini Pro<br>**GPT-6 Astra** / GPT-5.6 Sol | **Step 2:** Deliberation & Grill-Me (`q-deliberate`, `q-grill-me`)<br>**Step 5:** Spec & Design Contracts (P05, P06)<br>**Step 7:** CAB-RP Compliance Audit (P09) |
+| **Tier 2 (Fast / Local Execution)** | Deterministic coding, test execution loops, mechanical syntax/type fixes, and zero-latency linter hygiene. | **Qwen 2.5 (3B / 7B ROCm)**<br>Gemini Flash-Lite / GPT-5.6 Luna | **Step 6:** Linters & Hygiene (`q-ci-fixer`)<br>**Step 8:** Atomic TDD tasks & parches<br>**Fast-Track:** Nivel 1 atomic patches via `q-delegate-context` |
+
+*Rules of engagement:*
+- Never execute P09 compliance audits or full cross-file refactors on models < 14B.
+- Always delegate mechanical lint errors and single-test failures to Tier 2 (local Qwen or Flash-Lite) to minimize token consumption and turnaround latency.
+
 
 ---
 
