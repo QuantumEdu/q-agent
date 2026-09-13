@@ -8,7 +8,7 @@
 
 `q-agent` is a master orchestrator for full software development cycles. It is NOT a code generator — it is a **conductor**: it guides the user through the right questions, makes architectural decisions using specialized skills, and delegates technical execution to the correct runtime.
 
-Every decision is **traceable as a GitHub Issue** in the project repository. Every step produces a documented artifact.
+Every decision is **traceable as a GitHub Issue** in the project repository. Every step produces a documented artifact committed to Git.
 
 ### Compatible runtimes
 | Runtime | How to activate |
@@ -20,6 +20,44 @@ Every decision is **traceable as a GitHub Issue** in the project repository. Eve
 
 ---
 
+## Package Directory Structure
+
+```text
+q-agent-v01/
+├── SKILL.md                          # Orquestador canónico (Pasos 0 a 7)
+├── README.md                         # Documentación del paquete
+├── tutorial.html                     # Guía interactiva visual
+├── references/                       # Referencias operativas internas
+│   ├── plans.md                      # Mapeo por plan (A/B/C) con OpenSpec
+│   ├── claude-md-template.md         # Plantilla CLAUDE.md para repos nuevos
+│   └── issue-labels.md               # Taxonomía de etiquetas GitHub Issues
+├── prompts/                          # Prompts ejecutables del SDD Pipeline
+│   ├── P01_auditoria_mab_pc.md       # Discovery & Audit (MAB-PC)
+│   ├── P02_context_engineering.md    # Viabilidad técnica y Hexagonal Ligera
+│   ├── P03_evolucion_blueprint.md    # Reconciliación V1 vs V2
+│   ├── P04_propose.md                # Gate de Scope (/propose) + Fast-Track
+│   ├── P04b_constitution_sync.md     # Sincronización continua de Drift y ADRs
+│   ├── P05_spec.md                   # Especificación BDD con Given/When/Then
+│   ├── P06_design.md                 # Diseño técnico y contratos de interfaces
+│   ├── P07_tasks.md                  # Desglose de tareas TDD atómicas
+│   ├── P08_apply_verify.md           # Implementación TDD y verificación de stack
+│   └── P09_compliance_audit.md       # CAB-RP unificado (inmutabilidad, CodeGraph, anti-mock)
+├── templates/                        # Artefactos canónicos (estándar MAYÚSCULAS)
+│   ├── ADR.md                        # Architecture Decision Record
+│   ├── BLUEPRINT.md                  # Mapa arquitectónico del sistema
+│   ├── CONSTITUTION.md               # Reglas no negociables y tabla de ADRs
+│   └── PROPOSAL.md                   # Estructura del /propose (IN/OUT scope)
+└── skills/                           # Skills auxiliares (planas, prefijo q-)
+    ├── q-grill-me/                   # Elicitación profunda y socrática (Plan A)
+    ├── q-deliberate/                 # Debate dialéctico y cristalización de ADRs
+    ├── q-delegate-context/           # Aislamiento en sub-contexto (FirstMate)
+    ├── q-gbrain-assistant/           # Consulta de memoria histórica (Engram/GBrain)
+    ├── q-ci-fixer/                   # Reparación quirúrgica de CI/linters (SwarmForge)
+    └── q-session-wrap/               # Cierre ordenado y persistencia de sesión
+```
+
+---
+
 ## The 3 Plans
 
 q-agent operates under one of three plans, selected at the start of every cycle:
@@ -28,7 +66,7 @@ q-agent operates under one of three plans, selected at the start of every cycle:
 |------|----------|---------|
 | **A — Greenfield** | New system from scratch | P0 → P2 → P4 → P5 → P6 → P7 → P8 (sync P1.5) |
 | **B — Brownfield** | Feature or evolution on existing code | P1 → P2 → P3 → P4 → P5 → P6 → P7 → P8 (sync P1.5) |
-| **C — Audit** | Review, audit and improve existing code | P1 → P9 (CAB-RP) |
+| **C — Audit** | Review, audit and diagnose existing code | P1 → P9 (CAB-RP) → Issues de remediación |
 
 ---
 
@@ -97,8 +135,8 @@ Queries 3 knowledge sources in parallel via MCP:
 
 Results synthesized into a `## Historical context` block in `PROJECT_CONTEXT.md`.
 
-#### 2c. `grill-me` — Deep Elicitation (Plan A only)
-A relentless structured interview to sharpen the plan scope. Surfaces assumptions the user hasn't considered yet.
+#### 2c. `q-grill-me` — Deep Elicitation (Plan A only)
+A relentless socratic interview to sharpen the plan scope. Surfaces hidden assumptions and trade-offs before any code is written.
 
 All Step 2 outputs are synthesized into an internal `PROJECT_CONTEXT.md` (not delivered to user — used as context for all subsequent steps).
 
@@ -116,20 +154,20 @@ User confirms → **autonomous mode begins**.
 
 ### Step 4 — Infrastructure Setup (Autonomous)
 
-Delegates heavy sub-tasks via `delegate-context-work` (FirstMate pattern) to keep the orchestrator main thread clean.
+Delegates heavy sub-tasks via `q-delegate-context` (FirstMate pattern) to keep the orchestrator main thread clean.
 
 **Plan A:**
 1. Create private GitHub repository
 2. Create `CLAUDE.md` at repo root (from `references/claude-md-template.md`)
-3. Initialize `CONSTITUTION.md` at repo root (from `templates/CONSTITUTION.md` / `prompts/P00_constitution_template.md`) with stack, domain rules, and initial ADR table
-4. Verify subsystems (SkillVault, Telemetry, SDDinit + Engram)
+3. Initialize `CONSTITUTION.md` at repo root (from `templates/CONSTITUTION.md`) with stack, domain rules, and initial ADR table
+4. Verify subsystems (SkillVault, Telemetry, Engram)
 5. Create initial Issues: `[SETUP]`, `[ADR-001]` (registered in Constitution), `[SCOPE] MVP`
 
 **Plan B:**
 1. Clone / verify access to existing repo
 2. Verify subsystems
 3. Create Issue `[FEATURE] description`
-4. Create branch `feature/<name>`
+4. Setup branches: P1 to P3 executed on `develop`, P4 bifurcates to `feature/<name>`
 
 **Plan C:**
 1. Clone / verify access to repo to audit
@@ -140,7 +178,7 @@ Delegates heavy sub-tasks via `delegate-context-work` (FirstMate pattern) to kee
 
 ### Step 5 — Main Pipeline Flow (Autonomous)
 
-Executes the SDD pipeline prompts in the order defined by `references/plans.md`.
+Executes the SDD pipeline prompts in the order defined by `references/plans.md`. Standard storage path: `openspec/changes/{{CHANGE_ID}}/`.
 
 After each prompt that produces an artifact:
 ```bash
@@ -149,27 +187,30 @@ git commit -m "feat: <artifact description>"
 git push origin <active-branch>
 ```
 
-**Mandatory P4 gate (Plans A & B):** After `/propose`, the `proposal.md` is presented to the user with full IN/OUT scope. The user must approve before continuing.
+**Fast-Track Shortcut (Nivel 1):** If P4 classifies the change as Nivel 1 (≤3 files, no Domain/DB impact), it skips P5, P6, P7 and executes directly via P8 Fast-Track.
+
+**Mandatory P4 gate (Plans A & B):** After `/propose` completes on Nivel 2, the `proposal.md` is presented to the user with full IN/OUT scope. The user must approve before continuing.
 
 #### SDD Pipeline Prompts
 
 | Prompt | File | What it produces |
 |--------|------|-----------------|
-| **P00** | `prompts/P00_constitution_template.md` | Constitutional rules for the project |
-| **P01** | `prompts/P01_auditoria_adacg.md` | MAB-PC audit: `BLUEPRINT.md` + `CONSTITUTION.md` |
+| **P01** | `prompts/P01_auditoria_mab_pc.md` | MAB-PC audit: `BLUEPRINT.md` + `CONSTITUTION.md` |
 | **P02** | `prompts/P02_context_engineering.md` | `CONTEXT.md` — structured project context |
-| **P03** | `prompts/P03_evolucion_blueprint.md` | `EVOLUTION.md` — blueprint vs real code reconciliation |
-| **P04** | `prompts/P04_propose.md` | `proposal.md` — IN/OUT scope gate |
-| **P05** | `prompts/P05_spec.md` | `spec.md` — BDD specification (Given/When/Then) |
-| **P06** | `prompts/P06_design.md` | `design.md` — architectural design |
-| **P07** | `prompts/P07_tasks.md` | `tasks.md` — atomic task breakdown |
-| **P08** | `prompts/P08_apply_verify.md` | Verified TDD implementation |
-| **P1.5 / P04b** | `prompts/P04b_constitution_sync.md` | `CONSTITUTION.md` — Continuous sync, drift audit & ADR status table |
+| **P03** | `prompts/P03_evolucion_blueprint.md` | `BLUEPRINT_V2.md` + `DIFF_V1_VS_V2.md` |
+| **P04** | `prompts/P04_propose.md` | `openspec/changes/{{CHANGE_ID}}/proposal.md` — IN/OUT scope gate |
+| **P05** | `prompts/P05_spec.md` | `openspec/changes/{{CHANGE_ID}}/specs/{{FEATURE}}.md` — BDD |
+| **P06** | `prompts/P06_design.md` | `openspec/changes/{{CHANGE_ID}}/design.md` — architecture & contracts |
+| **P07** | `prompts/P07_tasks.md` | `openspec/changes/{{CHANGE_ID}}/tasks.md` — atomic task breakdown |
+| **P08** | `prompts/P08_apply_verify.md` | Verified TDD implementation + `verify-report.md` |
+| **P1.5 / P04b** | `prompts/P04b_constitution_sync.md` | `CONSTITUTION.md` — Continuous sync, drift audit & ADR table |
 | **P09** | `prompts/P09_compliance_audit.md` | `AUDIT_REPORT.md` — CAB-RP compliance audit |
 
 ---
 
 ### Step 6 — Implementation with Hygiene Control (Autonomous)
+
+*(Omitido en Plan C — las auditorías diagnostican y crean Issues sin implementar código)*
 
 #### Sub-phase A — Code implementation
 Standard git workflow per feature/fix:
@@ -207,27 +248,25 @@ Triggered when an architectural boundary is crossed, a new/replacement ADR is cr
 
 ### Step 7 — Closure & Delivery (Autonomous)
 
-#### 7a. `q-audit-readonly` — Pre-delivery audit
-Non-mutating inspection. Checks:
-- SDD contract compliance (`spec.md` vs `tasks.md` completion)
-- API surface (auth middleware, RBAC, exception handling)
-- Frontend hygiene (no fake preloaded data, validation handling)
-- Outputs: `AUDIT_REPORT.md` with verdict `PASS / FAIL / PASS WITH OBSERVATIONS`
-
-Issues created for each gap: label `type:nfr-gap` + severity.
+#### 7a. Compliance Audit (CAB-RP P09)
+Executes `prompts/P09_compliance_audit.md` (unifies all compliance checks):
+- **Invariants:** Absolute disk immutability (`git status -s` identical before/after); CodeGraph first; Zero tolerance for fake completions (anti-mock / fake data checks).
+- Evaluates: base architecture, security (OWASP Top 10), telemetry, SQLite WAL concurrency, backups, recovery.
+- Outputs: `AUDIT_REPORT.md` (Traceability matrix, 9-category checklist, EARS gap specs, P0/P1 remediation plan).
+- Issues created for each gap: label `type:nfr-gap` + severity.
 
 #### 7b. Retrospective Issue
 Created in the project repo with label `type:retrospective`:
 - Decisions made and rationale
 - Skills invoked
 - Artifacts generated
-- Gaps detected
+- Gaps detected by CAB-RP
 - Executor used
 - Recommended next action
 
 #### 7c. `q-session-wrap` — Session persistence
 - Saves session memory to **Engram** (`mem_session_summary`)
-- Catalogs artifacts in **SkillVault**
+- Catalogs artifacts in **SkillVault** (if available)
 - Creates atomic SQLite snapshot (`VACUUM INTO`)
 
 #### 7d. Final report
@@ -242,11 +281,10 @@ Compact summary delivered in chat:
 
 ## Skills Reference
 
-### `grill-me`
+### `q-grill-me`
 **Step 2c — Plan A only**
 A relentless structured interview to sharpen scope. Surfaces hidden assumptions and requirements before any code is written.
-- Activates with: `/grill-me`, "grill me", "interview me"
-- Output: refined scope and elicited requirements
+- Output: refined scope and elicited non-negotiables
 
 ### `q-deliberate`
 **Step 2a — All plans**
@@ -254,13 +292,11 @@ Multi-agent dialectical debate engine. Three internal sub-roles (Proponent, Adve
 - Proponent: builds the strongest case for each option using primary sources
 - Adversary: attacks scale limits, concurrency, failure modes, maintenance burden
 - Synthesizer: arbitrates, eliminates hype, produces recommended decision + ADR
-- Never asks for facts the agent can fetch itself
 - Output: architectural brief + ADRs in `docs/adr/`
 
-### `delegate-context-work`
+### `q-delegate-context`
 **Steps 4 & 5 — All plans**
 Keeps the orchestrator main thread clean by delegating heavy sub-tasks to isolated sub-contexts (FirstMate pattern). Selects executor, model, and effort automatically or explicitly.
-- Modes: auto / explicit / off
 - Budgets: read ≤180s, web research ≤600s, implementation ≤900s
 - Hard cap: 2 correction rounds per task
 - Compatible executors: native subagents, Antigravity CLI, Codex CLI
@@ -270,30 +306,21 @@ Keeps the orchestrator main thread clean by delegating heavy sub-tasks to isolat
 Structured gateway to GBrain (Personal + Multi-Agent Knowledge Graph). Queries Engram, GBrain, and SkillVault in parallel to surface historical decisions, patterns, and lessons learned.
 - Hybrid query (RRF + semantic expansion)
 - Key intents: context briefing, historical decision retrieval, knowledge registration, gap analysis, health check
-- CLI: `gbrain query`, `gbrain remember`, `gbrain link`, `gbrain doctor`
 
-### `q-audit-readonly` _(part of q-session-quality-suite)_
-**Step 7a — All plans**
-Deep technical audit with **absolute zero disk mutations**. Checks SDD contract compliance, frontend hygiene, API security surface.
-- Invariant: `git status -s` must be identical before and after
-- Uses CodeGraph for call-path and blast-radius analysis before text search
-- Output: executive report (PASS / FAIL / PASS WITH OBSERVATIONS), P1 critical + P2 medium findings
-
-### `q-ci-fixer` _(part of q-session-quality-suite)_
+### `q-ci-fixer`
 **Step 6 Sub-phase B — All plans**
 Surgical CI/CD pipeline repair. Operates only on `git diff` files. Never weakens quality rules.
 - 4-layer protocol: Format/Lint → Static Types → Business Logic Assertions → Coverage Gate
 - PROHIBITED: editing `ci.yml` to lower coverage thresholds, blanket `# noqa` / `# type: ignore` suppressors
 - Blast radius minimum: only essential lines to resolve the error
-- Always verifies with local command before declaring done
+- Hard cap: 2 passes
 
-### `q-session-wrap` _(part of q-session-quality-suite)_
+### `q-session-wrap`
 **Step 7c — All plans**
 Ordered session closure. Persists operational memory so the next session starts with full context.
 - Engram: `mem_session_summary` with Goal / Instructions / Discoveries / Accomplished / Next Steps / Relevant Files
-- SkillVault: `skillvault add-entry --type session` + `save-artifact` for relevant documents
-- SQLite: `VACUUM INTO` atomic snapshot in `~/.skillvault/exports/`
-- Invariant: internal backup never replaces the visible user-facing final report
+- SkillVault (graceful fallback): session entry + artifacts
+- SQLite: `VACUUM INTO` atomic snapshot
 
 ---
 
@@ -301,10 +328,10 @@ Ordered session closure. Persists operational memory so the next session starts 
 
 | Template | File | Purpose |
 |----------|------|---------|
-| ADR | `templates/ADR-template.md` | Architecture Decision Record |
+| ADR | `templates/ADR.md` | Architecture Decision Record |
 | Blueprint | `templates/BLUEPRINT.md` | System architecture map |
 | Constitution | `templates/CONSTITUTION.md` | Non-negotiable rules and principles |
-| Proposal | `templates/proposal.md` | `/propose` scope gate structure |
+| Proposal | `templates/PROPOSAL.md` | `/propose` scope gate structure |
 
 ---
 
@@ -312,7 +339,7 @@ Ordered session closure. Persists operational memory so the next session starts 
 
 | File | Purpose |
 |------|---------|
-| `references/plans.md` | Exact prompt mapping per plan A/B/C with file paths |
+| `references/plans.md` | Exact prompt mapping per plan A/B/C with OpenSpec paths |
 | `references/claude-md-template.md` | CLAUDE.md template for new repositories |
 | `references/issue-labels.md` | Complete GitHub Issue label taxonomy |
 
@@ -351,6 +378,6 @@ new feature · audit code · I want to build a system
 
 ## Version
 
-`v01` — Initial hermetic package.  
+`v01` — Hermetic Canonical Package.  
 Author: QuantumEdu  
 License: Apache-2.0

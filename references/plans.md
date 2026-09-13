@@ -1,101 +1,89 @@
-# Mapeo de flujo-prompts-github por plan
+# Mapeo de flujo SDD por plan
 
-All paths are relative to the root of this package (`q-agent-v01/`).
+Todas las rutas son relativas a la raíz de este paquete (`q-agent-v01/`).
+Estructura de artefactos estándar: los cambios se alojan bajo `openspec/changes/{{CHANGE_ID}}/` (o en la raíz del repo para archivos globales como `CONSTITUTION.md` y `BLUEPRINT.md`).
 
 ---
 
-## Plan A — Greenfield (new system from scratch)
+## Plan A — Greenfield (sistema nuevo desde cero)
 
-Execute in strict order:
+Ejecutar en orden estricto:
 
-| Step | Prompt file | Artifact produced | Branch |
-|------|-------------|-------------------|--------|
-| P0 | `prompts/P00_constitution_template.md` | `CONSTITUTION.md` (initial rules & ADRs) | `main` / `develop` |
+| Paso | Archivo de prompt | Artefacto producido | Rama Git |
+|------|-------------------|---------------------|----------|
+| P0 | `templates/CONSTITUTION.md` | `CONSTITUTION.md` (reglas base + tabla ADRs) | `main` / `develop` |
+| P2 | `prompts/P02_context_engineering.md` | `CONTEXT.md` (viabilidad y hexagonal ligera) | `develop` |
+| P4 | `prompts/P04_propose.md` | `openspec/changes/{{CHANGE_ID}}/proposal.md` | `develop` |
+| P5 | `prompts/P05_spec.md` | `openspec/changes/{{CHANGE_ID}}/specs/{{FEATURE}}.md` | `feature/<name>` |
+| P6 | `prompts/P06_design.md` | `openspec/changes/{{CHANGE_ID}}/design.md` | `feature/<name>` |
+| P7 | `prompts/P07_tasks.md` | `openspec/changes/{{CHANGE_ID}}/tasks.md` | `feature/<name>` |
+| P8 | `prompts/P08_apply_verify.md` | Código verificado + `verify-report.md` | `feature/<name>` |
+| P1.5 / P04b | `prompts/P04b_constitution_sync.md` | `CONSTITUTION.md` (sync drift + log) | `develop` |
+
+> P0 inicializa la Constitution antes de entrar al pipeline.
+> P1 MAB-PC y P3 Evolución no aplican en Plan A (no hay código preexistente).
+
+**Gate obligatorio:** después de P4 `/propose` — mostrar al usuario y esperar aprobación explícita.
+
+---
+
+## Plan B — Brownfield (feature / evolución sobre código existente)
+
+Ejecutar en orden:
+
+| Paso | Archivo de prompt | Artefacto producido | Rama Git |
+|------|-------------------|---------------------|----------|
+| P1 | `prompts/P01_auditoria_mab_pc.md` | `BLUEPRINT.md` + `CONSTITUTION.md` | `develop` |
 | P2 | `prompts/P02_context_engineering.md` | `CONTEXT.md` | `develop` |
-| P4 | `prompts/P04_propose.md` | `proposal.md` | `develop` |
-| P5 | `prompts/P05_spec.md` | `spec.md` | `feature/<name>` |
-| P6 | `prompts/P06_design.md` | `design.md` | `feature/<name>` |
-| P7 | `prompts/P07_tasks.md` | `tasks.md` | `feature/<name>` |
-| P8 | `prompts/P08_apply_verify.md` | verified implementation | `feature/<name>` |
-| P1.5 / P04b | `prompts/P04b_constitution_sync.md` | `CONSTITUTION.md` (sync & drift log) | `feature/<name>` / `develop` |
+| P3 | `prompts/P03_evolucion_blueprint.md` | `BLUEPRINT_V2.md` + `DIFF_V1_VS_V2.md` | `develop` |
+| P4 | `prompts/P04_propose.md` | `openspec/changes/{{CHANGE_ID}}/proposal.md` | `feature/<name>` |
+| P5 | `prompts/P05_spec.md` | `openspec/changes/{{CHANGE_ID}}/specs/{{FEATURE}}.md` | `feature/<name>` |
+| P6 | `prompts/P06_design.md` | `openspec/changes/{{CHANGE_ID}}/design.md` | `feature/<name>` |
+| P7 | `prompts/P07_tasks.md` | `openspec/changes/{{CHANGE_ID}}/tasks.md` | `feature/<name>` |
+| P8 | `prompts/P08_apply_verify.md` | Código verificado + `verify-report.md` | `feature/<name>` |
+| P1.5 / P04b | `prompts/P04b_constitution_sync.md` | `CONSTITUTION.md` (sync drift + log) | `develop` |
 
-> P0 instantiates the initial Constitution before P2.
-> P1 MAB-PC does not apply in pure Plan A (no existing code to audit).
-> P3 Architectural Evolution does not apply either.
+**Gate obligatorio:** después de P4 `/propose`.
 
-**Mandatory gate:** after P4 `/propose` — show to the user and wait for approval.
+**Bifurcación Fast-Track (Nivel 1):** Si P4 clasifica el requerimiento como Nivel 1 (≤3 archivos, sin impacto en Dominio ni BD), deriva directamente a **P8 en modo Fast-Track** (test unitario + fix quirúrgico + commit atómico), saltando P5, P6 y P7.
 
----
-
-## Plan B — Brownfield (feature / evolution)
-
-Execute in order:
-
-| Step | Prompt file | Artifact produced | Branch |
-|------|-------------|-------------------|--------|
-| P1 | `prompts/P01_auditoria_adacg.md` | `BLUEPRINT.md` + `CONSTITUTION.md` | `develop` |
-| P2 | `prompts/P02_context_engineering.md` | `CONTEXT.md` | `develop` |
-| P3 | `prompts/P03_evolucion_blueprint.md` | `EVOLUTION.md` | `develop` |
-| P4 | `prompts/P04_propose.md` | `proposal.md` | `feature/<name>` |
-| P5 | `prompts/P05_spec.md` | `spec.md` | `feature/<name>` |
-| P6 | `prompts/P06_design.md` | `design.md` | `feature/<name>` |
-| P7 | `prompts/P07_tasks.md` | `tasks.md` | `feature/<name>` |
-| P8 | `prompts/P08_apply_verify.md` | verified implementation | `feature/<name>` |
-| P1.5 / P04b | `prompts/P04b_constitution_sync.md` | `CONSTITUTION.md` (sync & drift log) | `feature/<name>` / `develop` |
-
-**Mandatory gate:** after P4 `/propose`.
-
-**Note P1:** MAB-PC analyzes the existing repo using tags:
-- `[OBSERVED]` — exists and works
-- `[INFERRED]` — inferred from code
-- `[CONFLICT]` — detected inconsistency
-
-**Note P3:** Architectural Evolution reconciles blueprint vs real code using tags:
-- `[IMPLEMENTED]` — present in V1
-- `[ABSENT-IN-V1]` — in the blueprint but not in code
-- `[SIMPLIFIED-IN-V1]` — partially implemented
+**Etiquetas MAB-PC (P1):**
+- `[OBSERVADO]` — comprobado en código real
+- `[INFERIDO]` — deducido por convención
+- `[CONFLICTO]` — contradicción entre fuentes; pasa a gate humano
 
 ---
 
-## Plan C — Audit (review and improve)
+## Plan C — Audit (revisar, auditar y diagnosticar)
 
-Execute in order:
+Ejecutar en orden:
 
-| Step | Prompt file | Artifact produced | Branch |
-|------|-------------|-------------------|--------|
-| P1 | `prompts/P01_auditoria_adacg.md` | `BLUEPRINT.md` + `CONSTITUTION.md` | `audit/<date>` |
-| CAB-RP | `prompts/P09_compliance_audit.md` | `AUDIT_REPORT.md` | `audit/<date>` |
-| — | Recommendations | Issues per gap found | `fix/<name>` |
+| Paso | Archivo de prompt | Artefacto producido | Rama Git |
+|------|-------------------|---------------------|----------|
+| P1 | `prompts/P01_auditoria_mab_pc.md` | `BLUEPRINT.md` + `CONSTITUTION.md` | `audit/<date>` |
+| P9 (CAB-RP) | `prompts/P09_compliance_audit.md` | `AUDIT_REPORT.md` (matriz + specs EARS + plan P0/P1) | `audit/<date>` |
+| Remediación | Generación de Issues GitHub | Issues creados por brecha con severidad | `audit/<date>` |
 
-**No scope gate in Plan C.** The agent generates the full report and creates
-remediation Issues, each labeled with severity.
+**No hay gate de scope ni implementación de código en Plan C.** El ciclo concluye con la entrega de `AUDIT_REPORT.md` y la creación de los Issues de remediación en GitHub.
 
-**CAB-RP audit categories (execute in order):**
-- Cat. 0: Base Architecture (Clean + Hexagonal, design patterns, TDD)
-- Cat. 1: Telemetry and observability
-- Cat. 2: Security (inputs, auth, secrets, dependencies)
-- Cat. 3: Code quality and test coverage
-- Cat. 4: Usability and interface (invoke UI/UX audit prompt if applicable)
-- Cat. 5: Uncovered NFRs
-
-Gaps in Cat. 0 → treated as P0 automatically, Issue with label `priority:critical`.
+**Invariantes de Auditoría P9:**
+- Inmutabilidad absoluta en disco (`git status -s` idéntico al estado de partida).
+- CodeGraph primero para análisis de dependencias y blast radius.
+- Anti-Mock / Fake Data check: tolerancia cero a funcionalidades simuladas con stubs.
 
 ---
 
-## Templates
+## Templates Canónicos
 
-| Template | File |
-|----------|------|
-| Architecture Decision Record | `templates/ADR-template.md` |
-| Blueprint | `templates/BLUEPRINT.md` |
-| Constitution | `templates/CONSTITUTION.md` |
-| Propose scope | `templates/proposal.md` |
+| Plantilla | Archivo |
+|-----------|---------|
+| Architecture Decision Record | `templates/ADR.md` |
+| Blueprint del Sistema | `templates/BLUEPRINT.md` |
+| Constitución Arquitectónica | `templates/CONSTITUTION.md` |
+| Propuesta de Cambio (/propose) | `templates/PROPOSAL.md` |
 
 ---
 
-## Note on the executor
+## Nota de compatibilidad con ejecutores
 
-The flujo-prompts-github is tool-agnostic by design.
-The executor (Codex / Antigravity / OpenCode / Pi) receives the generated
-artifacts (spec.md, design.md, tasks.md) as input context.
-There is no executor dependency in the flow prompts.
+El flujo es tool-agnostic por diseño. El executor (Codex / Antigravity / OpenCode / Pi) recibe los artefactos generados bajo `openspec/changes/{{CHANGE_ID}}/` como contexto de entrada delimitado sin dependencias propietarias.

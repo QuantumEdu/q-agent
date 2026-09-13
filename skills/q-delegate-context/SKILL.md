@@ -1,5 +1,5 @@
 ---
-name: delegate-context-work
+name: q-delegate-context
 description: "Coordina lectura de archivos, boilerplate e implementación acotada mediante subagentes del mismo entorno o ejecutores externos como Codex y Antigravity. Selecciona ejecutor, modelo y esfuerzo de forma automática o explícita, y valida resultados."
 metadata:
   version: "1.1.0"

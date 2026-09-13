@@ -11,7 +11,7 @@ fecha: "{{YYYY-MM-DD}}"
 # P1 — Framework Maestro ADACG
 > **Architectural Discovery, Audit & Context Grounding**
 
-> ⚠️ **Si no tienes repos de referencia:** Usa la Ruta B de `02_guia_metodologica_universal.md` en lugar de este prompt.
+> 💡 **Regla de Contexto:** Si no existen repositorios de referencia preexistentes, este paso no aplica; el ciclo corresponde a **Plan A (Greenfield)**.
 
 ---
 

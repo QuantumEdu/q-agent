@@ -95,8 +95,8 @@ Example output: *"Found 2 past projects using FastAPI + PostgreSQL. Key lesson: 
 
 If N → continue.
 
-### 2c. grill-me (Plan A only)
-Invoke `skills/grill-me` with accumulated context. Surfaces unconsidered assumptions.
+### 2c. q-grill-me (Plan A only)
+Invoke `skills/q-grill-me` with accumulated context. Surfaces unconsidered assumptions.
 User answers → add to `PROJECT_CONTEXT.md`.
 
 End of Step 2: synthesize all context into `PROJECT_CONTEXT.md`.
@@ -121,17 +121,14 @@ Runtime decision:
 
 ## STEP 4 — Infrastructure setup (autonomous)
 
-Delegate multi-file reads and analysis to `skills/delegate-context-work`.
+Delegate multi-file reads and analysis to `skills/q-delegate-context`.
 Do not read large codebases in the main orchestrator thread.
 
 **Plan A:**
 1. `gh repo create <name> --private`
 2. Create `CLAUDE.md` at repo root — use `references/claude-md-template.md`
-3. Initialize `CONSTITUTION.md` at repo root using `templates/CONSTITUTION.md` and `prompts/P00_constitution_template.md` (register stack, immutable principles from Steps 1–2, and initialize ADR table)
-4. Verify and initialize subsystems if not active:
-   - SkillVault (`QuantumEdu/kbs`) — verify MCP connection
-   - Telemetry — verify configuration
-   - SDDinit with Engram — verify state
+3. Initialize `CONSTITUTION.md` at repo root using `templates/CONSTITUTION.md` (register stack, immutable principles from Steps 1–2, and initialize ADR table)
+4. Verify and initialize subsystems if not active (SkillVault, Telemetry, Engram)
 5. Create Issues:
    - `[SETUP] Infrastructure initialized` — Step 3 summary
    - `[ADR-001] Runtime and architecture decision` — full rationale (registered in `CONSTITUTION.md`)
@@ -139,9 +136,9 @@ Do not read large codebases in the main orchestrator thread.
 
 **Plan B:**
 1. Clone or verify access to existing repository
-2. Verify and initialize subsystems if not active (same 3 as Plan A)
+2. Verify subsystems
 3. Create `[FEATURE] <description>` Issue with full context
-4. `git checkout -b feature/<descriptive-name>`
+4. Checkout or ensure branch: P1 to P3 executed on `develop`, P4 bifurcates to `feature/<descriptive-name>`
 
 **Plan C:**
 1. Clone or verify access to repository to audit
@@ -152,7 +149,7 @@ Do not read large codebases in the main orchestrator thread.
 
 ## STEP 5 — SDD pipeline (autonomous)
 
-Execute prompts per `references/plans.md`. After each artifact:
+Execute prompts per `references/plans.md`. Standard storage: `openspec/changes/{{CHANGE_ID}}/`.
 
 ```bash
 git add <artifact>
@@ -160,12 +157,16 @@ git commit -m "feat: <artifact name>"
 git push origin <branch>
 ```
 
-**Valid interruption #1 — P4 gate:** After `/propose` completes → show `proposal.md`
+**Fast-Track Shortcut (Nivel 1):** If P4 classifies the change as Nivel 1 (≤3 files, no Domain/DB impact), skip P5, P6, P7 and execute directly via P8 Fast-Track.
+
+**Valid interruption #1 — P4 gate:** After `/propose` completes on Nivel 2 → show `proposal.md`
 IN/OUT scope to user. Wait for `Y` before continuing.
 
 ---
 
 ## STEP 6 — Implementation + hygiene (autonomous)
+
+*(Omite en Plan C — las auditorías generan reporte e Issues de remediación sin codificar)*
 
 ### Sub-phase A — Implementation
 Per feature or fix:
@@ -174,11 +175,6 @@ Per feature or fix:
 3. Implement with descriptive commits
 4. `gh pr create --base develop --body "Closes #N"`
 5. Merge on quality pass
-
-Branching rules:
-- `main` → stable production, PR only
-- `develop` → continuous integration
-- `feature/<name>` · `fix/<name>` · `audit/<date>-<name>`
 
 ### Sub-phase B — Hygiene (SwarmForge pattern)
 After each implementation unit, in strict order:
@@ -212,9 +208,11 @@ Trigger: after any feature that touches architectural patterns, adds/replaces an
 
 ## STEP 7 — Closure (autonomous)
 
-### 7a. q-audit-readonly
-Invoke `skills/q-session-quality-suite/q-audit-readonly`. Zero disk mutations.
-Creates Issues per gap: label `type:nfr-gap` + severity P1/P2.
+### 7a. Pre-delivery Compliance Audit (P09 CAB-RP)
+Execute `prompts/P09_compliance_audit.md` (CAB-RP).
+- **Invariantes:** Inmutabilidad absoluta en disco (`git status -s` idéntico al final); CodeGraph primero; Tolerancia cero a completitudes falsas (anti-mock).
+- Output: `AUDIT_REPORT.md` (Matriz + Checklist 9 categorías + Specs EARS por gap + Plan P0/P1).
+- Creates GitHub Issues for each detected gap (`type:nfr-gap` + severity).
 
 ### 7b. Retrospective Issue
 Create Issue with label `type:retrospective`. Body structure:
@@ -231,7 +229,7 @@ Create Issue with label `type:retrospective`. Body structure:
 ### Artifacts generated
 - [list: BLUEPRINT.md, spec.md, etc.]
 
-### Gaps detected by q-audit-readonly
+### Gaps detected by CAB-RP
 - [Issues created, with links]
 
 ### Executor used
@@ -242,10 +240,10 @@ Create Issue with label `type:retrospective`. Body structure:
 ```
 
 ### 7c. q-session-wrap
-Invoke `skills/q-session-quality-suite/q-session-wrap`:
+Invoke `skills/q-session-wrap`:
 - Engram: `mem_session_summary`
-- SkillVault: session entry + artifacts
-- SQLite: `VACUUM INTO` snapshot
+- SkillVault (si está disponible): session entry + artifacts
+- SQLite: `VACUUM INTO` snapshot (si aplica)
 
 ### 7d. Final report
 Deliver in chat: what was done · key decisions · open Issues URLs · next step.
@@ -283,15 +281,15 @@ Each architectural decision Issue uses this body (label: `type:adr`):
 | Pipeline mapping A/B/C | `references/plans.md` |
 | CLAUDE.md template | `references/claude-md-template.md` |
 | GitHub label taxonomy | `references/issue-labels.md` |
-| SDD prompts P00–P09 | `prompts/` |
+| SDD prompts P01–P09 | `prompts/` |
 | Constitution Sync (P1.5) | `prompts/P04b_constitution_sync.md` |
+| Compliance Audit CAB-RP | `prompts/P09_compliance_audit.md` |
 | Artifact templates | `templates/` |
 | Architectural deliberation | `skills/q-deliberate` |
-| Deep scope elicitation | `skills/grill-me` |
-| Sub-context delegation | `skills/delegate-context-work` |
+| Deep scope elicitation | `skills/q-grill-me` |
+| Sub-context delegation | `skills/q-delegate-context` |
 | Historical knowledge query | `skills/q-gbrain-assistant` |
-| Pre-delivery audit (read-only) | `skills/q-session-quality-suite/q-audit-readonly` |
-| Surgical CI repair | `skills/q-session-quality-suite/q-ci-fixer` |
-| Session closure + persistence | `skills/q-session-quality-suite/q-session-wrap` |
+| Surgical CI repair | `skills/q-ci-fixer` |
+| Session closure + persistence | `skills/q-session-wrap` |
 
 Read the relevant file before executing each step.

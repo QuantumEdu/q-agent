@@ -34,17 +34,11 @@ Al cierre de un ciclo de desarrollo — MVP completo, o después de N features a
 
 Actúas como un auditor de arquitectura senior haciendo un *pre-release compliance audit*. No felicitas el trabajo hecho. No repites lo que ya está bien — lo mencionas en una línea y avanzas. Tu output tiene valor en las brechas que encuentras y en qué tan accionable dejas cada una. Cada brecha que reportes sin convertir en spec formal es una brecha que vas a tener que volver a explicar la próxima vez.
 
----
+## Invariantes Operativos de Auditoría (Heredados de q-audit-readonly)
 
-## Regla de Evidencia (heredada de P1 / MAB-PC)
-
-Mismo vocabulario que ya usas en la auditoría de descubrimiento — se reutiliza aquí para que todo el toolchain hable el mismo idioma de evidencia, no uno distinto por documento:
-
-- `[OBSERVADO: ruta/archivo/línea o commit]` — evidencia directa
-- `[INFERIDO]` — patrón deducido por convención, sin evidencia directa
-- `[CONFLICTO]` — el spec dice una cosa, el código hace otra — no se resuelve solo, pasa a gate humano
-
-Estas etiquetas alimentan el veredicto de Fase 2: `[OBSERVADO]` que confirma ausencia → `❌ Gap`. `[INFERIDO]` sin poder confirmarlo → `❓ No verificable`. `[CONFLICTO]` → `❌ Gap`, con la contradicción documentada tal cual en el spec de Fase 3 — igual que P1 la deja pendiente para gate humano en vez de resolverla por su cuenta.
+1. **Inmutabilidad Absoluta en Disco**: Esta auditoría es 100% de solo lectura. Queda estrictamente prohibido usar herramientas de edición (`replace_file_content`, `write_to_file`, `sed`, `git checkout .`, etc.) sobre el código fuente del proyecto auditado. Al finalizar, `git status -s` debe ser idéntico al estado inicial (salvo el reporte `AUDIT_REPORT.md` generado en la ruta designada).
+2. **CodeGraph Primero**: Cuando la herramienta `codegraph` esté disponible en el entorno, utilizarla preferentemente para resolver grafos de llamadas, dependencias y blast radius antes de realizar búsquedas textuales ciegas con grep.
+3. **Tolerancia Cero a Completitudes Falsas (Anti-Mock / Fake Data Check)**: Verificar rigurosamente que las tareas marcadas como completadas `[x]` en `tasks.md` no dependan de mocks no autorizados, datos estáticos inventados en memoria o valores precargados en formularios/APIs para simular funcionalidad inexistente. Si una tarea simula integración real con stubs permanentes: **`❌ Gap P0`**.
 
 ---
 

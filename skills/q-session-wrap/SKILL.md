@@ -46,14 +46,15 @@ Consolidar el resumen de sesión en Engram con la estructura obligatoria:
 - **## Next Steps**: Próximas prioridades desbloqueadas para la siguiente sesión.
 - **## Relevant Files**: Archivos modificados y su función.
 
-### Paso 3: Registro en SkillVault
-1. Registrar la sesión en SkillVault:
-   `skillvault add-entry --title "Sesión [Proyecto] - [Fecha]" --summary "Resumen ejecutivo" --type session --project "[Proyecto]" --tags "session,wrap,[proyecto]"`
-2. Si se crearon documentos o artefactos relevantes, guardarlos con `skillvault save-artifact`.
+### Paso 3: Registro en SkillVault (Opcional / Si está disponible)
+1. Si la CLI `skillvault` o el MCP correspondiente está disponible en el entorno:
+   - Registrar sesión: `skillvault add-entry --title "Sesión [Proyecto] - [Fecha]" --summary "Resumen ejecutivo" --type session --project "[Proyecto]" --tags "session,wrap,[proyecto]"`
+   - Guardar artefactos relevantes: `skillvault save-artifact`.
+2. Si `skillvault` no está instalado: omitir este paso sin bloquear el cierre.
 
-### Paso 4: Respaldo Atómico SQLite (VACUUM INTO)
-1. Ejecutar `skillvault backup` para generar el snapshot JSON fechado.
-2. Ejecutar `VACUUM INTO` en SQLite sobre `~/.skillvault/vault.db` generando copias atómicas en `~/.skillvault/exports/` y `~/backups/skillvaults.db`.
+### Paso 4: Respaldo Atómico SQLite (Opcional / Si aplica)
+1. Si `~/.skillvault/vault.db` existe: ejecutar `VACUUM INTO` generando copias atómicas en `~/.skillvault/exports/`.
+2. Si el proyecto tiene base de datos SQLite local: verificar que se encuentre en modo WAL y sin bloqueos residuales.
 
 ### Paso 5: Emisión del Reporte Ejecutivo al Usuario
 Presentar en el mensaje final el resumen claro con:
