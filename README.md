@@ -26,8 +26,8 @@ q-agent operates under one of three plans, selected at the start of every cycle:
 
 | Plan | Use case | Pipeline |
 |------|----------|---------|
-| **A — Greenfield** | New system from scratch | P2 → P4 → P5 → P6 → P7 → P8 |
-| **B — Brownfield** | Feature or evolution on existing code | P1 → P2 → P3 → P4 → P5 → P6 → P7 → P8 |
+| **A — Greenfield** | New system from scratch | P0 → P2 → P4 → P5 → P6 → P7 → P8 (sync P1.5) |
+| **B — Brownfield** | Feature or evolution on existing code | P1 → P2 → P3 → P4 → P5 → P6 → P7 → P8 (sync P1.5) |
 | **C — Audit** | Review, audit and improve existing code | P1 → P9 (CAB-RP) |
 
 ---
@@ -121,8 +121,9 @@ Delegates heavy sub-tasks via `delegate-context-work` (FirstMate pattern) to kee
 **Plan A:**
 1. Create private GitHub repository
 2. Create `CLAUDE.md` at repo root (from `references/claude-md-template.md`)
-3. Verify subsystems (SkillVault, Telemetry, SDDinit + Engram)
-4. Create initial Issues: `[SETUP]`, `[ADR-001]`, `[SCOPE] MVP`
+3. Initialize `CONSTITUTION.md` at repo root (from `templates/CONSTITUTION.md` / `prompts/P00_constitution_template.md`) with stack, domain rules, and initial ADR table
+4. Verify subsystems (SkillVault, Telemetry, SDDinit + Engram)
+5. Create initial Issues: `[SETUP]`, `[ADR-001]` (registered in Constitution), `[SCOPE] MVP`
 
 **Plan B:**
 1. Clone / verify access to existing repo
@@ -163,6 +164,7 @@ git push origin <active-branch>
 | **P06** | `prompts/P06_design.md` | `design.md` — architectural design |
 | **P07** | `prompts/P07_tasks.md` | `tasks.md` — atomic task breakdown |
 | **P08** | `prompts/P08_apply_verify.md` | Verified TDD implementation |
+| **P1.5 / P04b** | `prompts/P04b_constitution_sync.md` | `CONSTITUTION.md` — Continuous sync, drift audit & ADR status table |
 | **P09** | `prompts/P09_compliance_audit.md` | `AUDIT_REPORT.md` — CAB-RP compliance audit |
 
 ---
@@ -192,6 +194,14 @@ After each implementation unit, in order:
 2. **Surgical CI repair — only if exit ≠ 0:** Invoke `q-ci-fixer` on `git diff` files ONLY.
    - Never on the full codebase. Never for cosmetic changes.
    - **Hard cap: maximum 2 passes.** If still failing → create Issue `[CI-BLOCK]` with `priority:high` and continue.
+
+#### Sub-phase C — Constitution & ADR Sync (`P04b_constitution_sync.md`)
+Triggered when an architectural boundary is crossed, a new/replacement ADR is created, or every 7 tasks:
+1. Compares cumulative `git diff` against `CONSTITUTION.md`.
+2. Flags decisions as `[VIGENTE]`, `[NUEVO]`, `[DRIFT-DETECTADO]`, or `[OBSOLETO]`.
+3. Updates Section 3 ADR status table (records `ADR-[NNN]` as active or `REEMPLAZADO por ADR-XXX`).
+4. Invariant: ADRs are immutable — decisions are never edited in-place; a new ADR supersedes the old one.
+5. Appends changes to `## SYNC LOG` and commits.
 
 ---
 

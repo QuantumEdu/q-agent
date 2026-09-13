@@ -528,12 +528,14 @@
       <p>New system from scratch. Full elicitation, deliberation, and specification before a single line of code.</p>
       <div style="margin-bottom:10px;font-size:12px;color:var(--text2);">Pipeline:</div>
       <div class="pipeline-line">
+        <span class="p-chip">P0</span><span class="p-arrow">→</span>
         <span class="p-chip">P2</span><span class="p-arrow">→</span>
         <span class="p-chip">P4</span><span class="p-arrow">→</span>
         <span class="p-chip">P5</span><span class="p-arrow">→</span>
         <span class="p-chip">P6</span><span class="p-arrow">→</span>
         <span class="p-chip">P7</span><span class="p-arrow">→</span>
-        <span class="p-chip">P8</span>
+        <span class="p-chip">P8</span><span class="p-arrow">→</span>
+        <span class="p-chip" title="Constitution Sync">P1.5</span>
       </div>
     </div>
     <div class="plan-card">
@@ -549,7 +551,8 @@
         <span class="p-chip">P5</span><span class="p-arrow">→</span>
         <span class="p-chip">P6</span><span class="p-arrow">→</span>
         <span class="p-chip">P7</span><span class="p-arrow">→</span>
-        <span class="p-chip">P8</span>
+        <span class="p-chip">P8</span><span class="p-arrow">→</span>
+        <span class="p-chip" title="Constitution Sync">P1.5</span>
       </div>
     </div>
     <div class="plan-card">
@@ -638,7 +641,7 @@
   <p>Agent decides: single-agent or multi-agent? Which executor runtime? Presents decision with rationale. User confirms → <strong style="color:var(--green)">autonomous mode begins</strong>.</p>
 
   <h3>Step 4 — Infrastructure Setup</h3>
-  <p>Delegates via <code>delegate-context-work</code> (FirstMate pattern). Creates GitHub repo, CLAUDE.md, initial Issues ([SETUP], [ADR-001], [SCOPE]), and verifies subsystems (SkillVault, Engram, Telemetry).</p>
+  <p>Delegates via <code>delegate-context-work</code> (FirstMate pattern). Creates GitHub repo, CLAUDE.md, initializes <code>CONSTITUTION.md</code> (with stack, principles and ADR table), initial Issues ([SETUP], [ADR-001], [SCOPE]), and verifies subsystems (SkillVault, Engram, Telemetry).</p>
 
   <h3>Step 5 — SDD Pipeline</h3>
   <p>Executes prompts in the order defined by the plan. Each artifact is committed immediately after generation. The P4 <code>/propose</code> gate is the first allowed interruption in autonomous mode.</p>
@@ -651,6 +654,10 @@
   <div class="alert alert-warn">
     <div class="alert-title">Sub-phase B — Hygiene (0 unnecessary tokens)</div>
     <p>1. Run linters locally. If exit 0 → proceed, 0 tokens spent. 2. If exit ≠ 0 → invoke <code>q-ci-fixer</code> on <code>git diff</code> files only. Hard cap: 2 passes. 3. Never for cosmetic changes.</p>
+  </div>
+  <div class="alert alert-ok">
+    <div class="alert-title">Sub-phase C — Constitution & ADR Sync (P04b)</div>
+    <p>Triggered on architectural changes or every 7 tasks: runs <code>P04b_constitution_sync.md</code> to audit drift, updates the ADR status table in <code>CONSTITUTION.md</code>, and enforces that ADRs are immutable (superseded, never modified in-place).</p>
   </div>
 
   <h3>Step 7 — Closure & Delivery</h3>
@@ -726,6 +733,12 @@
           <td><code>P08</code></td>
           <td><code>P08_apply_verify.md</code></td>
           <td>Verified TDD implementation</td>
+          <td>A, B</td>
+        </tr>
+        <tr>
+          <td><code>P1.5 / P04b</code></td>
+          <td><code>P04b_constitution_sync.md</code></td>
+          <td><code>CONSTITUTION.md</code> — sync, drift audit & ADR table</td>
           <td>A, B</td>
         </tr>
         <tr>

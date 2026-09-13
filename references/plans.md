@@ -10,13 +10,16 @@ Execute in strict order:
 
 | Step | Prompt file | Artifact produced | Branch |
 |------|-------------|-------------------|--------|
+| P0 | `prompts/P00_constitution_template.md` | `CONSTITUTION.md` (initial rules & ADRs) | `main` / `develop` |
 | P2 | `prompts/P02_context_engineering.md` | `CONTEXT.md` | `develop` |
 | P4 | `prompts/P04_propose.md` | `proposal.md` | `develop` |
 | P5 | `prompts/P05_spec.md` | `spec.md` | `feature/<name>` |
 | P6 | `prompts/P06_design.md` | `design.md` | `feature/<name>` |
 | P7 | `prompts/P07_tasks.md` | `tasks.md` | `feature/<name>` |
 | P8 | `prompts/P08_apply_verify.md` | verified implementation | `feature/<name>` |
+| P1.5 / P04b | `prompts/P04b_constitution_sync.md` | `CONSTITUTION.md` (sync & drift log) | `feature/<name>` / `develop` |
 
+> P0 instantiates the initial Constitution before P2.
 > P1 MAB-PC does not apply in pure Plan A (no existing code to audit).
 > P3 Architectural Evolution does not apply either.
 
@@ -38,6 +41,7 @@ Execute in order:
 | P6 | `prompts/P06_design.md` | `design.md` | `feature/<name>` |
 | P7 | `prompts/P07_tasks.md` | `tasks.md` | `feature/<name>` |
 | P8 | `prompts/P08_apply_verify.md` | verified implementation | `feature/<name>` |
+| P1.5 / P04b | `prompts/P04b_constitution_sync.md` | `CONSTITUTION.md` (sync & drift log) | `feature/<name>` / `develop` |
 
 **Mandatory gate:** after P4 `/propose`.
 

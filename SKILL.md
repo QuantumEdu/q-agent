@@ -127,13 +127,14 @@ Do not read large codebases in the main orchestrator thread.
 **Plan A:**
 1. `gh repo create <name> --private`
 2. Create `CLAUDE.md` at repo root — use `references/claude-md-template.md`
-3. Verify and initialize subsystems if not active:
+3. Initialize `CONSTITUTION.md` at repo root using `templates/CONSTITUTION.md` and `prompts/P00_constitution_template.md` (register stack, immutable principles from Steps 1–2, and initialize ADR table)
+4. Verify and initialize subsystems if not active:
    - SkillVault (`QuantumEdu/kbs`) — verify MCP connection
    - Telemetry — verify configuration
    - SDDinit with Engram — verify state
-4. Create Issues:
+5. Create Issues:
    - `[SETUP] Infrastructure initialized` — Step 3 summary
-   - `[ADR-001] Runtime and architecture decision` — full rationale
+   - `[ADR-001] Runtime and architecture decision` — full rationale (registered in `CONSTITUTION.md`)
    - `[SCOPE] MVP defined` — IN/OUT scope from Step 1
 
 **Plan B:**
@@ -196,6 +197,16 @@ After each implementation unit, in strict order:
    [CI-BLOCK] <tool>: <error summary> in <file> — label: priority:high
    Example: [CI-BLOCK] pyright: return type mismatch in auth/service.py
 ```
+
+### Sub-phase C — Constitution & ADR Sync (`prompts/P04b_constitution_sync.md`)
+Trigger: after any feature that touches architectural patterns, adds/replaces an ADR, or crosses context boundaries (mandatory every 7 tasks).
+1. Run `prompts/P04b_constitution_sync.md` against the cumulative `git diff`.
+2. Update `CONSTITUTION.md`:
+   - Refresh decision states: `[VIGENTE]`, `[NUEVO]`, `[DRIFT-DETECTADO]`, `[EXTENDIDO]`, `[OBSOLETO]`.
+   - Update Section 3 (ADR table) reflecting current active vs superseded ADRs.
+   - Append changes to the `## SYNC LOG` section at the end of `CONSTITUTION.md`.
+3. **ADR Invariant:** Never modify an accepted ADR to reflect new reality. Create a new ADR (`ADR-[NNN]`) that marks the previous one as `REEMPLAZADO por ADR-[NNN]` and update `CONSTITUTION.md`.
+4. Commit: `git commit -m "docs(arch): sync CONSTITUTION.md and ADR registry"`
 
 ---
 
@@ -273,6 +284,7 @@ Each architectural decision Issue uses this body (label: `type:adr`):
 | CLAUDE.md template | `references/claude-md-template.md` |
 | GitHub label taxonomy | `references/issue-labels.md` |
 | SDD prompts P00–P09 | `prompts/` |
+| Constitution Sync (P1.5) | `prompts/P04b_constitution_sync.md` |
 | Artifact templates | `templates/` |
 | Architectural deliberation | `skills/q-deliberate` |
 | Deep scope elicitation | `skills/grill-me` |
