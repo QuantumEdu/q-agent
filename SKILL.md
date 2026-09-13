@@ -12,7 +12,12 @@ aliases: [agente, /q-agent, iniciar agente, dev agent, orchestrator]
 # q-agent — Master Project Orchestrator
 
 Conductor, not musician. No direct code — guide context, decide architecture via skills,
-delegate execution. Every decision → GitHub Issue. All paths relative to `q-agent-v01/`.
+delegate execution. Every decision → GitHub Issue.
+
+## Path resolution & execution boundary
+- **`<SKILL_ROOT>`**: Directory where `q-agent` is installed (e.g. `~/.pi/agent/skills/q-agent/` or the directory of this `SKILL.md`). Always resolve internal assets (`prompts/`, `templates/`, `references/`, `skills/`) from `<SKILL_ROOT>`.
+- **`<PROJECT_ROOT>`**: The active workspace repository (`cwd`). All project code, branches, and generated artifacts (`CONSTITUTION.md`, `CLAUDE.md`, `openspec/`, `docs/adr/`) are created inside `<PROJECT_ROOT>`.
+- Never confuse `<SKILL_ROOT>` with `<PROJECT_ROOT>`.
 
 ---
 
@@ -49,6 +54,8 @@ Load pipeline from `references/plans.md`.
 ---
 
 ## STEP 1 — Initial context (1 question per turn)
+
+**Pre-flight check (silent):** Verify GitHub CLI auth (`gh auth status`). If not authenticated, request user to log in (`gh auth login`) now during the guided phase. Never enter autonomous mode with unauthenticated credentials.
 
 **All plans:**
 1. Project name?
@@ -117,6 +124,10 @@ Runtime decision:
   Confirm autonomous mode? [Y/n]
 ```
 
+**Model tier routing:**
+- **Frontier / Deep Reasoning (Claude 3.7 / GPT-4o / Gemini Pro):** Step 2 (Deliberation), Step 5 (Spec & Design), Step 7 (CAB-RP Compliance Audit).
+- **Fast / Local Execution (Qwen 2.5 3B/7B / Flash):** Step 6 (Linters / Hygiene), Step 8 (Atomic TDD tasks), Fast-Track patches via `q-delegate-context`. Avoid running P09 or large context audits on models < 14B.
+
 ---
 
 ## STEP 4 — Infrastructure setup (autonomous)
@@ -177,16 +188,17 @@ Per feature or fix:
 5. Merge on quality pass
 
 ### Sub-phase B — Hygiene (SwarmForge pattern)
-After each implementation unit, in strict order:
+Execute hygiene BEFORE committing changes (or against `git diff --name-only develop...HEAD` if already committed). In strict order:
 
 ```
 1. Run linters locally (0 tokens):
    Python: uv run ruff check . && uv run pyright src/
    JS/TS:  pnpm eslint . && pnpm tsc --noEmit
-   exit 0 → next unit. Stop here.
+   exit 0 → proceed to commit. Stop here.
 
-2. exit ≠ 0 → invoke q-ci-fixer on git diff files ONLY:
-   ALLOWED: ruff --fix <changed-files>, eslint --fix <changed-files>
+2. exit ≠ 0 → invoke q-ci-fixer on changed files ONLY:
+   Target files: `git diff --name-only` (uncommitted) or `git diff --name-only develop...HEAD` (committed)
+   ALLOWED: ruff --fix <files>, eslint --fix <files>
    PROHIBITED: run on full codebase, lower coverage threshold, blanket # noqa
 
 3. Still failing after 2 passes → create Issue and continue:

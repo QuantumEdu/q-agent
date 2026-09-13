@@ -10,6 +10,10 @@
 
 Every decision is **traceable as a GitHub Issue** in the project repository. Every step produces a documented artifact committed to Git.
 
+### Path Resolution & Execution Boundary
+- **`<SKILL_ROOT>`**: Directory where `q-agent` is installed (e.g. `~/.pi/agent/skills/q-agent/`). All internal orchestrator assets (`prompts/`, `templates/`, `references/`, `skills/`) are always resolved relative to `<SKILL_ROOT>`.
+- **`<PROJECT_ROOT>`**: Active target workspace repository (`cwd`). All project source code, Git branches, and generated artifacts (`CONSTITUTION.md`, `CLAUDE.md`, `openspec/`, `docs/adr/`) are created inside `<PROJECT_ROOT>`.
+
 ### Compatible runtimes
 | Runtime | How to activate |
 |---------|----------------|
@@ -298,11 +302,11 @@ Branch naming:
 - `audit/<date>-<name>` → audits (Plan C)
 
 #### Sub-phase B — Hygiene (SwarmForge pattern)
-After each implementation unit, in order:
+Executed BEFORE committing code (or against `git diff --name-only develop...HEAD` if already committed):
 
 1. **Deterministic local check (0 tokens):** Run linters/formatters/type checks locally.
-   - Exit 0 → proceed. No tokens consumed.
-2. **Surgical CI repair — only if exit ≠ 0:** Invoke `q-ci-fixer` on `git diff` files ONLY.
+   - Exit 0 → proceed to commit. No tokens consumed.
+2. **Surgical CI repair — only if exit ≠ 0:** Invoke `q-ci-fixer` on changed files ONLY (`git diff --name-only` uncommitted or `develop...HEAD`).
    - Never on the full codebase. Never for cosmetic changes.
    - **Hard cap: maximum 2 passes.** If still failing → create Issue `[CI-BLOCK]` with `priority:high` and continue.
 
