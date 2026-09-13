@@ -86,6 +86,76 @@ Everything else → the agent decides, records the rationale in a GitHub Issue, 
 
 ---
 
+## Architectural Flow Diagram
+
+```mermaid
+flowchart TD
+    classDef guided fill:#1c2333,stroke:#58a6ff,stroke-width:2px,color:#e6edf3;
+    classDef auto fill:#161b22,stroke:#3fb950,stroke-width:2px,color:#e6edf3;
+    classDef gate fill:#2d1b1b,stroke:#f78166,stroke-width:2px,color:#e6edf3;
+    classDef skill fill:#1f1b2d,stroke:#bc8cff,stroke-width:1px,color:#e6edf3;
+
+    subgraph Guided["MODO GUIADO (Pasos 0 a 3)"]
+        S0["Paso 0: Selección de Plan (A, B o C)"]:::guided --> S1["Paso 1: Contexto Inicial (1 pregunta a la vez)"]:::guided
+        S1 --> S2["Paso 2: Investigación y Elicitación"]:::guided
+        S2 -.-> S2a["q-deliberate (Debate y ADRs)"]:::skill
+        S2 -.-> S2b["q-gbrain-assistant (Memoria Histórica)"]:::skill
+        S2 -.-> S2c["q-grill-me (Elicitación Plan A)"]:::skill
+        S2 --> S3{"Paso 3: Gate de Runtime"}:::gate
+    end
+
+    S3 -->|"Confirmación del Usuario"| Auto["MODO AUTÓNOMO (Pasos 4 a 7)"]
+
+    subgraph Auto["MODO AUTÓNOMO (Pasos 4 a 7)"]
+        S4["Paso 4: Setup Infraestructura (Repo, CLAUDE.md, CONSTITUTION, Issues)"]:::auto --> S5["Paso 5: SDD Pipeline"]:::auto
+
+        subgraph Pipelines["Pipelines por Plan"]
+            direction TB
+            subgraph PlanA["Plan A: Greenfield"]
+                PA_P0["P0: templates/CONSTITUTION.md"] --> PA_P2["P2: Context Engineering"]
+                PA_P2 --> PA_P4["P4: /propose"]
+                PA_P4 -->|"Gate 1: Aprobación Scope"| PA_P5["P5: /spec (BDD)"]
+                PA_P5 --> PA_P6["P6: /design (Contratos)"]
+                PA_P6 --> PA_P7["P7: /tasks (TDD)"]
+                PA_P7 --> PA_P8["P8: /apply + /verify"]
+            end
+
+            subgraph PlanB["Plan B: Brownfield"]
+                PB_P1["P1: MAB-PC Audit"] --> PB_P2["P2: Context Engineering"]
+                PB_P2 --> PB_P3["P3: Blueprint Evolution"]
+                PB_P3 --> PB_P4["P4: /propose"]
+                PB_P4 -->|"Fast-Track (Nivel 1)"| PB_P8["P8: Fix Atómico"]
+                PB_P4 -->|"Full SDD (Nivel 2)"| PB_P5["P5: /spec"]
+                PB_P5 --> PB_P6["P6: /design"]
+                PB_P6 --> PB_P7["P7: /tasks"]
+                PB_P7 --> PB_P8
+            end
+
+            subgraph PlanC["Plan C: Audit"]
+                PC_P1["P1: MAB-PC Audit"] --> PC_P9["P9: CAB-RP Compliance Audit"]
+                PC_P9 --> PC_Issues["Generación de Issues de Remediación"]
+            end
+        end
+
+        S5 --> S6["Paso 6: Implementación e Higiene (Planes A y B)"]:::auto
+        subgraph Hygiene["Higiene de Código (SwarmForge)"]
+            S6A["Sub-A: Código en feature/"] --> S6B{"Sub-B: Linters Locales"}
+            S6B -->|"Exit 0 (0 tokens)"| S6C["Sub-C: P04b Constitution Sync"]
+            S6B -->|"Exit != 0"| Fixer["q-ci-fixer (Máx 2 pasadas)"]:::skill
+            Fixer --> S6C
+        end
+
+        S6 --> S7["Paso 7: Cierre y Entrega"]:::auto
+        subgraph Closure["Protocolo de Cierre"]
+            S7A["7a: P09 CAB-RP Compliance Audit"] --> S7B["7b: Issue Retrospectiva"]
+            S7B --> S7C["7c: q-session-wrap (Engram, SkillVault, SQLite)"]:::skill
+            S7C --> S7D["7d: Reporte Ejecutivo en Chat"]
+        end
+    end
+```
+
+---
+
 ## Step-by-step Walkthrough
 
 ### Step 0 — Plan Identification
