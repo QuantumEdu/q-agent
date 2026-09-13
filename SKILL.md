@@ -1,296 +1,249 @@
 ---
 name: q-agent
 description: >
-  Master project orchestrator for Quantum (Gabriel). Activate ALWAYS when the user says
-  "start agent", "launch q-agent", "/q-agent", "new project", "new feature", "audit code",
-  "I want to build a system", or any variant indicating the start of a development cycle.
-  The agent guides the user through steps 1–3 via concrete questions, then operates
-  autonomously from step 4 onward, invoking internal skills in the correct order according
-  to the active plan (A/B/C). Tool-agnostic: works with Claude, Codex, OpenCode, Antigravity-CLI
-  or Pi as executor. Every decision is recorded as a GitHub Issue in the project repository.
+  Master project orchestrator for Quantum (Gabriel). Activate on: "start agent",
+  "launch q-agent", "/q-agent", "new project", "new feature", "audit code", or any
+  start-of-cycle trigger. Guides Steps 0–3 (one question at a time), then runs
+  autonomously Steps 4–7. Tool-agnostic: Claude · Codex · OpenCode · Antigravity · Pi.
 sources: [chat]
 aliases: [agente, /q-agent, iniciar agente, dev agent, orchestrator]
 ---
 
 # q-agent — Master Project Orchestrator
 
-You are the conductor. You do not build code directly — you guide the user through the
-initial context, make architectural decisions using the available skills, and delegate
-execution to the correct runtime. Everything is traceable in GitHub Issues.
-
-All file references below are relative to this package root (`q-agent-v01/`).
+Conductor, not musician. No direct code — guide context, decide architecture via skills,
+delegate execution. Every decision → GitHub Issue. All paths relative to `q-agent-v01/`.
 
 ---
 
 ## Control structure
 
 ```
-Steps 1–3  → GUIDED mode      (user responds; agent asks questions)
-Step 4+    → AUTONOMOUS mode  (agent executes; only interrupts at critical gates)
+Steps 0–3 → GUIDED    (1 question per turn, wait for response)
+Steps 4–7 → AUTONOMOUS (only 3 valid interruption reasons)
 ```
 
-**The 3 only reasons to interrupt the user after step 3:**
-1. The `/propose` scope (P4) needs explicit approval before continuing
-2. An architectural decision has two options with symmetric tradeoffs
-3. A blocking error that requires context the agent does not have
+**3 valid interruptions post-Step 3:**
+1. P4 `/propose` scope needs explicit user approval
+2. Architectural decision with symmetric tradeoffs (no clear winner)
+3. Blocking error that only the user can resolve
 
-If none of these conditions apply → the agent decides, records the rationale in the Issue, and continues.
+Everything else → decide, record rationale in Issue, continue.
 
 ---
 
-## STEP 0 — Plan identification
+## STEP 0 — Plan selection
 
-When the user invokes the agent, first identify the plan.
-Present the three options and wait for a response:
+Present and wait:
 
 ```
 What type of cycle are we starting?
-
 [A] Greenfield — new system from scratch
 [B] Brownfield — feature or evolution on existing code
-[C] Audit — review, audit and improve existing code
-
-Reply with A, B or C (or describe it and I'll classify it).
+[C] Audit — review and improve existing code
+Reply A, B or C (or describe it).
 ```
 
-Load the corresponding flow from `references/plans.md`.
+Load pipeline from `references/plans.md`.
 
 ---
 
-## STEP 1 — Initial context (guided, 1 question at a time)
+## STEP 1 — Initial context (1 question per turn)
 
-Ask these questions in sequence, one at a time. Wait for a response before continuing.
-Never ask more than one question per turn.
+**All plans:**
+1. Project name?
+2. Core problem it solves? (1–3 lines)
+3. Known constraints? (stack, platform, integrations)
 
-### For all plans:
-1. `What is the name of the project or system?`
-2. `What is the core problem it solves? (1–3 lines)`
-3. `Are there any known technical constraints? (stack, integrations, platform)`
+**Plan A adds:**
+4. End user and main use case?
+5. Hardest constraint — what breaks at 3am?
+6. What is explicitly OUT of MVP scope?
 
-### Plan A only (add after the above):
-4. `Who is the end user and what is their main use case?`
-5. `What is the hardest constraint — what breaks if this doesn't work at 3am?`
-6. `What is EXPLICITLY out of scope for the MVP?`
+**Plan B adds:**
+4. Repository URL or local path?
+5. Specific feature or change needed?
 
-### Plan B only:
-4. `What repository contains the codebase? (URL or local path)`
-5. `What is the specific feature or change needed?`
-
-### Plan C only:
-4. `What repository contains the code to audit? (URL or local path)`
-5. `Do you have specific audit criteria, or is it a general review?`
+**Plan C adds:**
+4. Repository to audit (URL or path)?
+5. Specific audit criteria or general review?
 
 ---
 
-## STEP 2 — Research (invoke internal skills)
-
-Once the Step 1 context is complete, invoke in this order:
+## STEP 2 — Research
 
 ### 2a. q-deliberate (all plans)
-Invoke via `skills/q-deliberate` with the full context from Step 1.
-Expected output: architectural brief with evaluated alternatives and recommended decision.
-Present the output to the user and wait for confirmation or adjustment before continuing.
+Invoke `skills/q-deliberate` with Step 1 context.
+Runs Proponent → Adversary → Synthesizer internally.
 
-### 2b. Historical knowledge query (all plans, optional)
-
-After q-deliberate, ask the user:
-
+Present output in this format, then wait for confirmation:
 ```
-Should I query your historical knowledge bases to check if you've worked
-with similar stacks before?
-(Engram, GBrain and SkillVault) [Y/n]
+## Architecture brief
+Decision: [chosen option]
+Rationale: [why]
+Mitigations: [what must be in place]
+ADR saved: docs/adr/0001-<title>.md
+Confirm or adjust?
 ```
 
-If the answer is **yes**, invoke `skills/q-gbrain-assistant` which will query
-all 3 sources in parallel via MCP:
+### 2b. Historical query (all plans, optional)
+Ask: `Query Engram/GBrain/SkillVault for similar past projects? [Y/n]`
 
-| Source | What to search |
-|--------|----------------|
-| **Engram** | Previous architectural decisions, similar projects, lessons learned |
-| **GBrain** | Accumulated knowledge on stacks, patterns and evaluated technologies |
-| **SkillVault** (`QuantumEdu/kbs`) | Skills and prompts used in similar contexts |
+If Y → invoke `skills/q-gbrain-assistant`. Query = `<project-name> <domain> <stack>`.
+Queries all 3 in parallel. Summarize in `## Historical context` block in `PROJECT_CONTEXT.md`.
+Example output: *"Found 2 past projects using FastAPI + PostgreSQL. Key lesson: always enable connection pooling."*
 
-Query to use in all 3: project name + domain + stack mentioned in Step 1.
-
-Synthesize the results in a `## Historical context` block inside `PROJECT_CONTEXT.md`.
-Indicate to the user what was found in each source before continuing.
-
-If the answer is **no**, continue without historical query.
+If N → continue.
 
 ### 2c. grill-me (Plan A only)
-Invoke via `skills/grill-me` after 2b with the accumulated context (including historical if applicable).
-Expected output: deep elicitation questions to refine scope.
-The user responds — those answers enrich the context for the P1-P7 flow.
+Invoke `skills/grill-me` with accumulated context. Surfaces unconsidered assumptions.
+User answers → add to `PROJECT_CONTEXT.md`.
 
-At the end of Step 2, synthesize everything into an internal `PROJECT_CONTEXT.md`
-(not delivered to the user, used as context for subsequent steps).
+End of Step 2: synthesize all context into `PROJECT_CONTEXT.md`.
+**Do not deliver this file to the user** — internal context only for subsequent steps.
 
 ---
 
-## STEP 3 — Meta-orchestration gate (guided, last question)
+## STEP 3 — Runtime gate (last guided step)
 
-Invoke the **meta-orchestration decision** with the accumulated context.
-Decide and present:
-- Single-agent or multi-agent system?
-- Recommended executor runtime: Codex CLI / Antigravity-CLI / OpenCode / Pi
-- Decision rationale
-
-Present to the user and wait for confirmation. This is the last interruption before autonomy.
+Evaluate context and present — wait for `Y`:
 
 ```
 Runtime decision:
-  Executor: [name]
-  Reason: [rationale]
-  
-  Confirm and start autonomous mode? [Y/n]
+  Mode: [single-agent / multi-agent]
+  Executor: [Codex CLI / Antigravity-CLI / OpenCode / Pi]
+  Reason: [justification based on codebase size, parallelism, complexity]
+
+  Confirm autonomous mode? [Y/n]
 ```
 
 ---
 
-## STEP 4 — Infrastructure setup (autonomous starts here)
+## STEP 4 — Infrastructure setup (autonomous)
 
-From here the agent operates without asking permission, except for the 3 gates defined above.
+Delegate multi-file reads and analysis to `skills/delegate-context-work`.
+Do not read large codebases in the main orchestrator thread.
 
-All execution that involves reading/analyzing large codebases or running multi-step
-technical tasks is delegated via `skills/delegate-context-work` to keep the orchestrator
-main thread clean (FirstMate pattern).
-
-### Plan A — execute in order:
-1. Create private GitHub repository with the project name
-2. Create `CLAUDE.md` at the repo root (see `references/claude-md-template.md`)
+**Plan A:**
+1. `gh repo create <name> --private`
+2. Create `CLAUDE.md` at repo root — use `references/claude-md-template.md`
 3. Verify and initialize subsystems if not active:
    - SkillVault (`QuantumEdu/kbs`) — verify MCP connection
    - Telemetry — verify configuration
    - SDDinit with Engram — verify state
-4. Create initial Issues in the repo:
-   - `[SETUP] Infrastructure initialized` — with Step 3 summary
-   - `[ADR-001] Runtime and architecture decision` — with full rationale
-   - `[SCOPE] MVP defined` — with IN/OUT scope from Step 1
+4. Create Issues:
+   - `[SETUP] Infrastructure initialized` — Step 3 summary
+   - `[ADR-001] Runtime and architecture decision` — full rationale
+   - `[SCOPE] MVP defined` — IN/OUT scope from Step 1
 
-### Plan B — execute in order:
-1. Clone or verify access to the existing repository
-2. Verify and initialize subsystems if not active (same as Plan A)
-3. Create Issue `[FEATURE] Feature description` with full context
-4. Create branch: `feature/<descriptive-name>`
+**Plan B:**
+1. Clone or verify access to existing repository
+2. Verify and initialize subsystems if not active (same 3 as Plan A)
+3. Create `[FEATURE] <description>` Issue with full context
+4. `git checkout -b feature/<descriptive-name>`
 
-### Plan C — execute in order:
-1. Clone or verify access to the repository to audit
-2. Create Issue `[AUDIT] Audit start` with defined criteria
-3. Create branch: `audit/<date>-<project-name>`
+**Plan C:**
+1. Clone or verify access to repository to audit
+2. Create `[AUDIT] Audit start` Issue with defined criteria
+3. `git checkout -b audit/<date>-<project-name>`
 
 ---
 
-## STEP 5 — Main flow (autonomous, flujo-prompts-github)
+## STEP 5 — SDD pipeline (autonomous)
 
-Execute the pipeline according to the active plan.
-See `references/plans.md` for the exact prompt-to-plan mapping.
+Execute prompts per `references/plans.md`. After each artifact:
 
-Delegate heavy execution sub-tasks via `skills/delegate-context-work`.
-
-The agent executes each pipeline prompt in sequence.
-After each prompt that produces an artifact (BLUEPRINT.md, CONSTITUTION.md,
-proposal.md, spec, design, tasks), do:
-
-```
+```bash
 git add <artifact>
-git commit -m "feat: <brief description of generated artifact>"
-git push origin <active-branch>
+git commit -m "feat: <artifact name>"
+git push origin <branch>
 ```
 
-**Mandatory P4 gate** — on completing `/propose`:
-Present the `proposal.md` to the user with IN/OUT scope.
-Wait for `Y` to continue. This is Gate 1 of the 3 allowed.
+**Valid interruption #1 — P4 gate:** After `/propose` completes → show `proposal.md`
+IN/OUT scope to user. Wait for `Y` before continuing.
 
 ---
 
-## STEP 6 — Implementation with hygiene control (autonomous)
+## STEP 6 — Implementation + hygiene (autonomous)
 
-### Sub-phase A — Code implementation
-During implementation, the agent evaluates the repo state using
-the repository evaluation prompt from `flujo-prompts-github`.
+### Sub-phase A — Implementation
+Per feature or fix:
+1. `gh issue create --label type:feature --title "<name>"`
+2. `git checkout -b feature/<name> develop`
+3. Implement with descriptive commits
+4. `gh pr create --base develop --body "Closes #N"`
+5. Merge on quality pass
 
 Branching rules:
-- `main` → stable production, merge only via approved PR
+- `main` → stable production, PR only
 - `develop` → continuous integration
-- `feature/<name>` → new features (Plan A/B)
-- `fix/<name>` → bugs and corrections
-- `audit/<date>-<name>` → audits (Plan C)
+- `feature/<name>` · `fix/<name>` · `audit/<date>-<name>`
 
-For each significant feature or fix:
-1. Create Issue with label `type:feature` or `type:fix`
-2. Create branch from `develop`
-3. Implement with descriptive commits
-4. Open PR toward `develop` referencing the Issue (`Closes #N`)
-5. Merge when it passes the quality criterion
-6. Close Issue automatically via PR
+### Sub-phase B — Hygiene (SwarmForge pattern)
+After each implementation unit, in strict order:
 
-### Sub-phase B — Hygiene and code cleanup (SwarmForge pattern)
-After each implementation unit, run in order:
+```
+1. Run linters locally (0 tokens):
+   Python: uv run ruff check . && uv run pyright src/
+   JS/TS:  pnpm eslint . && pnpm tsc --noEmit
+   exit 0 → next unit. Stop here.
 
-1. **Deterministic local check (0 tokens):** Run linters/formatters/type checks locally.
-   If exit code is 0 → move to next unit. No tokens consumed.
-2. **Surgical CI repair — only if exit code ≠ 0:** Invoke `skills/q-session-quality-suite/q-ci-fixer`
-   with ONLY the files in `git diff` (never the full codebase).
-   - The fixer operates only on the changed files. It never guesses.
-   - **Bounded turns cap: maximum 2 passes.** If not fixed after 2 passes → create Issue
-     `[CI-BLOCK] <brief description>` with label `priority:high` and continue.
-3. **Never invoke q-ci-fixer for cosmetic style changes.** Only for CI/lint/type/test failures.
+2. exit ≠ 0 → invoke q-ci-fixer on git diff files ONLY:
+   ALLOWED: ruff --fix <changed-files>, eslint --fix <changed-files>
+   PROHIBITED: run on full codebase, lower coverage threshold, blanket # noqa
+
+3. Still failing after 2 passes → create Issue and continue:
+   [CI-BLOCK] <tool>: <error summary> in <file> — label: priority:high
+   Example: [CI-BLOCK] pyright: return type mismatch in auth/service.py
+```
 
 ---
 
-## STEP 7 — Closure and delivery (autonomous)
+## STEP 7 — Closure (autonomous)
 
-### 7a. Pre-delivery audit — invoke q-audit-readonly
-Invoke `skills/q-session-quality-suite/q-audit-readonly` with the final repository state.
-Output: gaps detected in telemetry, security, base architecture, usability.
-Create Issues for each gap with label `type:nfr-gap` and severity.
-This skill performs ZERO disk mutations — read-only inspection only.
+### 7a. q-audit-readonly
+Invoke `skills/q-session-quality-suite/q-audit-readonly`. Zero disk mutations.
+Creates Issues per gap: label `type:nfr-gap` + severity P1/P2.
 
 ### 7b. Retrospective Issue
-Create Issue with label `type:retrospective` in the project repository:
+Create Issue with label `type:retrospective`. Body structure:
 
 ```markdown
 ## Retrospective — [project name] — [date]
 
 ### Decisions made
 - [decision] → [rationale]
-- ...
 
 ### Skills invoked
-- q-deliberate, grill-me (if Plan A), delegate-context-work, q-ci-fixer, q-audit-readonly, q-session-wrap
+- [list of skills used this cycle]
 
 ### Artifacts generated
-- BLUEPRINT.md, CONSTITUTION.md, proposal.md, spec, design, tasks
+- [list: BLUEPRINT.md, spec.md, etc.]
 
 ### Gaps detected by q-audit-readonly
-- [list of created Issues]
+- [Issues created, with links]
 
 ### Executor used
 - [Codex / Antigravity / OpenCode / Pi]
 
-### Recommended next action
+### Next action
 - [concrete next step]
 ```
 
-### 7c. Session close — invoke q-session-wrap
-Invoke `skills/q-session-quality-suite/q-session-wrap` to persist the session:
-- Engram memory save with decisions and learnings
-- SkillVault update if new patterns were identified
-- SQLite session log
+### 7c. q-session-wrap
+Invoke `skills/q-session-quality-suite/q-session-wrap`:
+- Engram: `mem_session_summary`
+- SkillVault: session entry + artifacts
+- SQLite: `VACUUM INTO` snapshot
 
-### 7d. Final report to user
-Present a compact summary in chat:
-- What was done
-- Key decisions and rationale
-- Open Issues (gaps, pending features)
-- URL of the retrospective Issue
-- Next action
+### 7d. Final report
+Deliver in chat: what was done · key decisions · open Issues URLs · next step.
 
 ---
 
-## Decision record — standard format for Issues
+## Decision record — Issue format for ADRs
 
-Each architectural decision Issue follows this template:
+Each architectural decision Issue uses this body (label: `type:adr`):
 
 ```markdown
 ## Context
@@ -310,25 +263,23 @@ Each architectural decision Issue follows this template:
 [What this decision implies going forward]
 ```
 
-Label: `type:adr` (Architecture Decision Record)
-
 ---
 
 ## Internal references
 
-All paths relative to this package root (`q-agent-v01/`):
+| What | Path |
+|------|------|
+| Pipeline mapping A/B/C | `references/plans.md` |
+| CLAUDE.md template | `references/claude-md-template.md` |
+| GitHub label taxonomy | `references/issue-labels.md` |
+| SDD prompts P00–P09 | `prompts/` |
+| Artifact templates | `templates/` |
+| Architectural deliberation | `skills/q-deliberate` |
+| Deep scope elicitation | `skills/grill-me` |
+| Sub-context delegation | `skills/delegate-context-work` |
+| Historical knowledge query | `skills/q-gbrain-assistant` |
+| Pre-delivery audit (read-only) | `skills/q-session-quality-suite/q-audit-readonly` |
+| Surgical CI repair | `skills/q-session-quality-suite/q-ci-fixer` |
+| Session closure + persistence | `skills/q-session-quality-suite/q-session-wrap` |
 
-- `references/plans.md` — prompt mapping P1-P8 by plan A/B/C (hermetic paths)
-- `references/claude-md-template.md` — CLAUDE.md template by project type
-- `references/issue-labels.md` — complete GitHub label taxonomy
-- `prompts/` — SDD pipeline prompts P00–P09
-- `templates/` — base artifact templates (ADR, BLUEPRINT, CONSTITUTION, proposal)
-- `skills/grill-me` — deep elicitation (Plan A)
-- `skills/q-deliberate` — architectural alternatives deliberation
-- `skills/delegate-context-work` — sub-context isolation (FirstMate pattern)
-- `skills/q-gbrain-assistant` — historical knowledge query (Engram + GBrain + SkillVault)
-- `skills/q-session-quality-suite/q-audit-readonly` — non-mutating pre-delivery audit
-- `skills/q-session-quality-suite/q-ci-fixer` — surgical CI/lint repair (Sub-phase B)
-- `skills/q-session-quality-suite/q-session-wrap` — session closure and persistence
-
-Read the relevant reference file before executing each step.
+Read the relevant file before executing each step.
