@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "1.0",
+  "version": "1.2",
   "runtime": {
     "executor": "antigravity",
     "mode": "single-agent",
@@ -11,6 +11,16 @@
       "P04_propose",
       "P09_compliance"
     ]
+  },
+  "workspace": {
+    "isolation": "worktree",
+    "worktree_pattern": "../{repo}-worktrees/{branch}",
+    "notes": "Options: inline (same directory), worktree (separate git worktree)"
+  },
+  "quality_gates": {
+    "reproduction_test_mandatory": true,
+    "ast_skeleton_first": true,
+    "max_consecutive_failures_before_rollback": 3
   },
   "models": {
     "tier1_frontier": "gemini-3.8-flash",

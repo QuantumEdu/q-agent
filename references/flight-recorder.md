@@ -34,6 +34,9 @@ Every log line follows a strict bracketed timestamp and tag structure:
 | `[LINTER]` | Local linter/testing verification runs | `PASS (0 tokens)`, `FAIL` |
 | `[ERROR]` | File not found, permission error, command failure | `BLOCKED`, `RECOVERED` |
 | `[MERGE]` | Branch integration completed | `OK`, `CONFLICT` |
+| `[WORKTREE]` | Isolated git worktree lifecycle | `CREATED`, `REMOVED` |
+| `[REPRODUCTION]` | Red-phase reproduction test verification (SWE-agent pattern) | `RED_FAIL`, `GREEN_PASS` |
+| `[AST_INDEX]` | AST skeleton extraction / context pruning | `EXTRACTED`, `CACHED` |
 | `[ROLLBACK]` | Atomic reset/revert on unrecoverable failure | `EXECUTED`, `ABORTED` |
 | `[GITHUB_SYNC]` | Issues or PRs registered via GitHub CLI | `CREATED`, `SKIPPED` |
 

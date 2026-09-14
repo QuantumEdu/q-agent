@@ -23,11 +23,15 @@ Implementa la Fase {{NUMERO_FASE}} de {{PROYECTO_NOMBRE}} según el calibre asig
 
 #### RUTA 1: Modo Fast-Track (Nivel 1 — Micro-cambio / Patch / Fix)
 * Si el requerimiento fue calificado como Nivel 1 (≤3 archivos, sin impacto en Dominio ni BD):
-  1. Escribe la prueba unitaria que reproduce el bug o define el comportamiento esperado (Red).
-  2. Implementa la solución mínima (Green).
-  3. Refactoriza y ejecuta la verificación del perfil de stack (Go, Python o TypeScript).
-  4. Realiza un commit atómico con mensaje convencional (`fix: ...`, `style: ...`).
-  5. *Fin del ciclo Fast-Track (no requiere verify-report.md ni P09).*
+  1. **Invariante Reproduction-First (Fase Roja Obligatoria):** Escribe ÚNICAMENTE la prueba unitaria que reproduce el bug o define el comportamiento esperado (`tests/`). Queda estrictamente prohibido tocar `src/` en este paso.
+  2. **Verificación de Falla:** Ejecuta la suite de pruebas localmente. Comprueba que el test falla (código de salida ≠ 0). Registra en `.q-agent/flight_recorder.log`:
+     `[STEP-06] [REPRODUCTION] [RED_FAIL] <test_name> failed as expected: <reason>`
+  3. **Implementación Quirúrgica (Fase Verde):** Escribe la solución mínima en `src/`.
+  4. **Verificación de Éxito:** Ejecuta nuevamente la suite. Debe pasar al 100% (código 0). Registra en el log:
+     `[STEP-06] [REPRODUCTION] [GREEN_PASS] <test_name> passed with 0 regression`
+  5. Refactoriza y ejecuta la verificación del perfil de stack (Go, Python o TypeScript).
+  6. Realiza un commit atómico con mensaje convencional (`fix: ...`, `style: ...`).
+  7. *Fin del ciclo Fast-Track (no requiere verify-report.md ni P09).*
 
 ---
 
@@ -36,11 +40,16 @@ Sigue fielmente `tasks.md`, `design.md` y `specs/{{FEATURE}}.md` cumpliendo el c
 
 ### Fase A: Ejecución Tarea por Tarea (`/apply`)
 1. **Iteración Secuencial Atómica**: Toma exactamente UNA tarea pendiente de `tasks.md` a la vez, en el orden de capas establecido (`DOMINIO` → `INFRA` → `APPLICACIÓN` → `API` → `UI`).
-2. **Ciclo TDD Estricto**: Para tareas marcadas con `[TDD]`:
-   - *Red*: Escribe la prueba en el archivo `Target` indicado. Ejecuta el comando `Verification` y comprueba que falla por la razón esperada.
-   - *Green*: Escribe la implementación mínima requerida. Ejecuta el comando `Verification` y comprueba que pasa (código 0).
+2. **Ciclo TDD Estricto & Reproduction-First**: Para tareas marcadas con `[TDD]`:
+   - *Red*: Escribe la prueba en el archivo `Target` indicado. Ejecuta el comando `Verification` y comprueba que falla por la razón esperada. Registra `[STEP-06] [REPRODUCTION] [RED_FAIL]` en el flight recorder.
+   - *Green*: Escribe la implementación mínima requerida. Ejecuta el comando `Verification` y comprueba que pasa (código 0). Registra `[STEP-06] [REPRODUCTION] [GREEN_PASS]`.
    - *Refactor*: Limpia el código eliminando duplicaciones y optimizando sin romper los tests.
-3. **Validación Inmediata**: No avances a la siguiente tarea hasta que el comando `Verification` de la tarea actual pase al 100%. Solo entonces marca `[X]` en `tasks.md`.
+3. **Límite de Recuperación y Rollback**: Si una tarea falla en la verificación y no se resuelve tras 3 intentos consecutivos:
+   - Detén el ciclo inmediatamente.
+   - Ejecuta rollback atómico del intento actual (`git checkout -- <archivos>`).
+   - Registra en `.q-agent/flight_recorder.log`: `[STEP-06] [ROLLBACK] [EXECUTED] Task <task_id> aborted after 3 failed attempts`.
+   - Notifica el bloqueo al usuario con diagnóstico exacto.
+4. **Validación Inmediata**: No avances a la siguiente tarea hasta que el comando `Verification` de la tarea actual pase al 100%. Solo entonces marca `[X]` en `tasks.md`.
 
 ### Fase B: Quality Gates y Auditoría de Cierre (`/verify`)
 Una vez completadas todas las tareas de `tasks.md`, ejecuta el protocolo de verificación global según el **Perfil de Stack** del proyecto:

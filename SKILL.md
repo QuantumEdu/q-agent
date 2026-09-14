@@ -203,13 +203,14 @@ IN/OUT scope to user. Wait for `Y` before continuing.
 
 *(Omite en Plan C — las auditorías generan reporte e Issues de remediación sin codificar)*
 
-### Sub-phase A — Implementation
+### Sub-phase A — Implementation & Reproduction-First
 Per feature or fix:
 1. `gh issue create --label type:feature --title "<name>"`
-2. `git checkout -b feature/<name> develop`
-3. Implement with descriptive commits
-4. `gh pr create --base develop --body "Closes #N"`
-5. Merge on quality pass
+2. **Workspace Isolation:** Si `.q-agent.json` especifica `workspace.isolation: "worktree"`, crear worktree aislado: `git worktree add ../<repo>-worktrees/<name> -b feature/<name> develop`. De lo contrario, `git checkout -b feature/<name> develop`.
+3. **Invariante Reproduction-First (Fase Roja Obligatoria):** Escribir primero el test unitario reproductor y registrar `[REPRODUCTION] [RED_FAIL]` en el flight recorder antes de editar código en `src/`.
+4. Implementar solución mínima (Fase Verde), verificar y registrar `[REPRODUCTION] [GREEN_PASS]`.
+5. `gh pr create --base develop --body "Closes #N"`
+6. Merge al pasar las pruebas de calidad y remover el worktree si aplica (`git worktree remove`).
 
 ### Sub-phase B — Hygiene (SwarmForge pattern)
 Execute hygiene BEFORE committing changes (or against `git diff --name-only develop...HEAD` if already committed). In strict order:
@@ -315,6 +316,8 @@ Each architectural decision Issue uses this body (label: `type:adr`):
 | What | Path |
 |------|------|
 | Pipeline mapping A/B/C | `references/plans.md` |
+| Flight Recorder protocol | `references/flight-recorder.md` |
+| Context budgeting & AST | `references/context-budgeting.md` |
 | CLAUDE.md template | `references/claude-md-template.md` |
 | GitHub label taxonomy | `references/issue-labels.md` |
 | SDD prompts P01–P09 | `prompts/` |

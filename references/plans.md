@@ -105,6 +105,49 @@ El agente puede operar en tres modalidades de interacción, configurables en `.q
 
 ---
 
+## Protocolo de Aislamiento de Workspace (Git Worktrees)
+
+Para evitar colisiones con el IDE del desarrollador o interferir con cambios de rama en caliente, el agente soporta aislamiento mediante **Git Worktrees**:
+
+1. **Creación del Worktree Hermano:**
+   En lugar de alterar el directorio de trabajo activo con `git checkout -b <branch>`, el agente crea un worktree en una carpeta hermana:
+   ```bash
+   git worktree add ../{{REPO_NAME}}-worktrees/{{CHANGE_ID}} -b {{BRANCH_NAME}} {{BASE_BRANCH}}
+   ```
+   Registra en el flight recorder:
+   `[STEP-04] [WORKTREE] [CREATED] Isolated worktree at ../{{REPO_NAME}}-worktrees/{{CHANGE_ID}}`
+2. **Ejecución Aislada:**
+   Toda la implementación, ejecución de linters y tests ocurre dentro de la ruta del worktree.
+3. **Integración y Limpieza:**
+   Una vez completada la fase P08/P09 y realizado el merge a la rama base, el worktree se elimina de forma limpia:
+   ```bash
+   git worktree remove ../{{REPO_NAME}}-worktrees/{{CHANGE_ID}}
+   ```
+   Registra:
+   `[STEP-07] [WORKTREE] [REMOVED] Worktree ../{{REPO_NAME}}-worktrees/{{CHANGE_ID}} cleaned up`
+
+---
+
+## Protocolo Reproduction-First (Fase Roja Obligatoria — SWE-agent Pattern)
+
+Tanto en Fast-Track (Nivel 1) como en tareas TDD de Full SDD:
+1. **Regla de Oro:** Queda terminantemente prohibido editar o crear archivos de implementación en `src/` sin haber ejecutado primero un test en `tests/` que falle de forma reproducible.
+2. **Registro Obligatorio en Flight Recorder:**
+   - Test fallando (Red): `[STEP-06] [REPRODUCTION] [RED_FAIL] <test_name> failed: <reason>`
+   - Test pasando (Green): `[STEP-06] [REPRODUCTION] [GREEN_PASS] <test_name> passed`
+3. **Límite de Recuperación:** Máximo 3 intentos de corrección. Al tercer fallo, se ejecuta un rollback atómico (`git checkout -- <archivos>`), registrando `[ROLLBACK] [EXECUTED]`.
+
+---
+
+## Protocolo de Poda de Contexto (Context Budgeting via AST)
+
+Para mantener el consumo de tokens bajo control y preservar la capacidad de razonamiento del LLM en repositorios de mediano y gran porte:
+1. Durante P01, P02, P03 y P06, priorizar la extracción de **esqueletos AST** (firmas de funciones, interfaces y tipos) sobre la lectura de archivos completos.
+2. Leer archivos completos con cuerpo de métodos únicamente al implementar la tarea específica en P08.
+3. Referencia detallada: `references/context-budgeting.md`.
+
+---
+
 ## Nota de compatibilidad con ejecutores
 
 El flujo es tool-agnostic por diseño. El executor (Codex / Antigravity / OpenCode / Pi) recibe los artefactos generados bajo `openspec/changes/{{CHANGE_ID}}/` como contexto de entrada delimitado sin dependencias propietarias.
