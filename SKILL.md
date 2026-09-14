@@ -19,6 +19,17 @@ delegate execution. Every decision → GitHub Issue.
 - **`<PROJECT_ROOT>`**: The active workspace repository (`cwd`). All project code, branches, and generated artifacts (`CONSTITUTION.md`, `CLAUDE.md`, `openspec/`, `docs/adr/`) are created inside `<PROJECT_ROOT>`.
 - Never confuse `<SKILL_ROOT>` with `<PROJECT_ROOT>`.
 
+## Declarative configuration (.q-agent.json)
+- If `<PROJECT_ROOT>/.q-agent.json` exists, automatically load default runtime executor, model tier assignments, and observability settings.
+- Template available at `<SKILL_ROOT>/templates/q-agent.json`.
+
+## Flight Recorder (Observability & Audit Trail)
+- The orchestrator maintains an append-only milestone log at `<PROJECT_ROOT>/.q-agent/flight_recorder.log`.
+- Log format: `[YYYY-MM-DDTHH:MM:SSZ] [STEP_ID] [EVENT_TYPE] [STATUS] Details`.
+- Reference: `<SKILL_ROOT>/references/flight-recorder.md`.
+- Records preflight checks, boundary resolutions, config discovery, model routing, skill invocations, and linter exit codes to diagnose bottlenecks, missing files, and broken links with zero guesswork.
+
+
 ---
 
 ## Control structure
@@ -133,6 +144,7 @@ Runtime decision:
 *Rules of engagement:*
 - Never execute P09 compliance audits or full cross-file refactors on models < 14B.
 - Always delegate mechanical lint errors and single-test failures to Tier 2 (local Qwen or Flash-Lite) to minimize token consumption and turnaround latency.
+- **Config override:** If `<PROJECT_ROOT>/.q-agent.json` exists, prefill `Runtime decision` using its values and record `[CONFIG] [LOADED]` in the Flight Recorder.
 
 
 ---
@@ -143,25 +155,30 @@ Delegate multi-file reads and analysis to `skills/q-delegate-context`.
 Do not read large codebases in the main orchestrator thread.
 
 **Plan A:**
-1. `gh repo create <name> --private`
-2. Create `CLAUDE.md` at repo root — use `references/claude-md-template.md`
-3. Initialize `CONSTITUTION.md` at repo root using `templates/CONSTITUTION.md` (register stack, immutable principles from Steps 1–2, and initialize ADR table)
-4. Verify and initialize subsystems if not active (SkillVault, Telemetry, Engram)
-5. Create Issues:
+1. Initialize `<PROJECT_ROOT>/.q-agent/flight_recorder.log` with `[PREFLIGHT]` and `[BOUNDARY]` milestones.
+2. If `.q-agent.json` is not present, initialize it from `<SKILL_ROOT>/templates/q-agent.json`.
+3. `gh repo create <name> --private`
+4. Create `CLAUDE.md` at repo root — use `references/claude-md-template.md` (compatible with Claude Code, Antigravity, and Codex)
+5. Initialize `CONSTITUTION.md` at repo root using `templates/CONSTITUTION.md` (register stack, immutable principles from Steps 1–2, and initialize ADR table)
+6. Verify and initialize subsystems if not active (SkillVault, Telemetry, Engram)
+7. Create Issues:
    - `[SETUP] Infrastructure initialized` — Step 3 summary
    - `[ADR-001] Runtime and architecture decision` — full rationale (registered in `CONSTITUTION.md`)
    - `[SCOPE] MVP defined` — IN/OUT scope from Step 1
 
 **Plan B:**
 1. Clone or verify access to existing repository
-2. Verify subsystems
-3. Create `[FEATURE] <description>` Issue with full context
-4. Checkout or ensure branch: P1 to P3 executed on `develop`, P4 bifurcates to `feature/<descriptive-name>`
+2. Ensure `<PROJECT_ROOT>/.q-agent/flight_recorder.log` is initialized for audit tracking
+3. Verify subsystems
+4. Create `[FEATURE] <description>` Issue with full context
+5. Checkout or ensure branch: P1 to P3 executed on `develop`, P4 bifurcates to `feature/<descriptive-name>`
 
 **Plan C:**
 1. Clone or verify access to repository to audit
-2. Create `[AUDIT] Audit start` Issue with defined criteria
-3. `git checkout -b audit/<date>-<project-name>`
+2. Ensure `<PROJECT_ROOT>/.q-agent/flight_recorder.log` is initialized for audit tracking
+3. Create `[AUDIT] Audit start` Issue with defined criteria
+4. `git checkout -b audit/<date>-<project-name>`
+
 
 ---
 

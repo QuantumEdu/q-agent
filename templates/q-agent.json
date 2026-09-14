@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0",
+  "runtime": {
+    "executor": "antigravity",
+    "mode": "single-agent",
+    "notes": "Options: antigravity, codex, pi, opencode, claude"
+  },
+  "models": {
+    "tier1_frontier": "gemini-3.8-flash",
+    "tier2_local": "qwen-2.5-7b-rocm"
+  },
+  "observability": {
+    "flight_recorder": true,
+    "log_path": ".q-agent/flight_recorder.log"
+  },
+  "integrations": {
+    "github_issues": true,
+    "gbrain_mcp": false,
+    "engram_mcp": false
+  }
+}

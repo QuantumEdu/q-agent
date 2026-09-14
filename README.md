@@ -34,7 +34,8 @@ q-agent-v01/
 ├── references/                       # Referencias operativas internas
 │   ├── plans.md                      # Mapeo por plan (A/B/C) con OpenSpec
 │   ├── claude-md-template.md         # Plantilla CLAUDE.md para repos nuevos
-│   └── issue-labels.md               # Taxonomía de etiquetas GitHub Issues
+│   ├── issue-labels.md               # Taxonomía de etiquetas GitHub Issues
+│   └── flight-recorder.md            # Protocolo de observabilidad y log de vuelo
 ├── prompts/                          # Prompts ejecutables del SDD Pipeline
 │   ├── P01_auditoria_mab_pc.md       # Discovery & Audit (MAB-PC)
 │   ├── P02_context_engineering.md    # Viabilidad técnica y Hexagonal Ligera
@@ -50,7 +51,9 @@ q-agent-v01/
 │   ├── ADR.md                        # Architecture Decision Record
 │   ├── BLUEPRINT.md                  # Mapa arquitectónico del sistema
 │   ├── CONSTITUTION.md               # Reglas no negociables y tabla de ADRs
-│   └── PROPOSAL.md                   # Estructura del /propose (IN/OUT scope)
+│   ├── PROPOSAL.md                   # Estructura del /propose (IN/OUT scope)
+│   └── q-agent.json                  # Plantilla de configuración declarativa
+
 └── skills/                           # Skills auxiliares (planas, prefijo q-)
     ├── q-grill-me/                   # Elicitación profunda y socrática (Plan A)
     ├── q-deliberate/                 # Debate dialéctico y cristalización de ADRs
@@ -234,6 +237,8 @@ q-agent separates execution by cognitive capability rather than proprietary vend
 
 *Architectural Principle:* Never run heavy compliance audits (P09) on models < 14B. Always delegate mechanical lint repairs and single-test failures to Tier 2 (local Qwen on ROCm or Flash-Lite) to eliminate latency and token waste.
 
+> **Declarative Configuration:** If `<PROJECT_ROOT>/.q-agent.json` exists, `q-agent` automatically loads the target runtime executor and model tiers without interactive prompting. See `templates/q-agent.json`.
+
 
 ---
 
@@ -242,22 +247,27 @@ q-agent separates execution by cognitive capability rather than proprietary vend
 Delegates heavy sub-tasks via `q-delegate-context` (FirstMate pattern) to keep the orchestrator main thread clean.
 
 **Plan A:**
-1. Create private GitHub repository
-2. Create `CLAUDE.md` at repo root (from `references/claude-md-template.md`)
-3. Initialize `CONSTITUTION.md` at repo root (from `templates/CONSTITUTION.md`) with stack, domain rules, and initial ADR table
-4. Verify subsystems (SkillVault, Telemetry, Engram)
-5. Create initial Issues: `[SETUP]`, `[ADR-001]` (registered in Constitution), `[SCOPE] MVP`
+1. Initialize Flight Recorder at `<PROJECT_ROOT>/.q-agent/flight_recorder.log` (records preflight checks, boundary resolutions, and milestone transitions; see `references/flight-recorder.md`)
+2. Initialize `.q-agent.json` from `templates/q-agent.json` if not already present
+3. Create private GitHub repository (`gh repo create <name> --private`)
+4. Create `CLAUDE.md` at repo root (from `references/claude-md-template.md`, compatible with Claude Code, Antigravity, and Codex)
+5. Initialize `CONSTITUTION.md` at repo root (from `templates/CONSTITUTION.md`) with stack, domain rules, and initial ADR table
+6. Verify subsystems (SkillVault, Telemetry, Engram)
+7. Create initial Issues: `[SETUP]`, `[ADR-001]` (registered in Constitution), `[SCOPE] MVP`
 
 **Plan B:**
 1. Clone / verify access to existing repo
-2. Verify subsystems
-3. Create Issue `[FEATURE] description`
-4. Setup branches: P1 to P3 executed on `develop`, P4 bifurcates to `feature/<name>`
+2. Ensure `.q-agent/flight_recorder.log` is active for audit tracking
+3. Verify subsystems
+4. Create Issue `[FEATURE] description`
+5. Setup branches: P1 to P3 executed on `develop`, P4 bifurcates to `feature/<name>`
 
 **Plan C:**
 1. Clone / verify access to repo to audit
-2. Create Issue `[AUDIT] start`
-3. Create branch `audit/<date>-<project>`
+2. Ensure `.q-agent/flight_recorder.log` is active for audit tracking
+3. Create Issue `[AUDIT] start`
+4. Create branch `audit/<date>-<project>`
+
 
 ---
 

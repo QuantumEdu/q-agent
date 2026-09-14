@@ -676,7 +676,8 @@
 
 
   <h3>Step 4 — Infrastructure Setup</h3>
-  <p>Delegates via <code>q-delegate-context</code> (FirstMate pattern). Creates GitHub repo, CLAUDE.md, initializes <code>CONSTITUTION.md</code> (with stack, principles and ADR table), initial Issues ([SETUP], [ADR-001], [SCOPE]), and verifies subsystems (SkillVault, Engram, Telemetry).</p>
+  <p>Delegates via <code>q-delegate-context</code> (FirstMate pattern). Initializes Flight Recorder (<code>.q-agent/flight_recorder.log</code>) for deterministic milestone tracking, loads/creates <code>.q-agent.json</code>, creates GitHub repo, generates CLAUDE.md, initializes <code>CONSTITUTION.md</code> (with stack, principles and ADR table), initial Issues ([SETUP], [ADR-001], [SCOPE]), and verifies subsystems (SkillVault, Engram, Telemetry).</p>
+
 
   <h3>Step 5 — SDD Pipeline</h3>
   <p>Executes prompts in the order defined by the plan. Standard storage: <code>openspec/changes/{{CHANGE_ID}}/</code>. Fast-Track shortcut available for Nivel 1. The P4 <code>/propose</code> gate is the first allowed interruption in autonomous mode.</p>
