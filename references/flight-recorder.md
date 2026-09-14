@@ -30,8 +30,12 @@ Every log line follows a strict bracketed timestamp and tag structure:
 | `[ROUTING]` | Decision on runtime executor, Tier 1 model, Tier 2 model | `ASSIGNED` |
 | `[SKILL_CALL]` | Invocation of auxiliary sub-skills (`q-deliberate`, `q-ci-fixer`, etc.) | `INVOKED`, `COMPLETED`, `FAIL` |
 | `[GATE]` | Human-in-the-loop checkpoints (Step 0, Step 3, Scope gate, Tradeoffs) | `PENDING`, `APPROVED`, `REJECTED` |
+| `[INTERACTION]` | Interactive prompt/question to user at phase gates | `PROMPT`, `ANSWERED`, `SKIPPED` |
 | `[LINTER]` | Local linter/testing verification runs | `PASS (0 tokens)`, `FAIL` |
 | `[ERROR]` | File not found, permission error, command failure | `BLOCKED`, `RECOVERED` |
+| `[MERGE]` | Branch integration completed | `OK`, `CONFLICT` |
+| `[ROLLBACK]` | Atomic reset/revert on unrecoverable failure | `EXECUTED`, `ABORTED` |
+| `[GITHUB_SYNC]` | Issues or PRs registered via GitHub CLI | `CREATED`, `SKIPPED` |
 
 ---
 

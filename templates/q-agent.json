@@ -4,7 +4,13 @@
   "runtime": {
     "executor": "antigravity",
     "mode": "single-agent",
-    "notes": "Options: antigravity, codex, pi, opencode, claude"
+    "notes": "Options: antigravity, codex, pi, opencode, claude",
+    "interaction_mode": "supervised",
+    "interactive_gates": [
+      "P03_blueprint",
+      "P04_propose",
+      "P09_compliance"
+    ]
   },
   "models": {
     "tier1_frontier": "gemini-3.8-flash",

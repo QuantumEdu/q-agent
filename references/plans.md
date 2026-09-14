@@ -84,6 +84,28 @@ Ejecutar en orden:
 
 ---
 
+## Modos de Interacción y Compuertas (Human-in-the-Loop)
+
+El agente puede operar en tres modalidades de interacción, configurables en `.q-agent.json` o solicitadas explícitamente en el prompt de invocación:
+
+1. **`autonomous` (Totalmente Autónomo):**
+   - El agente ejecuta todas las fases de inicio a fin sin detenerse a consultar al usuario.
+   - Ideal para ejecuciones desatendidas, CI/CD o pipelines automatizados.
+
+2. **`supervised` (Supervisado por Compuertas - RECOMENDADO):**
+   - El agente avanza de forma continua pero **se detiene obligatoriamente** en compuertas de decisión arquitectónica críticas (`interactive_gates`):
+     - **Gate P03 (Evolución/ADR):** valida decisiones de diseño antes de escribir especificaciones.
+     - **Gate P04 (Propuesta/Scope):** valida el alcance y clasificación de calibre (Full SDD vs Fast-Track).
+     - **Gate P09 (Compliance/Release):** solicita autorización antes de integrar ramas a `main`/`develop`.
+   - En cada compuerta, el agente formula una pregunta estructurada (usando la herramienta interactiva de preguntas del runtime, ej. `ask_question`) y espera respuesta antes de avanzar.
+
+3. **`interactive` (Paso a Paso / Didáctico):**
+   - El agente se detiene en **cada una de las fases** (P01 hasta P09) presentando el resumen de lo realizado y preguntando confirmación para el siguiente paso.
+   - Ideal para sesiones de pair programming o revisión detallada.
+
+---
+
 ## Nota de compatibilidad con ejecutores
 
 El flujo es tool-agnostic por diseño. El executor (Codex / Antigravity / OpenCode / Pi) recibe los artefactos generados bajo `openspec/changes/{{CHANGE_ID}}/` como contexto de entrada delimitado sin dependencias propietarias.
+
