@@ -461,6 +461,7 @@
     <a href="#diagram">Diagram</a>
     <a href="#pipeline">SDD Pipeline</a>
     <a href="#skills">Skills</a>
+    <a href="#protocols">Protocols & Tools</a>
     <a href="#install">Install</a>
   </div>
 </nav>
@@ -992,6 +993,51 @@ flowchart TD
       </div>
     </div>
 
+  </div>
+</section>
+
+<!-- ADVANCED PROTOCOLS & TOOLS -->
+<section id="protocols" class="section">
+  <div class="section-label">Architecture & Determinism</div>
+  <h2>Advanced Protocols & Cold-Start Tools</h2>
+  <p>Built for high-discipline software engineering. These protocols eliminate dirty working trees, context window saturation, and unverified AI hallucinations.</p>
+
+  <div class="plans-grid">
+    <div class="plan-card">
+      <span class="plan-tag tag-a">Workspace</span>
+      <h3>Git Worktrees Isolation</h3>
+      <p>The agent never switches branches or alters files in your active IDE workspace. Operates in isolated sibling directories <code>../{repo}-worktrees/{branch}</code> and cleanly removes them post-merge.</p>
+    </div>
+    <div class="plan-card">
+      <span class="plan-tag tag-b">Quality</span>
+      <h3>Reproduction-First (SWE-agent)</h3>
+      <p>Editing production code in <code>src/</code> is strictly forbidden until an automated unit test in <code>tests/</code> reproduces the bug in red. Verified in live terminal runs with automatic 3-strike rollback.</p>
+    </div>
+    <div class="plan-card">
+      <span class="plan-tag tag-c">Tokens</span>
+      <h3>Context Budgeting via AST</h3>
+      <p>Prunes full function bodies in repositories with >10k LOC. Injects only AST signatures and interface contracts, reducing token footprint by up to 80% with zero architectural loss.</p>
+    </div>
+    <div class="plan-card">
+      <span class="plan-tag" style="background:rgba(188,140,255,.15);color:var(--purple);border:1px solid rgba(188,140,255,.3);">Workflow</span>
+      <h3>Kiro-Style Task Gating</h3>
+      <p>Dual-scope task definitions in <code>P07_tasks.md</code>: mandatory <code>[CORE]</code> tasks run automatically; optional enhancements <code>[OPTIONAL:DISABLED]</code> remain ignored until explicitly enabled by the human architect.</p>
+    </div>
+    <div class="plan-card">
+      <span class="plan-tag tag-a">Tooling</span>
+      <h3>q-checklist (Pre-Flight Matrix)</h3>
+      <p>Zero-dependency interactive CLI (<code>python tools/q-checklist/q_checklist.py</code>) to select architecture, database, transport, testing, and worktree isolation in under 2 minutes.</p>
+    </div>
+    <div class="plan-card">
+      <span class="plan-tag tag-b">Observability</span>
+      <h3>Flight Recorder</h3>
+      <p>Deterministic append-only event trail at <code>.q-agent/flight_recorder.log</code> tracking boundary checks, routing decisions, linter exit codes, and skill invocations.</p>
+    </div>
+  </div>
+
+  <div class="alert alert-info">
+    <div class="alert-title">🎓 Mentor / Copilot Mode</div>
+    <p>Want to drive the process manually? Prompt the agent: <em>"Quiero ejecutar el flujo SDD manualmente paso a paso. No implementes nada por tu cuenta. Actúa únicamente como mi Mentor Arquitectónico: indícame en cada turno qué prompt o fase sigue, explícame el objetivo conceptual y entrégame la plantilla con las variables que debo completar. Yo tendré el volante."</em></p>
   </div>
 </section>
 

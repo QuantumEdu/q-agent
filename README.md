@@ -28,14 +28,16 @@ Every decision is **traceable as a GitHub Issue** in the project repository. Eve
 
 ```text
 q-agent-v01/
-├── SKILL.md                          # Orquestador canónico (Pasos 0 a 7)
+├── SKILL.md                          # Orquestador canónico (Pasos 0 a 7 + Catálogo de Prompts)
 ├── README.md                         # Documentación del paquete
-├── tutorial.html                     # Guía interactiva visual
+├── tutorial.html                     # Guía interactiva visual completa
+├── implement-future-but-not-in-this-project.md # Blueprint del agente curricular q-academic
 ├── references/                       # Referencias operativas internas
-│   ├── plans.md                      # Mapeo por plan (A/B/C) con OpenSpec
+│   ├── plans.md                      # Mapeo por plan (A/B/C) con OpenSpec e Interaction Modes
 │   ├── claude-md-template.md         # Plantilla CLAUDE.md para repos nuevos
 │   ├── issue-labels.md               # Taxonomía de etiquetas GitHub Issues
-│   └── flight-recorder.md            # Protocolo de observabilidad y log de vuelo
+│   ├── flight-recorder.md            # Protocolo de observabilidad y log de vuelo
+│   └── context-budgeting.md          # Protocolo de poda de contexto y esqueletos AST
 ├── prompts/                          # Prompts ejecutables del SDD Pipeline
 │   ├── P01_auditoria_mab_pc.md       # Discovery & Audit (MAB-PC)
 │   ├── P02_context_engineering.md    # Viabilidad técnica y Hexagonal Ligera
@@ -44,8 +46,8 @@ q-agent-v01/
 │   ├── P04b_constitution_sync.md     # Sincronización continua de Drift y ADRs
 │   ├── P05_spec.md                   # Especificación BDD con Given/When/Then
 │   ├── P06_design.md                 # Diseño técnico y contratos de interfaces
-│   ├── P07_tasks.md                  # Desglose de tareas TDD atómicas
-│   ├── P08_apply_verify.md           # Implementación TDD y verificación de stack
+│   ├── P07_tasks.md                  # Desglose de tareas TDD atómicas + Tags Kiro
+│   ├── P08_apply_verify.md           # Implementación TDD, Reproduction-First y rollback
 │   └── P09_compliance_audit.md       # CAB-RP unificado (inmutabilidad, CodeGraph, anti-mock)
 ├── templates/                        # Artefactos canónicos (estándar MAYÚSCULAS)
 │   ├── ADR.md                        # Architecture Decision Record
@@ -53,7 +55,8 @@ q-agent-v01/
 │   ├── CONSTITUTION.md               # Reglas no negociables y tabla de ADRs
 │   ├── PROPOSAL.md                   # Estructura del /propose (IN/OUT scope)
 │   └── q-agent.json                  # Plantilla de configuración declarativa
-
+├── tools/                            # Herramientas secundarias de apoyo
+│   └── q-checklist/                  # Matriz de decisiones rápidas de pre-vuelo (CLI TUI)
 └── skills/                           # Skills auxiliares (planas, prefijo q-)
     ├── q-grill-me/                   # Elicitación profunda y socrática (Plan A)
     ├── q-deliberate/                 # Debate dialéctico y cristalización de ADRs
@@ -77,19 +80,49 @@ q-agent operates under one of three plans, selected at the start of every cycle:
 
 ---
 
-## Operating Modes
+## Operating Modes & Interaction Governance
 
-```
-Steps 0–3  → GUIDED mode      (agent asks, user responds — 1 question at a time)
-Steps 4–7  → AUTONOMOUS mode  (agent executes, interrupts only at critical gates)
-```
+`q-agent` supports 3 operational interaction modes configurable via `.q-agent.json` (`runtime.interaction_mode`) or via the prompt:
 
-### The 3 ONLY reasons to interrupt after Step 3
-1. The `/propose` scope (P4) needs explicit approval before continuing
-2. An architectural decision has two symmetric tradeoffs (no clear winner)
-3. A blocking error that requires context the agent doesn't have
+1. **`supervised` (Default / Recommended):**
+   - Autonomous execution on mechanical phases (P06, P07, P08).
+   - Mandatory human-in-the-loop stopping gates at critical architectural points:
+     - **Gate P03 (Evolution/ADR):** Validates design tradeoffs before writing specs.
+     - **Gate P04 (Scope/Proposal):** User approves IN/OUT scope and caliber classification.
+     - **Gate P09 (Compliance/Release):** User approves branch merge into `main`.
+2. **`interactive` / Mentor Mode (User at the Wheel):**
+   - The agent acts purely as an architectural mentor, guiding phase by phase without modifying code autonomously.
+   - *Prompt:* `"Quiero ejecutar el flujo SDD manualmente paso a paso. No implementes nada por tu cuenta. Actúa únicamente como mi Mentor Arquitectónico: indícame en cada turno qué prompt o fase sigue, explícame el objetivo conceptual y entrégame la plantilla con las variables que debo completar. Yo tendré el volante."`
+3. **`autonomous` (CI/CD & Headless):**
+   - End-to-end execution without prompts, ideal for unattended pipelines.
 
-Everything else → the agent decides, records the rationale in a GitHub Issue, and continues.
+---
+
+## Advanced Determinism & Isolation Protocols
+
+### 1. Workspace Isolation (Git Worktrees)
+- Prevents the agent from altering dirty workspaces or switching active branches in the developer's IDE.
+- Created at `../{repo}-worktrees/{branch}`.
+- Worktrees are cleanly removed upon PR merge (`git worktree remove`).
+
+### 2. Reproduction-First TDD (SWE-agent Pattern)
+- Strict red-phase invariant: Editing `src/` is strictly forbidden until an automated test in `tests/` reproduces the failure (exit code $\neq 0$).
+- Recorded as `[REPRODUCTION] [RED_FAIL]` and verified as `[REPRODUCTION] [GREEN_PASS]` in `.q-agent/flight_recorder.log`.
+- Deterministic rollback: 3 consecutive test failures trigger atomic reset (`git checkout -- .`) and `[ROLLBACK] [EXECUTED]`.
+
+### 3. Context Budgeting & AST Skeletons
+- In projects with >10k LOC, the agent prunes function bodies, extracting only AST skeletons (interfaces, class definitions, method signatures).
+- Conserves ~80% of tokens while preserving 100% of architectural context.
+- Documented in `references/context-budgeting.md`.
+
+### 4. Kiro-Style Task Gating
+- Tasks in `openspec/changes/{{CHANGE_ID}}/tasks.md` support dual scoping:
+  - `- [ ] [CORE] [TDD] ...` (Executed mandatory in `/apply`).
+  - `- [ ] [OPTIONAL:DISABLED] ...` (Ignored by the agent unless toggled by the user to `[OPTIONAL:ENABLED]`).
+
+### 5. Pre-Flight Decision Matrix (`tools/q-checklist/`)
+- A zero-dependency interactive CLI (`python tools/q-checklist/q_checklist.py`) to choose architecture, database, transport, testing, and isolation in under 2 minutes.
+- Auto-generates `CONSTITUTION.md`, `docs/adr/0001-stack-decisions.md`, and `.q-agent.json`.
 
 ---
 
