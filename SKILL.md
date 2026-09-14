@@ -48,17 +48,40 @@ Everything else → decide, record rationale in Issue, continue.
 
 ---
 
-## STEP 0 — Plan selection
+## STEP 0 — Plan selection & Welcome Onboarding
 
 Present and wait:
 
 ```
-What type of cycle are we starting?
-[A] Greenfield — new system from scratch
-[B] Brownfield — feature or evolution on existing code
-[C] Audit — review and improve existing code
-Reply A, B or C (or describe it).
+🚀 Bienvenido a q-agent (Master Project Orchestrator)
+
+¿Qué tipo de ciclo vamos a ejecutar hoy?
+[A] Greenfield  — Nuevo sistema desde cero (Plan A)
+[B] Brownfield  — Feature o evolución sobre código existente (Plan B)
+[F] Fast-Track  — Micro-cambio / Patch quirúrgico en ≤3 archivos (Plan B Nivel 1)
+[C] Audit       — Auditoría de arquitectura, cumplimiento e inmutabilidad (Plan C)
+
+Responde A, B, F o C (o pega directamente uno de los prompts de ejemplo abajo).
 ```
+
+### 💡 Catálogo de Prompts de Invocación Listos para Usar
+
+#### 🎓 Modo Mentor / Copiloto Paso a Paso (Tú tienes el volante):
+> *"Quiero ejecutar el flujo SDD manualmente paso a paso. No implementes nada por tu cuenta. Actúa únicamente como mi Mentor Arquitectónico: indícame en cada turno qué prompt o fase sigue, explícame el objetivo conceptual y entrégame la plantilla con las variables que debo completar. Yo tendré el volante."*
+
+#### 1. Greenfield (Plan A — Nuevo sistema desde cero):
+> *"Inicia un proyecto Greenfield con q-agent para construir un sistema de [nombre_sistema, ej: MeetSync registro de reuniones y acuerdos] con arquitectura hexagonal y SQLite. Guíame en los pasos iniciales y genera la Constitución y primer ADR."*
+
+#### 2. Brownfield (Plan B — Nueva feature sobre código existente):
+> *"Ejecuta Plan B Brownfield en este repositorio para añadir el feature de [descripción_feature, ej: Dashboard de cumplimiento con exportación a Markdown]. Realiza el descubrimiento previo P01, actualiza a BLUEPRINT_V2 y coordina el cambio SDD."*
+
+#### 3. Fast-Track (Plan B Nivel 1 — Bugfix / Micro-parche quirúrgico):
+> *"Aplica un cambio Fast-Track para solucionar el bug de [descripción_bug, ej: timeout por concurrencia en SQLite]. Ejecuta la fase roja obligatoria, verifica el fallo del test reproductor y aplica el fix quirúrgico en ≤3 archivos sin tocar el dominio."*
+
+#### 4. Auditoría (Plan C — Diagnóstico e Inmutabilidad de Código):
+> *"Ejecuta una auditoría Plan C en este repositorio. Mantén inmutabilidad absoluta en disco (cero cambios a src/ y tests/), realiza el análisis MAB-PC de dependencias y entrega la matriz CAB-RP con los issues de remediación en formato EARS."*
+
+---
 
 Load pipeline from `references/plans.md`.
 

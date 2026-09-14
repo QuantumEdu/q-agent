@@ -39,7 +39,9 @@ Implementa la Fase {{NUMERO_FASE}} de {{PROYECTO_NOMBRE}} según el calibre asig
 Sigue fielmente `tasks.md`, `design.md` y `specs/{{FEATURE}}.md` cumpliendo el ciclo de 2 fases:
 
 ### Fase A: Ejecución Tarea por Tarea (`/apply`)
-1. **Iteración Secuencial Atómica**: Toma exactamente UNA tarea pendiente de `tasks.md` a la vez, en el orden de capas establecido (`DOMINIO` → `INFRA` → `APPLICACIÓN` → `API` → `UI`).
+1. **Iteración Secuencial Atómica & Filtrado Kiro**: Toma exactamente UNA tarea pendiente de `tasks.md` a la vez, en el orden de capas establecido (`DOMINIO` → `INFRA` → `APPLICACIÓN` → `API` → `UI`).
+   - **Regla Kiro:** Ejecuta todas las tareas marcadas como `[CORE]` y aquellas que el usuario haya habilitado explícitamente como `[OPTIONAL:ENABLED]`.
+   - **Tareas Deshabilitadas:** Salta e ignora completamente cualquier tarea marcada como `[OPTIONAL:DISABLED]` sin ejecutar código ni fallar.
 2. **Ciclo TDD Estricto & Reproduction-First**: Para tareas marcadas con `[TDD]`:
    - *Red*: Escribe la prueba en el archivo `Target` indicado. Ejecuta el comando `Verification` y comprueba que falla por la razón esperada. Registra `[STEP-06] [REPRODUCTION] [RED_FAIL]` en el flight recorder.
    - *Green*: Escribe la implementación mínima requerida. Ejecuta el comando `Verification` y comprueba que pasa (código 0). Registra `[STEP-06] [REPRODUCTION] [GREEN_PASS]`.
