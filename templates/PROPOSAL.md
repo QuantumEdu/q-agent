@@ -24,6 +24,23 @@ Estado: [BORRADOR / APROBADO / RECHAZADO]
 
 ---
 
+## 1.5. PERSPECTIVA DE PRODUCT MANAGER (Lente BMAD / Squad Path)
+
+### 👤 User Persona & Dolor Actual
+- **Rol / Persona:** [ej: Líder Técnico / Operador de Operaciones / Usuario Final]
+- **Fricción / Dolor Actual:** [¿Qué cuello de botella, lentitud o error manual sufre hoy?]
+
+### 📋 Historias de Usuario Ágiles (User Stories)
+- **US-01:** Como **[rol]**, quiero **[capacidad o acción]**, para **[beneficio medible]**.
+  - **Criterio de Aceptación (UAC):** [Resultado observable en lenguaje de usuario]
+- **US-02:** Como **[rol]**, quiero **[capacidad o acción]**, para **[beneficio medible]**.
+  - **Criterio de Aceptación (UAC):** [Resultado observable en lenguaje de usuario]
+
+### 🎯 Hipótesis de Valor de Negocio
+[¿Cómo sabemos que esta entrega tuvo éxito desde la perspectiva del usuario?]
+
+---
+
 ## 2. ALCANCE FORMAL
 
 ### ✅ IN SCOPE — Lo que se construye en este cambio

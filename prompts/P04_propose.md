@@ -48,6 +48,14 @@ Estructura y Contenido Requerido:
    - ¿Por qué iniciamos por {{DESCRIPCION_ALCANCE_FASE}}?
    - Valor de negocio o técnico de esta entrega.
 
+1b. Perspectiva de Product Manager (Lente BMAD / Squad Path — Obligatorio en Nivel 2):
+   - **User Persona:** ¿Quién es el usuario o rol beneficiado (ej: Operador, Dev, Administrador) y qué fricción/dolor concreto sufre hoy?
+   - **User Stories Formales:**
+     * `Como [rol], quiero [capacidad], para [beneficio o valor medible]`.
+   - **Criterios de Aceptación de Usuario (UAC):**
+     * Definidos desde la perspectiva de negocio/usuario (no de tablas de base de datos ni detalles de implementación).
+   - **Hipótesis de Valor:** ¿Qué comportamiento o métrica confirmará que la entrega resolvió el problema?
+
 2. Alcance Formal:
    - IN SCOPE: {{LISTA_DE_ENTREGABLES_CONCRETOS}} — Capacidades y módulos que se construirán en esta iteración.
    - OUT OF SCOPE (Diferido): {{LISTA_DE_LO_QUE_NO_ENTRA}} — Capacidades explícitamente postergadas, **cada una con su justificación de negocio o técnica**.

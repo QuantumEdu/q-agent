@@ -124,6 +124,12 @@ q-agent operates under one of three plans, selected at the start of every cycle:
 - A zero-dependency interactive CLI (`python tools/q-checklist/q_checklist.py`) to choose architecture, database, transport, testing, and isolation in under 2 minutes.
 - Auto-generates `CONSTITUTION.md`, `docs/adr/0001-stack-decisions.md`, and `.q-agent.json`.
 
+### 6. BMAD Squad Path Lens in P04 (Product Management)
+- Enriches Nivel 2 proposals in `P04_propose.md` with a structured **Product Manager** perspective:
+  - User Personas and real business friction points.
+  - Formal Agile User Stories: `Como [rol], quiero [capacidad], para [beneficio tangible]`.
+  - User Acceptance Criteria (UAC) and business value hypotheses before touching technical specs.
+
 ---
 
 ## Architectural Flow Diagram
