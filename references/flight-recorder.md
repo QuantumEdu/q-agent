@@ -42,6 +42,27 @@ Every log line follows a strict bracketed timestamp and tag structure:
 
 ---
 
+## 2.1. Matriz de Evaluación de Agentes (9 Dimensiones LLMOps)
+
+Configurable en `.q-agent.json` vía `observability.eval_level`:
+
+| Dimensión | Descripción | Mapeo en Flight Recorder | Niveles |
+|---|---|---|---|
+| **`decision`** | Acierto y justificación de decisiones de arquitectura y negocio | `[GATE]`, `[ADR]` | `standard`, `enterprise` |
+| **`evidence`** | Sustento fáctico sin alucinaciones comprobado en código | `[OBSERVADO]`, `[AST_INDEX]` | `standard`, `enterprise` |
+| **`tools`** | Selección e invocación eficiente y limpia de herramientas | `[SKILL_CALL]`, `[LINTER]` | `standard`, `enterprise` |
+| **`routing`** | Enrutamiento óptimo entre modelos Tier 1 y Tier 2 | `[CONFIG]`, `[ROUTING]` | `standard`, `enterprise` |
+| **`retries`** | Control de bucles de falla y recuperación determinista | `[ERROR]`, `[RECOVERED]`, `[ROLLBACK]` | `standard`, `enterprise` |
+| **`cost`** | Consumo de tokens e inversión en USD por fase | `[TELEMETRY] [TOKENS]` | `enterprise` |
+| **`latency`** | Duración de ejecución (wall-clock seconds) por paso | `[TELEMETRY] [LATENCY]` | `enterprise` |
+| **`policy compliance`** | Apego a la Constitución, límites y seguridad | `[CAB_RP]`, `[BOUNDARY]` | `minimal`, `standard`, `enterprise` |
+| **`final outcome`** | Veredicto funcional: código compila y tests pasan al 100% | `[LINTER] [PASS]`, `[CLOSURE]` | `minimal`, `standard`, `enterprise` |
+
+### Niveles de Madurez de Evaluación:
+- **`minimal`**: Mide únicamente `final outcome` y `policy compliance`. Ideal para micro-parches rápidos (Fast Path) y prototipos de 1 persona.
+- **`standard` (Por Defecto)**: Agrega `decision`, `evidence`, `tools`, `routing` y `retries`. Mantiene alta calidad de ingeniería sin sobrecarga de medición.
+- **`enterprise`**: Activa las 9 dimensiones completas sumando `cost` y `latency` para contabilidad estricta y SLAs corporativos.
+
 ## 3. Reference Log Stream Example
 
 ```log

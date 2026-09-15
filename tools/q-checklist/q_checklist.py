@@ -170,7 +170,8 @@ Se requiere establecer las bases arquitectónicas de {project_name} para garanti
   }},
   "observability": {{
     "flight_recorder": true,
-    "log_path": ".q-agent/flight_recorder.log"
+    "log_path": ".q-agent/flight_recorder.log",
+    "eval_level": "standard"
   }},
   "integrations": {{
     "github_issues": true,

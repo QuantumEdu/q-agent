@@ -130,6 +130,12 @@ q-agent operates under one of three plans, selected at the start of every cycle:
   - Formal Agile User Stories: `Como [rol], quiero [capacidad], para [beneficio tangible]`.
   - User Acceptance Criteria (UAC) and business value hypotheses before touching technical specs.
 
+### 7. LLMOps Evaluation Matrix (9 Dimensions)
+Configurable in `.q-agent.json` via `observability.eval_level` according to project scale:
+- **`minimal`**: Measures `final outcome` (tests pass) and `policy compliance` (domain isolation). Ideal for micro-fixes and prototypes.
+- **`standard` (Default)**: Tracks 7 dimensions: `decision`, `evidence`, `tools`, `routing`, `retries`, `policy compliance`, and `final outcome`.
+- **`enterprise`**: Activates all 9 dimensions, adding granular `cost` (token consumption) and `latency` (wall-clock seconds per phase) for enterprise SLAs and audits.
+
 ---
 
 ## Architectural Flow Diagram

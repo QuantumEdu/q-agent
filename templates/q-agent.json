@@ -28,7 +28,9 @@
   },
   "observability": {
     "flight_recorder": true,
-    "log_path": ".q-agent/flight_recorder.log"
+    "log_path": ".q-agent/flight_recorder.log",
+    "eval_level": "standard",
+    "notes_eval_level": "Options: minimal (outcome + policy), standard (default: adds decision, evidence, tools, routing, retries), enterprise (adds cost + latency)"
   },
   "integrations": {
     "github_issues": true,
