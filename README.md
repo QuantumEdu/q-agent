@@ -14,13 +14,38 @@ Every decision is **traceable as a GitHub Issue** in the project repository. Eve
 - **`<SKILL_ROOT>`**: Directory where `q-agent` is installed (e.g. `~/.pi/agent/skills/q-agent/`). All internal orchestrator assets (`prompts/`, `templates/`, `references/`, `skills/`) are always resolved relative to `<SKILL_ROOT>`.
 - **`<PROJECT_ROOT>`**: Active target workspace repository (`cwd`). All project source code, Git branches, and generated artifacts (`CONSTITUTION.md`, `CLAUDE.md`, `openspec/`, `docs/adr/`) are created inside `<PROJECT_ROOT>`.
 
-### Compatible runtimes
-| Runtime | How to activate |
-|---------|----------------|
+### Compatible Runtimes & Registries
+| Runtime / Registry | How to activate |
+|--------------------|----------------|
+| **skills.sh** | `npx skills add QuantumEdu/q-agent` |
 | **Pi** | `pi chat --skill q-agent` or say "start agent" |
 | **Antigravity CLI** | Load skill, then say "start agent" |
 | **Claude Code** | SKILL.md is auto-detected via frontmatter |
 | **OpenCode** | Load skill directory |
+
+---
+
+## Why Deterministic SDD? (The "Amarillas" Analysis)
+
+Current agentic coding frameworks fail in production due to structural design flaws:
+1. **Vibe Coding Regressions:** Editing code without architectural constraints causes unmaintainable drift and breaks existing domain rules.
+2. **Big Design Up Front (BDUF) & Context Rot (Spec-Kit):** Emitting massive Markdown specifications in a single session saturates the context window. By Phase 5, LLMs suffer attention degradation ("Lost in the Middle"), ignoring instructions and generating hallucinations ([Spec-Kit Issues #3507, #3752](https://github.com/github/spec-kit/issues/3507)).
+3. **Multi-Agent Swarm Overhead (BMAD / ChatDev):** Unconstrained conversational agent swarms introduce 3x–5x token burn, high latency, and compounding hallucinations without verifiable quality gates.
+
+`q-agent` solves these failure modes through **Single-Agent Orchestration with Deterministic Quality Gates**:
+
+### Comprehensive Architectural Matrix
+
+| Capability | GitHub Spec-Kit | OpenSpec | BMAD Method | Superpowers | **q-agent** |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Execution Architecture** | Waterfall BDUF (High *Context Rot* risk) | Modular, but lacks deterministic gates | Multi-agent conversational swarm (3x–5x token burn) | Fixed prompt chain, weak Brownfield support | **Single Tier-1 Orchestrator + Tier-2 local workers** |
+| **Workspace Isolation** | Local working tree (high collision risk) | Manual checkout | Harness-dependent | Manual checkout | **Mandatory Git Worktrees (`../{repo}-worktrees/`)** |
+| **Implementation Guarantee** | Prompt-based trust (`/speckit-converge`) | Subjective diff review | Inter-agent consensus | Direct execution | **Reproduction-First TDD (RED failure mandatory before GREEN)** |
+| **Context Window Hygiene** | Dumps full Markdown specs | Injects full specification files | High chatter token burn | Rigid template injection | **AST Skeleton Compression (Prunes >70% tokens)** |
+| **Human-in-the-Loop** | Agent takes full control | Agent takes full control | Opaque bot dialogues | Agent takes full control | **Supervised Gates (P03, P04, P09) + Mentor Mode** |
+| **Observability / LLMOps** | None native | None native | None native | Basic logs | **Flight Recorder + 9-Dimension Evaluation Matrix** |
+| **Caliber Routing** | One-size-fits-all ceremony | Manual branching | Swarm roles | Static scripts | **Calibrated Fast-Track (≤3 files) vs Full SDD vs Plan C** |
+
 
 ---
 
@@ -95,6 +120,24 @@ q-agent operates under one of three plans, selected at the start of every cycle:
    - *Prompt:* `"Quiero ejecutar el flujo SDD manualmente paso a paso. No implementes nada por tu cuenta. Actúa únicamente como mi Mentor Arquitectónico: indícame en cada turno qué prompt o fase sigue, explícame el objetivo conceptual y entrégame la plantilla con las variables que debo completar. Yo tendré el volante."`
 3. **`autonomous` (CI/CD & Headless):**
    - End-to-end execution without prompts, ideal for unattended pipelines.
+
+### 💡 Ready-to-Use Operational Prompts Catalog
+
+#### 🎓 Mentor Mode (User at the Wheel):
+> *"Quiero ejecutar el flujo SDD manualmente paso a paso. No implementes nada por tu cuenta. Actúa únicamente como mi Mentor Arquitectónico: indícame en cada turno qué prompt o fase sigue, explícame el objetivo conceptual y entrégame la plantilla con las variables que debo completar. Yo tendré el volante."*
+
+#### 1. Greenfield (Plan A — New System from Scratch):
+> *"Inicia un proyecto Greenfield con q-agent para construir un sistema de [nombre_sistema, ej: MeetSync registro de reuniones y acuerdos] con arquitectura hexagonal y SQLite. Guíame en los pasos iniciales y genera la Constitución y primer ADR."*
+
+#### 2. Brownfield (Plan B — Feature on Existing Codebase):
+> *"Ejecuta Plan B Brownfield en este repositorio para añadir el feature de [descripción_feature, ej: Dashboard de cumplimiento con exportación a Markdown]. Realiza el descubrimiento previo P01, actualiza a BLUEPRINT_V2 y coordina el cambio SDD."*
+
+#### 3. Fast-Track (Plan B Nivel 1 — Surgical Patch / Micro-Fix):
+> *"Aplica un cambio Fast-Track para solucionar el bug de [descripción_bug, ej: timeout por concurrencia en SQLite]. Ejecuta la fase roja obligatoria, verifica el fallo del test reproductor y aplica el fix quirúrgico en ≤3 archivos sin tocar el dominio."*
+
+#### 4. Audit / Plan C (Read-Only Compliance & Gap Analysis):
+> *"Ejecuta una auditoría Plan C en este repositorio bajo el protocolo MAB-PC y CAB-RP. Invariante estricto: no modifiques ningún archivo de código fuente. Inspecciona arquitectura, seguridad y persistencia, y genera la lista de issues EARS de remediación."*
+
 
 ---
 
@@ -487,7 +530,12 @@ Ordered session closure. Persists operational memory so the next session starts 
 
 ## Installation
 
-### Pi (recommended)
+### Registry: skills.sh (Universal / 1-line install)
+```bash
+npx skills add QuantumEdu/q-agent
+```
+
+### Pi (Recommended)
 ```bash
 cp -r q-agent-v01 ~/.pi/agent/skills/q-agent
 pi skills list | grep q-agent
@@ -500,7 +548,7 @@ Activate: say **"start agent"** or **"/q-agent"** in any Pi session.
 cp -r q-agent-v01 ~/.gemini/antigravity-cli/skills/q-agent
 ```
 
-### Claude Code / OpenCode
+### Claude Code / Cursor / OpenCode
 Copy `q-agent-v01/` to your agent's skills directory. The `SKILL.md` frontmatter (`name`, `aliases`) is auto-detected.
 
 ---
@@ -516,8 +564,20 @@ new feature · audit code · I want to build a system
 
 ---
 
-## Version
+## Ecosystem & Discoverability Tags (GitHub Topics)
 
-`v01` — Hermetic Canonical Package.  
+For open-source indexing and discoverability across developer communities:
+
+```text
+specification-driven-development · sdd · tdd-framework · llmops · clean-architecture
+git-worktree · agentic-workflows · ast-parsing · claude-code-skill · antigravity-agent
+code-audit · zero-dependencies · skills-sh
+```
+
+---
+
+## Version & License
+
+`v01` (1.2.0) — Hermetic Canonical Package.  
 Author: QuantumEdu  
 License: Apache-2.0

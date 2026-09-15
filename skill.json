@@ -1,0 +1,37 @@
+{
+  "name": "q-agent",
+  "version": "1.2.0",
+  "description": "Deterministic Specification-Driven Development (SDD) orchestrator for AI coding agents. Features AST skeleton compression, Reproduction-First TDD, Git worktree isolation, and zero-token quality gates.",
+  "author": "QuantumEdu",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/QuantumEdu/q-agent",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QuantumEdu/q-agent.git"
+  },
+  "entrypoint": "SKILL.md",
+  "keywords": [
+    "sdd",
+    "tdd",
+    "specification-driven-development",
+    "llmops",
+    "clean-architecture",
+    "git-worktree",
+    "ast-indexing",
+    "claude-code",
+    "antigravity",
+    "cursorrules"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "python": ">=3.10.0"
+  },
+  "skills": [
+    "q-deliberate",
+    "q-grill-me",
+    "q-delegate-context",
+    "q-gbrain-assistant",
+    "q-ci-fixer",
+    "q-session-wrap"
+  ]
+}
