@@ -71,6 +71,16 @@ Ejecutar en orden:
 - CodeGraph primero para análisis de dependencias y blast radius.
 - Anti-Mock / Fake Data check: tolerancia cero a funcionalidades simuladas con stubs.
 
+**🛡️ Protocolo de Blindaje Determinista (Anti-Falsa Convergencia):**
+Para prevenir la "Falsa Convergencia" (donde el LLM genera archivos truncados y omite capas de UI o DevOps para ahorrar tokens):
+1. **Terna de Subagentes Especializados (Multi-Agent Swarm):**
+   - `Subagente Frontend UI/UX`: Audita exclusivamente el Sistema de Diseño (`DESIGN.md`), componentes nativos vs estandarizados, arquitectura de estado y accesibilidad (WCAG).
+   - `Subagente Backend & Seguridad`: Audita APIs, base de datos, middlewares y OWASP Top 10.
+   - `Subagente DevOps & GitHub`: Audita workflows CI/CD, despliegues, branch protection y dependencias.
+2. **Quality Gate Determinista de Salida (Cero Tokens):**
+   - Ejecución obligatoria de `python tools/q-audit-validator/validate_audit.py --cwd <PROJECT_ROOT>`.
+   - Si `BLUEPRINT.md` o `CAB_RP_AUDIT.md` omiten la interfaz gráfica, infraestructura GitHub, o el Plan de Mejora priorizado en 3 fases (P0/P1/P2), el script retorna `exit 1` y **bloquea el cierre de la auditoría**.
+
 ---
 
 ## Templates Canónicos

@@ -126,8 +126,9 @@ No generar Spec/Plan/Task automáticamente a partir de este documento.
 2. Se congela la versión 1.0 de CONSTITUTION.md.
 3. Solo entonces se invoca /specify.
 
-7. Criterios de calidad
+7. Criterios de calidad y Compuerta Determinista (Quality Gate)
 - Técnico, exhaustivo, determinista, conciso.
-- Cada afirmación del Blueprint lleva etiqueta de evidencia.
+- Cada afirmación del Blueprint lleva etiqueta de evidencia (`[OBSERVADO]`, `[INFERIDO]`, `[CONFLICTO]`).
 - Toda comparación cita el baseline nombrado (no "mejores prácticas" en abstracto).
 - BLUEPRINT.md y CONSTITUTION.md se entregan como dos archivos separados.
+- **Validación determinista obligatoria:** La entrega se somete a `python <SKILL_ROOT>/tools/q-audit-validator/validate_audit.py --cwd <PROJECT_ROOT>`. Si se omitieron la auditoría de Frontend UI/UX, infraestructura DevOps o el Plan de Mejora en 3 fases (P0/P1/P2), la auditoría se rechaza automáticamente con `exit 1`.
