@@ -279,15 +279,17 @@ Trigger: after any feature that touches architectural patterns, adds/replaces an
 ```
 1. LOAD   → Read references/audit-manifest.yml
             Filter items where level <= .q-agent.json[audit.level]
+            Segregate:
+              - Defect / Compliance items: A01..A17 (CAB-RP — El Escudo)
+              - Strategic Evolution items: E01..E05 (MAB-PC — La Lanza)
 
 2. DISPATCH LOOP — for each active item:
    a. Extract ONLY the files matching item.scope_patterns from PROJECT_ROOT
-   b. Invoke P01b_audit_item.md with:
-        - {{ITEM_ID}}, {{ITEM_SLUG}}, {{ITEM_CATEGORY}}, {{ITEM_DESCRIPTION}}
-        - {{SCOPE_FILES_CONTENT}} = content of matched files ONLY (not full codebase)
-        - {{ITEM_OUTPUT}} = item.output path
-   c. Agent produces: audit/A{ID}-{slug}.md with valid frontmatter (status: complete)
-   d. flight_recorder.log ← [AUDIT][A{ID}][COMPLETE|FAIL]
+   b. If item is Defect (A*):
+        Invoke P01b_audit_item.md → audit/A{ID}-{slug}.md (Summary, Violations, Severity, EARS)
+      If item is Strategic Evolution (E*):
+        Invoke P01c_strategic_item.md → audit/E{ID}-{slug}.md (Summary, Bottlenecks, Architecture, Impact)
+   c. flight_recorder.log ← [AUDIT][{ID}][COMPLETE|FAIL]
 
 3. VALIDATE → python tools/q-audit-validator/validate_audit.py
                  --mode manifest
@@ -307,9 +309,12 @@ Trigger: after any feature that touches architectural patterns, adds/replaces an
                   --cwd PROJECT_ROOT
                   --manifest references/audit-manifest.yml
                   --level <audit.level>
-               Produces: audit/AUDIT_REPORT.md (deterministic join, no LLM)
+               Produces DETERMINISTICALLY:
+                 - audit/AUDIT_REPORT.md (Compliance Matrix + Status)
+                 - audit/PLAN_DE_MEJORA.md & REMEDIATION_ISSUES.md (Defect remediation roadmap)
+                 - audit/PROPUESTA_EVOLUTIVA.md (Strategic performance, UX & innovation roadmap)
 
-5. ISSUES → For each item with severity critical or high:
+5. ISSUES → For each defect item with severity critical or high:
               gh issue create --title "[{severity.upper()}] {ID}: {description}" \
                 --label "type:nfr-gap,priority:{severity}" \
                 --body "<ears_spec from item file>"
@@ -318,8 +323,9 @@ Trigger: after any feature that touches architectural patterns, adds/replaces an
 **Invariants:**
 - Source code immutability absolute during audit (`git status -s` unchanged).
 - The LLM never sees the full codebase in one context — only scope_files per item.
+- `AUDIT_REPORT.md`, `PLAN_DE_MEJORA.md`, and `PROPUESTA_EVOLUTIVA.md` are aggregated by scripts, NEVER authored directly as whole files by LLM.
 - `AUDIT_REPORT.md` is the LAST artifact, never the first. Aggregator runs only after all items pass validation.
-- Completeness is a filesystem property: `ls audit/A*.md | wc -l` == `active_items`, not an LLM promise.
+- Completeness is a filesystem property: `ls audit/{A,E}*.md | wc -l` == `active_items`, not an LLM promise.
 
 
 ### 7b. Retrospective Issue

@@ -400,3 +400,110 @@ items:
       - ears_spec
     severity_enum: ["none", "low", "medium", "high", "critical"]
     output: "audit/A17-disaster-recovery.md"
+
+  # ── STRATEGIC EVOLUTION ITEMS (MAB-PC — Value, Innovation & Benchmark) ─────
+
+  - id: "E01"
+    level: 1
+    type: "strategic_evolution"
+    slug: "latency-performance-architecture"
+    category: "performance"
+    description: >
+      Evaluate asynchronous decoupling, background worker queues (Redis/RabbitMQ),
+      edge caching with stale-while-revalidate, and database connection pooling/indexes
+      to achieve minimum latency and eliminate blocking HTTP operations.
+    scope_patterns:
+      - "**/controllers/**"
+      - "**/services/**"
+      - "**/config/**"
+      - "**/database/**"
+    required_sections:
+      - summary
+      - current_bottlenecks
+      - proposed_architecture
+      - expected_impact
+    output: "audit/E01-latency-performance.md"
+
+  - id: "E02"
+    level: 1
+    type: "strategic_evolution"
+    slug: "ux-gui-ergonomics"
+    category: "frontend"
+    description: >
+      Evaluate frontend ergonomics: optimistic UI mutations (0ms apparent latency),
+      global command palette (Cmd+K/Ctrl+K), visual side-by-side diffing for content
+      revisions, and chunked drag-and-drop media uploading with real progress.
+    scope_patterns:
+      - "**/src/components/**"
+      - "**/src/pages/**"
+      - "**/*.jsx"
+      - "**/*.tsx"
+    required_sections:
+      - summary
+      - current_bottlenecks
+      - proposed_architecture
+      - expected_impact
+    output: "audit/E02-ux-gui-ergonomics.md"
+
+  - id: "E03"
+    level: 1
+    type: "strategic_evolution"
+    slug: "core-domain-capabilities"
+    category: "business_domain"
+    description: >
+      Evaluate alignment with core business goals (CMS & digital media network):
+      multi-role editorial workflow (Draft->Review->Approved->Published),
+      predictive timezone scheduling, complex journalistic credits, and multi-authoring.
+    scope_patterns:
+      - "**/models/**"
+      - "**/controllers/**"
+      - "**/services/**"
+      - "**/domain/**"
+    required_sections:
+      - summary
+      - current_bottlenecks
+      - proposed_architecture
+      - expected_impact
+    output: "audit/E03-core-domain-capabilities.md"
+
+  - id: "E04"
+    level: 1
+    type: "strategic_evolution"
+    slug: "competitive-benchmarking"
+    category: "benchmarking"
+    description: >
+      Benchmark against market leaders (Ghost, Substack, Strapi, WordPress VIP):
+      automated newsletter campaigns with segmentations (Resend/SendGrid),
+      reader membership paywalls (Stripe/MercadoPago), and omni-channel distribution.
+    scope_patterns:
+      - "**/marketing/**"
+      - "**/newsletter/**"
+      - "**/services/**"
+      - "**/routes/**"
+    required_sections:
+      - summary
+      - current_bottlenecks
+      - proposed_architecture
+      - expected_impact
+    output: "audit/E04-competitive-benchmarking.md"
+
+  - id: "E05"
+    level: 1
+    type: "strategic_evolution"
+    slug: "uncontemplated-innovations"
+    category: "innovation"
+    description: >
+      Propose uncontemplated high-value innovations: contextual AI editorial assistant
+      with title scoring (anti-clickbait/CTR), dynamic Schema.org JSON-LD structured
+      data for Google News/Discover, and cryptographic federated syndication (ED25519).
+    scope_patterns:
+      - "**/ai/**"
+      - "**/services/**"
+      - "**/seo/**"
+      - "**/syndication/**"
+    required_sections:
+      - summary
+      - current_bottlenecks
+      - proposed_architecture
+      - expected_impact
+    output: "audit/E05-uncontemplated-innovations.md"

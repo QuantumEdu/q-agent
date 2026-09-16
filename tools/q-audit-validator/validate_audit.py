@@ -91,6 +91,14 @@ def parse_frontmatter(content: str) -> dict:
     return fm
 
 
+STRATEGIC_REQUIRED_SECTIONS = [
+    "## Summary",
+    "## Current Bottlenecks",
+    "## Proposed Architecture",
+    "## Expected Impact",
+]
+
+
 def validate_item_file(item: dict, cwd: Path) -> list[str]:
     """Validate a single audit item file. Returns list of error strings."""
     errors = []
@@ -113,19 +121,29 @@ def validate_item_file(item: dict, cwd: Path) -> list[str]:
             f"expected 'complete'."
         )
 
-    severity = fm.get("severity", "").lower()
-    if severity not in VALID_SEVERITIES:
-        errors.append(
-            f"INVALID SEVERITY in {item['output']}: '{severity}' is not one of "
-            f"{sorted(VALID_SEVERITIES)}."
-        )
+    # Strategic items (E01-E05) vs Defect items (A01-A17)
+    is_strategic = item["id"].startswith("E") or item.get("type") == "strategic_evolution"
 
-    # Required sections check
-    for section in REQUIRED_SECTIONS:
-        if section.lower() not in content.lower():
+    if is_strategic:
+        for section in STRATEGIC_REQUIRED_SECTIONS:
+            if section.lower() not in content.lower():
+                errors.append(
+                    f"MISSING SECTION '{section}' in strategic item {item['output']}."
+                )
+    else:
+        severity = fm.get("severity", "").lower()
+        if severity not in VALID_SEVERITIES:
             errors.append(
-                f"MISSING SECTION '{section}' in {item['output']}."
+                f"INVALID SEVERITY in {item['output']}: '{severity}' is not one of "
+                f"{sorted(VALID_SEVERITIES)}."
             )
+
+        # Required sections check for defect items
+        for section in REQUIRED_SECTIONS:
+            if section.lower() not in content.lower():
+                errors.append(
+                    f"MISSING SECTION '{section}' in {item['output']}."
+                )
 
     return errors
 

@@ -2,12 +2,13 @@
 """
 q-audit-aggregator: Deterministic report & improvement plan generator for q-agent Plan C.
 Zero external dependencies.
-Reads individual A{ID}-{slug}.md files and assembles:
+Reads individual A{ID}-{slug}.md (Defects) and E{ID}-{slug}.md (Strategic Evolution) files and assembles:
   1. audit/AUDIT_REPORT.md (Compliance Matrix + Detailed Findings)
-  2. audit/PLAN_DE_MEJORA.md (Prioritized P0/P1/P2 Roadmap with EARS specifications)
+  2. audit/PLAN_DE_MEJORA.md (Prioritized P0/P1/P2 Remediation Roadmap with EARS specs)
   3. audit/REMEDIATION_ISSUES.md (Actionable GitHub Issue templates)
+  4. audit/PROPUESTA_EVOLUTIVA.md (Strategic Value, Performance, UX & Innovation Roadmap)
 
-The LLM never generates the final report or improvement plan — this script does.
+The LLM never generates the final report, remediation plan, or strategic proposal — this script does.
 
 Usage:
   python generate_report.py [--cwd PATH] [--manifest PATH] [--level 0|1|2] [--output PATH]
@@ -58,7 +59,7 @@ def load_manifest(manifest_path: Path) -> list[dict]:
         pass
 
     content = manifest_path.read_text(encoding="utf-8", errors="replace")
-    id_pattern = re.compile(r'^\s+- id:\s+"?(A\d+)"?', re.MULTILINE)
+    id_pattern = re.compile(r'^\s+- id:\s+"?([AE]\d+)"?', re.MULTILINE)
     slug_pattern = re.compile(r'^\s+slug:\s+"?([^"\n]+)"?', re.MULTILINE)
     level_pattern = re.compile(r'^\s+level:\s+(\d+)', re.MULTILINE)
     output_pattern = re.compile(r'^\s+output:\s+"?([^"\n]+)"?', re.MULTILINE)
@@ -77,6 +78,7 @@ def load_manifest(manifest_path: Path) -> list[dict]:
             "level": levels[i] if i < len(levels) else 0,
             "output": outputs[i].strip() if i < len(outputs) else f"audit/{item_id}.md",
             "category": categories[i] if i < len(categories) else "unknown",
+            "type": "strategic_evolution" if item_id.startswith("E") else "defect_compliance",
         }
         for i, item_id in enumerate(ids)
     ]
@@ -115,25 +117,25 @@ def extract_section(body: str, section_title: str) -> str:
     return match.group(1).strip() if match else ""
 
 
-def build_improvement_plan(cwd: Path, results: list[dict], verdict: str) -> str:
+def build_remediation_plan(cwd: Path, defect_results: list[dict], verdict: str) -> str:
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     lines = [
-        f"# 🛠️ Plan de Mejora Accionable y Hoja de Ruta — {cwd.name}",
+        f"# 🛠️ Plan de Mejora Accionable y Remediación Técnica — {cwd.name}",
         f"",
-        f"> **Framework:** q-agent v1.2 — Generación Determinista de Remediación  ",
+        f"> **Framework:** q-agent v1.2 — Generación Determinista de Remediación (CAB-RP)  ",
         f"> **Fecha:** {now}  ",
         f"> **Veredicto General:** `{verdict}`  ",
-        f"> **Objetivo:** Hoja de ruta priorizada para subsanar los hallazgos de auditoría de forma estructurada e incremental.  ",
+        f"> **Objetivo:** Hoja de ruta priorizada para subsanar los defectos y deudas identificados en la auditoría.  ",
         f"",
         f"---",
         f"",
-        f"## 📌 Matriz de Priorización de Mejoras",
+        f"## 📌 Matriz de Priorización de Correcciones",
         f"",
         f"| Prioridad | ID | Categoría | Ítem | Foco de Remediación |",
         f"| :---: | :---: | :--- | :--- | :--- |",
     ]
 
-    actionable = [r for r in results if r["severity"] in ("critical", "high", "medium", "low")]
+    actionable = [r for r in defect_results if r["severity"] in ("critical", "high", "medium", "low")]
     actionable.sort(key=lambda x: SEVERITY_RANK.get(x["severity"], 99))
 
     for r in actionable:
@@ -191,9 +193,73 @@ def build_improvement_plan(cwd: Path, results: list[dict], verdict: str) -> str:
     return "\n".join(lines)
 
 
+def build_strategic_proposal(cwd: Path, strategic_results: list[dict]) -> str:
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    lines = [
+        f"# 🚀 Propuesta Estratégica y Hoja de Ruta Evolutiva — {cwd.name}",
+        f"",
+        f"> **Framework:** q-agent v1.2 — Auditoría de Valor, Innovación y Benchmarking (MAB-PC)  ",
+        f"> **Fecha:** {now}  ",
+        f"> **Objetivo:** Propuesta de evolución arquitectónica, agilidad, GUI/UX, capacidades de dominio y benchmark competitivo.  ",
+        f"",
+        f"---",
+        f"",
+        f"## 📌 Matriz de Oportunidades Estratégicas",
+        f"",
+        f"| ID | Categoría | Dimensión de Valor | Foco Estratégico |",
+        f"| :---: | :--- | :--- | :--- |",
+    ]
+
+    for r in strategic_results:
+        lines.append(
+            f"| `{r['id']}` | {r.get('category', '-')} | `{r['slug']}` | Propuesta detallada en sección inferior |"
+        )
+
+    lines += [
+        f"",
+        f"---",
+        f"",
+        f"## 🚀 Desglose de Propuestas de Evolución",
+        f"",
+    ]
+
+    for r in strategic_results:
+        summary = extract_section(r["body"], "Summary")
+        bottlenecks = extract_section(r["body"], "Current Bottlenecks")
+        arch = extract_section(r["body"], "Proposed Architecture")
+        impact = extract_section(r["body"], "Expected Impact")
+
+        title = r['slug'].replace('-', ' ').title()
+        lines.append(f"### `{r['id']}` — {title}")
+        lines.append(f"*Categoría: {r.get('category', '-')}*")
+        lines.append("")
+
+        if summary:
+            lines.append(f"#### 🎯 Resumen Ejecutivo")
+            lines.append(summary)
+            lines.append("")
+        if bottlenecks:
+            lines.append(f"#### ⚠️ Diagnóstico y Cuellos de Botella Actuales")
+            lines.append(bottlenecks)
+            lines.append("")
+        if arch:
+            lines.append(f"#### 💡 Arquitectura Propuesta y Estrategia de Solución")
+            lines.append(arch)
+            lines.append("")
+        if impact:
+            lines.append(f"#### 📈 Impacto Esperado y Beneficios")
+            lines.append(impact)
+            lines.append("")
+
+        lines.append("---")
+        lines.append("")
+
+    return "\n".join(lines)
+
+
 def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Path) -> int:
     print(
-        f"\n[q-agent] Generating Audit Report & Improvement Plan\n"
+        f"\n[q-agent] Generating Complete Audit Suite (Reports, Remediation & Strategy)\n"
         f"  Project: {cwd.resolve()}\n"
         f"  Level: {level}\n"
         f"  Output: {output_path}\n"
@@ -228,12 +294,16 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
             "body": body,
         })
 
-    all_severities = [r["severity"] for r in results if r["severity"] in SEVERITY_RANK]
+    defect_results = [r for r in results if not r["id"].startswith("E")]
+    strategic_results = [r for r in results if r["id"].startswith("E")]
+
+    # Calculate verdict for defect items
+    all_severities = [r["severity"] for r in defect_results if r["severity"] in SEVERITY_RANK]
     worst = min(all_severities, key=lambda s: SEVERITY_RANK.get(s, 99)) if all_severities else "none"
     verdict = SEVERITY_VERDICT.get(worst, "UNKNOWN")
 
-    tally = {s: sum(1 for r in results if r["severity"] == s) for s in SEVERITY_RANK}
-    tally["missing"] = sum(1 for r in results if r["severity"] == "missing")
+    tally = {s: sum(1 for r in defect_results if r["severity"] == s) for s in SEVERITY_RANK}
+    tally["missing"] = sum(1 for r in defect_results if r["severity"] == "missing")
 
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     lines = [
@@ -242,19 +312,21 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
         f"> **Framework:** q-agent v1.2 — Plan C Atomic Dispatch  ",
         f"> **Date:** {now}  ",
         f"> **Audit Level:** {level}  ",
-        f"> **Items Audited:** {len(active_items)}  ",
+        f"> **Defect Items Audited:** {len(defect_results)}  ",
+        f"> **Strategic Items Audited:** {len(strategic_results)}  ",
         f"> **Overall Verdict:** `{verdict}` (worst severity: {worst.upper()})  ",
-        f"> **Plan de Mejora Asociado:** [`PLAN_DE_MEJORA.md`](./PLAN_DE_MEJORA.md)  ",
+        f"> **Plan de Remediación (Defectos):** [`PLAN_DE_MEJORA.md`](./PLAN_DE_MEJORA.md)  ",
+        f"> **Propuesta Estratégica (Evolución & Valor):** [`PROPUESTA_EVOLUTIVA.md`](./PROPUESTA_EVOLUTIVA.md)  ",
         f"",
         f"---",
         f"",
-        f"## Compliance Matrix",
+        f"## Compliance Matrix (Defect & Security Verification)",
         f"",
         f"| ID | Category | Slug | Severity | Status |",
         f"| :- | :------- | :--- | :------: | :----: |",
     ]
 
-    for r in sorted(results, key=lambda x: SEVERITY_RANK.get(x["severity"], 99)):
+    for r in sorted(defect_results, key=lambda x: SEVERITY_RANK.get(x["severity"], 99)):
         sev = r["severity"].upper()
         status = r["status"]
         lines.append(
@@ -275,10 +347,23 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
         f"",
     ]
 
-    lines.append("## Detailed Findings")
+    if strategic_results:
+        lines += [
+            f"## Strategic Evolution Matrix (MAB-PC Opportunities)",
+            f"",
+            f"| ID | Category | Dimension | Status |",
+            f"| :- | :------- | :-------- | :----: |",
+        ]
+        for r in strategic_results:
+            lines.append(
+                f"| {r['id']} | {r.get('category', '-')} | {r['slug']} | {r['status']} |"
+            )
+        lines += ["", "---", ""]
+
+    lines.append("## Detailed Defect Findings")
     lines.append("")
 
-    for r in sorted(results, key=lambda x: SEVERITY_RANK.get(x["severity"], 99)):
+    for r in sorted(defect_results, key=lambda x: SEVERITY_RANK.get(x["severity"], 99)):
         sev_badge = SEVERITY_BADGE.get(r["severity"], r["severity"].upper())
         lines.append(f"### {r['id']} — {r['slug']} `[{sev_badge}]`")
         lines.append(f"*Category: {r.get('category', '-')} · Status: {r['status']}*")
@@ -288,36 +373,53 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
         lines.append("---")
         lines.append("")
 
+    # 1. Write AUDIT_REPORT.md
     report_content = "\n".join(lines)
     output_path.write_text(report_content, encoding="utf-8")
-    print(f"Report written: {output_path} ({len(results)} items, verdict: {verdict})")
+    print(f"Report written: {output_path} (Verdict: {verdict})")
 
-    # Generate and Write audit/PLAN_DE_MEJORA.md & audit/REMEDIATION_ISSUES.md
-    plan_content = build_improvement_plan(cwd, results, verdict)
+    # 2. Write audit/PLAN_DE_MEJORA.md & audit/REMEDIATION_ISSUES.md
+    remediation_content = build_remediation_plan(cwd, defect_results, verdict)
     plan_path = output_path.parent / "PLAN_DE_MEJORA.md"
     remediation_path = output_path.parent / "REMEDIATION_ISSUES.md"
-    plan_path.write_text(plan_content, encoding="utf-8")
-    remediation_path.write_text(plan_content, encoding="utf-8")
-    print(f"Improvement Plan written: {plan_path}")
+    plan_path.write_text(remediation_content, encoding="utf-8")
+    remediation_path.write_text(remediation_content, encoding="utf-8")
+    print(f"Remediation Plan written: {plan_path}")
     print(f"Remediation Issues written: {remediation_path}")
 
-    # Write root PLAN_DE_MEJORA.md for immediate project visibility
+    # Root copy of PLAN_DE_MEJORA.md
     root_plan_path = cwd / "PLAN_DE_MEJORA.md"
-    root_plan_path.write_text(plan_content, encoding="utf-8")
-    print(f"Root Improvement Plan updated: {root_plan_path}")
+    root_plan_path.write_text(remediation_content, encoding="utf-8")
+    print(f"Root Remediation Plan updated: {root_plan_path}")
 
-    # Update AUDIT_GAPS.json
-    blocked = [r for r in results if r["severity"] in ("critical", "high", "missing")]
-    if blocked:
+    # 3. Write audit/PROPUESTA_EVOLUTIVA.md if strategic items exist
+    completed_strategic = [r for r in strategic_results if r["status"] != "missing"]
+    if completed_strategic:
+        strategic_content = build_strategic_proposal(cwd, completed_strategic)
+        propuesta_path = output_path.parent / "PROPUESTA_EVOLUTIVA.md"
+        propuesta_path.write_text(strategic_content, encoding="utf-8")
+        print(f"Strategic Evolution Proposal written: {propuesta_path}")
+        root_propuesta_path = cwd / "PROPUESTA_EVOLUTIVA.md"
+        root_propuesta_path.write_text(strategic_content, encoding="utf-8")
+        print(f"Root Strategic Evolution Proposal updated: {root_propuesta_path}")
+
+    # 4. Update AUDIT_GAPS.json for orchestrator retry loop
+    blocked = [r for r in defect_results if r["severity"] in ("critical", "high", "missing")]
+    missing_strategic = [r for r in strategic_results if r["status"] == "missing"]
+    if blocked or missing_strategic:
         gaps_path = cwd / "audit" / "AUDIT_GAPS.json"
         gaps_data = {
             "verdict": verdict,
             "worst_severity": worst,
             "blocked_count": len(blocked),
-            "blocked_items": [
+            "blocked_defect_items": [
                 {"id": r["id"], "slug": r["slug"], "severity": r["severity"]}
                 for r in blocked
             ],
+            "missing_strategic_items": [
+                {"id": r["id"], "slug": r["slug"]}
+                for r in missing_strategic
+            ]
         }
         gaps_path.parent.mkdir(exist_ok=True)
         gaps_path.write_text(json.dumps(gaps_data, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -330,7 +432,7 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="q-audit-aggregator: Deterministic AUDIT_REPORT.md & PLAN_DE_MEJORA.md generator"
+        description="q-audit-aggregator: Complete Audit Suite (Report, Remediation & Strategy)"
     )
     parser.add_argument("--cwd", default=".", help="Project root directory")
     parser.add_argument(
@@ -339,7 +441,7 @@ def main():
         help="Path to audit-manifest.yml",
     )
     parser.add_argument(
-        "--level", type=int, default=0, help="Maturity level to aggregate (0=MVP)"
+        "--level", type=int, default=0, help="Maturity level to aggregate (0=MVP, 1=Growth, 2=Maturity)"
     )
     parser.add_argument(
         "--output",
