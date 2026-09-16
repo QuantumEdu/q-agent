@@ -1,0 +1,402 @@
+version: "1.0"
+description: >
+  Audit Manifest for q-agent Atomic Dispatch Protocol.
+  Each item maps to a single agent invocation with minimal context scope.
+  Completeness is a filesystem property, not an LLM output property.
+
+levels:
+  0: "MVP/Bootstrap — 5 mandatory items from the first commit"
+  1: "Growth — 8 additional quality and contract items"
+  2: "Maturity — observability, NFRs, and scalability items"
+
+items:
+  # ── LEVEL 0 — MVP/Bootstrap (always active) ─────────────────────────────────
+
+  - id: "A01"
+    level: 0
+    slug: "architecture-layers"
+    category: "architecture"
+    description: >
+      Verify separation of concerns exists between layers (Hexagonal/Clean/Layered).
+      Check for Controller→Service→Repository pattern. Identify god classes and
+      fat controllers violating single responsibility.
+    scope_patterns:
+      - "**/*.controller.*"
+      - "**/*.service.*"
+      - "**/*.repository.*"
+      - "**/controllers/**"
+      - "**/services/**"
+      - "**/repositories/**"
+      - "**/domain/**"
+      - "**/application/**"
+    required_sections:
+      - summary
+      - violations
+      - severity
+      - ears_spec
+    severity_enum: ["none", "low", "medium", "high", "critical"]
+    output: "audit/A01-architecture-layers.md"
+
+  - id: "A02"
+    level: 0
+    slug: "security-secrets"
+    category: "security"
+    description: >
+      Detect real credentials, API secrets, tokens, or passwords committed to
+      version control. Check .env.example, config files, and CI/CD definitions
+      for hardcoded values instead of placeholders.
+    scope_patterns:
+      - ".env*"
+      - "*.example"
+      - "**/*.config.*"
+      - "**/*.yml"
+      - "**/*.yaml"
+      - "**/.github/workflows/**"
+    required_sections:
+      - summary
+      - violations
+      - severity
+      - ears_spec
+    severity_enum: ["none", "low", "medium", "high", "critical"]
+    output: "audit/A02-security-secrets.md"
+
+  - id: "A03"
+    level: 0
+    slug: "ci-pipeline-integrity"
+    category: "devops"
+    description: >
+      Audit CI/CD pipelines for blind deployments (no quality gates before deploy),
+      direct bot pushes to protected branches, missing PR validation workflows,
+      and absence of Dependabot configuration.
+    scope_patterns:
+      - "**/.github/workflows/**"
+      - "**/.github/dependabot.yml"
+      - "**/Makefile"
+      - "**/Dockerfile"
+      - "**/docker-compose*.yml"
+    required_sections:
+      - summary
+      - violations
+      - severity
+      - ears_spec
+    severity_enum: ["none", "low", "medium", "high", "critical"]
+    output: "audit/A03-ci-pipeline-integrity.md"
+
+  - id: "A04"
+    level: 0
+    slug: "test-coverage-exists"
+    category: "quality"
+    description: >
+      Verify automated test infrastructure exists (unit, integration, or e2e).
+      Check for test configuration files, test directories, and test scripts in
+      package manifests. Report zero-coverage as critical gap.
+    scope_patterns:
+      - "**/tests/**"
+      - "**/test/**"
+      - "**/spec/**"
+      - "**/__tests__/**"
+      - "**/*.test.*"
+      - "**/*.spec.*"
+      - "**/phpunit.xml*"
+      - "**/jest.config.*"
+      - "**/vitest.config.*"
+      - "**/pytest.ini"
+      - "**/setup.cfg"
+    required_sections:
+      - summary
+      - violations
+      - severity
+      - ears_spec
+    severity_enum: ["none", "low", "medium", "high", "critical"]
+    output: "audit/A04-test-coverage-exists.md"
+
+  - id: "A05"
+    level: 0
+    slug: "fatal-errors-typos"
+    category: "runtime"
+    description: >
+      Scan for fatal runtime errors: import typos, missing class references,
+      duplicate route definitions, undefined variables in hot paths, and
+      misconfigured namespace declarations that cause HTTP 500 on first use.
+    scope_patterns:
+      - "**/routes/**"
+      - "**/controllers/**"
+      - "**/index.php"
+      - "**/app.php"
+      - "**/bootstrap/**"
+      - "**/src/App.*"
+      - "**/src/main.*"
+    required_sections:
+      - summary
+      - violations
+      - severity
+      - ears_spec
+    severity_enum: ["none", "low", "medium", "high", "critical"]
+    output: "audit/A05-fatal-errors-typos.md"
+
+  # ── LEVEL 1 — Growth ────────────────────────────────────────────────────────
+
+  - id: "A06"
+    level: 1
+    slug: "api-contracts-catalog"
+    category: "api"
+    description: >
+      Build a complete catalog of all exposed endpoints (REST, GraphQL, Webhooks).
+      Verify routes are not duplicated, all endpoints declare required auth roles,
+      and HTTP method semantics are correct.
+    scope_patterns:
+      - "**/routes/**"
+      - "**/api.php"
+      - "**/router.*"
+      - "**/urls.py"
+      - "**/index.js"
+    required_sections:
+      - summary
+      - violations
+      - severity
+      - ears_spec
+    severity_enum: ["none", "low", "medium", "high", "critical"]
+    output: "audit/A06-api-contracts-catalog.md"
+
+  - id: "A07"
+    level: 1
+    slug: "ui-design-system"
+    category: "frontend"
+    description: >
+      Audit UI component compliance: verify that raw HTML elements (input, select,
+      button) with inline styles are not used when a standardized component library
+      exists. Check for design system violations, inline style proliferation,
+      and non-standard modal patterns.
+    scope_patterns:
+      - "**/src/components/**"
+      - "**/src/pages/**"
+      - "**/*.jsx"
+      - "**/*.tsx"
+      - "**/DESIGN.md"
+      - "**/design-system/**"
+    required_sections:
+      - summary
+      - violations
+      - severity
+      - ears_spec
+    severity_enum: ["none", "low", "medium", "high", "critical"]
+    output: "audit/A07-ui-design-system.md"
+
+  - id: "A08"
+    level: 1
+    slug: "ui-accessibility"
+    category: "frontend"
+    description: >
+      Audit WCAG 2.1 AA compliance: count aria-* attribute coverage on interactive
+      elements, verify focus management in modals (focus trap, role=dialog, Escape
+      key), and check keyboard navigation support.
+    scope_patterns:
+      - "**/*.jsx"
+      - "**/*.tsx"
+      - "**/*.html"
+      - "**/src/components/**"
+    required_sections:
+      - summary
+      - violations
+      - severity
+      - ears_spec
+    severity_enum: ["none", "low", "medium", "high", "critical"]
+    output: "audit/A08-ui-accessibility.md"
+
+  - id: "A09"
+    level: 1
+    slug: "owasp-injection"
+    category: "security"
+    description: >
+      Detect SQL injection, command injection, and XSS vectors. Verify ORM/PDO
+      usage with parameterized queries. Check for string concatenation in SQL
+      or shell commands without sanitization.
+    scope_patterns:
+      - "**/controllers/**"
+      - "**/repositories/**"
+      - "**/models/**"
+      - "**/queries/**"
+    required_sections:
+      - summary
+      - violations
+      - severity
+      - ears_spec
+    severity_enum: ["none", "low", "medium", "high", "critical"]
+    output: "audit/A09-owasp-injection.md"
+
+  - id: "A10"
+    level: 1
+    slug: "owasp-auth"
+    category: "security"
+    description: >
+      Audit authentication and authorization: verify middleware is applied at route
+      level (not only per-method), check JWT expiry and rotation policies, and
+      verify RBAC/ABAC enforcement consistency.
+    scope_patterns:
+      - "**/middleware/**"
+      - "**/auth/**"
+      - "**/guards/**"
+      - "**/routes/**"
+    required_sections:
+      - summary
+      - violations
+      - severity
+      - ears_spec
+    severity_enum: ["none", "low", "medium", "high", "critical"]
+    output: "audit/A10-owasp-auth.md"
+
+  - id: "A11"
+    level: 1
+    slug: "owasp-ssrf"
+    category: "security"
+    description: >
+      Detect Server-Side Request Forgery vectors: HTTP clients (cURL, fetch, axios,
+      requests) that consume user-supplied URLs without validating against private
+      IP ranges (RFC 1918, 127.0.0.1, 169.254.x.x). Check SSL verification flags.
+    scope_patterns:
+      - "**/controllers/**"
+      - "**/services/**"
+      - "**/utils/**"
+      - "**/*.php"
+      - "**/*.py"
+      - "**/*.js"
+      - "**/*.ts"
+    required_sections:
+      - summary
+      - violations
+      - severity
+      - ears_spec
+    severity_enum: ["none", "low", "medium", "high", "critical"]
+    output: "audit/A11-owasp-ssrf.md"
+
+  - id: "A12"
+    level: 1
+    slug: "dependency-drift"
+    category: "maintenance"
+    description: >
+      Audit package manifests for outdated or EOL dependencies. Verify lock files
+      are committed. Check for CDN scripts in production HTML (runtime compilation
+      like cdn.tailwindcss.com, unpkg imports of full frameworks).
+    scope_patterns:
+      - "package.json"
+      - "package-lock.json"
+      - "composer.json"
+      - "composer.lock"
+      - "requirements.txt"
+      - "go.mod"
+      - "**/*.html"
+    required_sections:
+      - summary
+      - violations
+      - severity
+      - ears_spec
+    severity_enum: ["none", "low", "medium", "high", "critical"]
+    output: "audit/A12-dependency-drift.md"
+
+  - id: "A13"
+    level: 1
+    slug: "monolith-complexity"
+    category: "architecture"
+    description: >
+      Measure LOC count per file and class. Flag any file exceeding 800 LOC,
+      any controller exceeding 500 LOC, and any React/Vue component exceeding
+      600 LOC. Count useState hooks per component and identify state explosion.
+    scope_patterns:
+      - "**/controllers/**"
+      - "**/src/pages/**"
+      - "**/src/views/**"
+      - "**/*.jsx"
+      - "**/*.tsx"
+      - "**/*.php"
+    required_sections:
+      - summary
+      - violations
+      - severity
+      - ears_spec
+    severity_enum: ["none", "low", "medium", "high", "critical"]
+    output: "audit/A13-monolith-complexity.md"
+
+  # ── LEVEL 2 — Maturity ──────────────────────────────────────────────────────
+
+  - id: "A14"
+    level: 2
+    slug: "observability-logging"
+    category: "devops"
+    description: >
+      Audit structured logging, distributed tracing, and audit trail coverage.
+      Verify that all error paths emit structured logs and that user actions
+      affecting data integrity are captured in an audit log.
+    scope_patterns:
+      - "**/logging/**"
+      - "**/logger.*"
+      - "**/audit/**"
+      - "**/middleware/**"
+    required_sections:
+      - summary
+      - violations
+      - severity
+      - ears_spec
+    severity_enum: ["none", "low", "medium", "high", "critical"]
+    output: "audit/A14-observability-logging.md"
+
+  - id: "A15"
+    level: 2
+    slug: "performance-rendering"
+    category: "frontend"
+    description: >
+      Audit render performance: missing React.memo, useMemo, useCallback on
+      expensive components. Identify re-render storms from state colocation issues.
+      Verify lazy loading for heavy routes and image optimization.
+    scope_patterns:
+      - "**/src/**/*.jsx"
+      - "**/src/**/*.tsx"
+      - "**/src/**/*.js"
+    required_sections:
+      - summary
+      - violations
+      - severity
+      - ears_spec
+    severity_enum: ["none", "low", "medium", "high", "critical"]
+    output: "audit/A15-performance-rendering.md"
+
+  - id: "A16"
+    level: 2
+    slug: "multi-tenant-isolation"
+    category: "architecture"
+    description: >
+      Verify tenant isolation at database query level. Check every query touching
+      shared tables includes tenant discriminator filter. Audit middleware chain
+      to ensure tenant context is resolved before any data access.
+    scope_patterns:
+      - "**/middleware/**"
+      - "**/repositories/**"
+      - "**/controllers/**"
+      - "**/models/**"
+    required_sections:
+      - summary
+      - violations
+      - severity
+      - ears_spec
+    severity_enum: ["none", "low", "medium", "high", "critical"]
+    output: "audit/A16-multi-tenant-isolation.md"
+
+  - id: "A17"
+    level: 2
+    slug: "disaster-recovery"
+    category: "infrastructure"
+    description: >
+      Verify backup strategy existence (documented runbook, automated snapshots).
+      Check if deployment pipeline includes rollback capability. Verify health
+      check endpoints exist post-deploy. Flag absence as RISK-OPERATIVO.
+    scope_patterns:
+      - "**/.github/workflows/**"
+      - "**/docs/**"
+      - "**/runbooks/**"
+      - "**/scripts/**"
+    required_sections:
+      - summary
+      - violations
+      - severity
+      - ears_spec
+    severity_enum: ["none", "low", "medium", "high", "critical"]
+    output: "audit/A17-disaster-recovery.md"

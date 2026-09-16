@@ -268,11 +268,59 @@ Trigger: after any feature that touches architectural patterns, adds/replaces an
 
 ## STEP 7 — Closure (autonomous)
 
-### 7a. Pre-delivery Compliance Audit (P09 CAB-RP)
-Execute `prompts/P09_compliance_audit.md` (CAB-RP).
-- **Invariantes:** Inmutabilidad absoluta en disco (`git status -s` idéntico al final); CodeGraph primero; Tolerancia cero a completitudes falsas (anti-mock).
-- Output: `AUDIT_REPORT.md` (Matriz + Checklist 9 categorías + Specs EARS por gap + Plan P0/P1).
-- Creates GitHub Issues for each detected gap (`type:nfr-gap` + severity).
+### 7a. Pre-delivery Compliance Audit — Atomic Dispatch Protocol
+
+**Routing:** Read `.q-agent.json` → `audit.mode`:
+- `atomic_dispatch` → execute protocol below (default for all new projects)
+- `legacy` → execute `prompts/P09_compliance_audit.md` (backward compat only)
+
+**Atomic Dispatch Protocol (audit.mode = atomic_dispatch):**
+
+```
+1. LOAD   → Read references/audit-manifest.yml
+            Filter items where level <= .q-agent.json[audit.level]
+
+2. DISPATCH LOOP — for each active item:
+   a. Extract ONLY the files matching item.scope_patterns from PROJECT_ROOT
+   b. Invoke P01b_audit_item.md with:
+        - {{ITEM_ID}}, {{ITEM_SLUG}}, {{ITEM_CATEGORY}}, {{ITEM_DESCRIPTION}}
+        - {{SCOPE_FILES_CONTENT}} = content of matched files ONLY (not full codebase)
+        - {{ITEM_OUTPUT}} = item.output path
+   c. Agent produces: audit/A{ID}-{slug}.md with valid frontmatter (status: complete)
+   d. flight_recorder.log ← [AUDIT][A{ID}][COMPLETE|FAIL]
+
+3. VALIDATE → python tools/q-audit-validator/validate_audit.py
+                 --mode manifest
+                 --manifest references/audit-manifest.yml
+                 --cwd PROJECT_ROOT
+                 --level <audit.level>
+
+   exit 0 → all items complete. Proceed to step 4.
+   exit 1 → read audit/AUDIT_GAPS.json for failed item IDs.
+             RETRY each failed ID (max audit.max_retries_per_item attempts).
+             If still failing after max retries:
+               gh issue create --title "[AUDIT-BLOCK] {ID}: {slug}" \
+                 --body "Item {ID} could not be completed after 2 retries. Manual review required."
+             Continue to step 4 with completed items.
+
+4. AGGREGATE → python tools/q-audit-aggregator/generate_report.py
+                  --cwd PROJECT_ROOT
+                  --manifest references/audit-manifest.yml
+                  --level <audit.level>
+               Produces: audit/AUDIT_REPORT.md (deterministic join, no LLM)
+
+5. ISSUES → For each item with severity critical or high:
+              gh issue create --title "[{severity.upper()}] {ID}: {description}" \
+                --label "type:nfr-gap,priority:{severity}" \
+                --body "<ears_spec from item file>"
+```
+
+**Invariants:**
+- Source code immutability absolute during audit (`git status -s` unchanged).
+- The LLM never sees the full codebase in one context — only scope_files per item.
+- `AUDIT_REPORT.md` is the LAST artifact, never the first. Aggregator runs only after all items pass validation.
+- Completeness is a filesystem property: `ls audit/A*.md | wc -l` == `active_items`, not an LLM promise.
+
 
 ### 7b. Retrospective Issue
 Create Issue with label `type:retrospective`. Body structure:

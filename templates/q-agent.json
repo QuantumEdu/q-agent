@@ -36,5 +36,15 @@
     "github_issues": true,
     "gbrain_mcp": false,
     "engram_mcp": false
+  },
+  "audit": {
+    "mode": "atomic_dispatch",
+    "notes_mode": "Options: atomic_dispatch (new — one agent per item, manifest-driven), legacy (monolithic megaprompt)",
+    "manifest": "references/audit-manifest.yml",
+    "level": 0,
+    "notes_level": "0=MVP/Bootstrap (5 items), 1=Growth (13 items), 2=Maturity (17 items)",
+    "max_retries_per_item": 2,
+    "aggregator_script": "tools/q-audit-aggregator/generate_report.py",
+    "validator_script": "tools/q-audit-validator/validate_audit.py"
   }
 }
