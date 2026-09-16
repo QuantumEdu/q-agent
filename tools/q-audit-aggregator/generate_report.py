@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """
-q-audit-aggregator: Deterministic report generator for q-agent Plan C (Atomic Dispatch).
+q-audit-aggregator: Deterministic report & improvement plan generator for q-agent Plan C.
 Zero external dependencies.
-Reads individual A{ID}-{slug}.md files and assembles AUDIT_REPORT.md.
-The LLM never generates the final report — this script does.
+Reads individual A{ID}-{slug}.md files and assembles:
+  1. audit/AUDIT_REPORT.md (Compliance Matrix + Detailed Findings)
+  2. audit/PLAN_DE_MEJORA.md (Prioritized P0/P1/P2 Roadmap with EARS specifications)
+  3. audit/REMEDIATION_ISSUES.md (Actionable GitHub Issue templates)
+
+The LLM never generates the final report or improvement plan — this script does.
 
 Usage:
   python generate_report.py [--cwd PATH] [--manifest PATH] [--level 0|1|2] [--output PATH]
@@ -13,7 +17,7 @@ import sys
 import re
 import json
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -36,10 +40,15 @@ SEVERITY_VERDICT = {
     "low": "PASS WITH WARNINGS",
     "none": "PASS",
 }
+PRIORITY_MAP = {
+    "critical": "P0 (Inmediato / Bloqueante)",
+    "high": "P1 (Corto Plazo / Alto Riesgo)",
+    "medium": "P2 (Mediano Plazo / Contratos & Deuda)",
+    "low": "P3 (Higiene / Deuda Menor)",
+}
 
 
 def load_manifest(manifest_path: Path) -> list[dict]:
-    """Load items from audit-manifest.yml using yaml or regex fallback."""
     try:
         import yaml
         with manifest_path.open(encoding="utf-8") as f:
@@ -88,7 +97,6 @@ def parse_frontmatter(content: str) -> dict:
 
 
 def strip_frontmatter(content: str) -> str:
-    """Remove frontmatter block from markdown content."""
     lines = content.splitlines()
     if not lines or lines[0].strip() != "---":
         return content
@@ -98,9 +106,94 @@ def strip_frontmatter(content: str) -> str:
     return content
 
 
+def extract_section(body: str, section_title: str) -> str:
+    pattern = re.compile(
+        rf"^##\s+{re.escape(section_title)}\s*\n(.*?)(?=^##\s+|\Z)",
+        re.MULTILINE | re.DOTALL | re.IGNORECASE,
+    )
+    match = pattern.search(body)
+    return match.group(1).strip() if match else ""
+
+
+def build_improvement_plan(cwd: Path, results: list[dict], verdict: str) -> str:
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    lines = [
+        f"# 🛠️ Plan de Mejora Accionable y Hoja de Ruta — {cwd.name}",
+        f"",
+        f"> **Framework:** q-agent v1.2 — Generación Determinista de Remediación  ",
+        f"> **Fecha:** {now}  ",
+        f"> **Veredicto General:** `{verdict}`  ",
+        f"> **Objetivo:** Hoja de ruta priorizada para subsanar los hallazgos de auditoría de forma estructurada e incremental.  ",
+        f"",
+        f"---",
+        f"",
+        f"## 📌 Matriz de Priorización de Mejoras",
+        f"",
+        f"| Prioridad | ID | Categoría | Ítem | Foco de Remediación |",
+        f"| :---: | :---: | :--- | :--- | :--- |",
+    ]
+
+    actionable = [r for r in results if r["severity"] in ("critical", "high", "medium", "low")]
+    actionable.sort(key=lambda x: SEVERITY_RANK.get(x["severity"], 99))
+
+    for r in actionable:
+        prio_label = r["severity"].upper()
+        prio_badge = "🔴 P0" if prio_label == "CRITICAL" else ("🟠 P1" if prio_label == "HIGH" else ("🟡 P2" if prio_label == "MEDIUM" else "🟢 P3"))
+        lines.append(
+            f"| {prio_badge} | `{r['id']}` | {r.get('category', '-')} | `{r['slug']}` | Ver especificación EARS en sección detallada |"
+        )
+
+    lines += [
+        f"",
+        f"---",
+        f"",
+        f"## 🚀 Desglose de Fases de Ejecución",
+        f"",
+    ]
+
+    phases = [
+        ("🔴 Fase P0 — Inmediato / Bloqueante", ["critical"]),
+        ("🟠 Fase P1 — Corto Plazo / Riesgo Alto", ["high"]),
+        ("🟡 Fase P2 — Mediano Plazo / Contratos & Deuda", ["medium"]),
+        ("🟢 Fase P3 — Higiene & Mantenimiento Menor", ["low"]),
+    ]
+
+    for phase_title, sevs in phases:
+        phase_items = [r for r in actionable if r["severity"] in sevs]
+        if not phase_items:
+            continue
+
+        lines.append(f"### {phase_title}")
+        lines.append("")
+
+        for r in phase_items:
+            summary = extract_section(r["body"], "Summary")
+            violations = extract_section(r["body"], "Violations")
+            ears = extract_section(r["body"], "EARS Spec")
+
+            lines.append(f"#### `{r['id']}` — {r['slug']} `[{r['severity'].upper()}]`")
+            if summary:
+                lines.append(f"**Diagnóstico:** {summary}")
+                lines.append("")
+            if violations:
+                lines.append(f"**Evidencia observada:**")
+                lines.append(violations)
+                lines.append("")
+            if ears and ears.strip() != "N/A — No remediation required.":
+                lines.append(f"**Especificación de Requisito EARS:**")
+                lines.append("```ears")
+                lines.append(ears)
+                lines.append("```")
+                lines.append("")
+            lines.append("---")
+            lines.append("")
+
+    return "\n".join(lines)
+
+
 def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Path) -> int:
     print(
-        f"\n[q-agent] Generating Audit Report (Atomic Aggregation)\n"
+        f"\n[q-agent] Generating Audit Report & Improvement Plan\n"
         f"  Project: {cwd.resolve()}\n"
         f"  Level: {level}\n"
         f"  Output: {output_path}\n"
@@ -113,7 +206,6 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
         print("[WARNING] No active items found for this level.")
         return 0
 
-    # Read each item file
     results = []
     for item in active_items:
         item_path = cwd / item["output"]
@@ -136,17 +228,14 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
             "body": body,
         })
 
-    # Compute overall verdict
     all_severities = [r["severity"] for r in results if r["severity"] in SEVERITY_RANK]
     worst = min(all_severities, key=lambda s: SEVERITY_RANK.get(s, 99)) if all_severities else "none"
     verdict = SEVERITY_VERDICT.get(worst, "UNKNOWN")
 
-    # Tally by severity
     tally = {s: sum(1 for r in results if r["severity"] == s) for s in SEVERITY_RANK}
     tally["missing"] = sum(1 for r in results if r["severity"] == "missing")
 
-    # Build report
-    now = datetime.utcnow().strftime("%Y-%m-%d")
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     lines = [
         f"# AUDIT REPORT — {cwd.name}",
         f"",
@@ -155,6 +244,7 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
         f"> **Audit Level:** {level}  ",
         f"> **Items Audited:** {len(active_items)}  ",
         f"> **Overall Verdict:** `{verdict}` (worst severity: {worst.upper()})  ",
+        f"> **Plan de Mejora Asociado:** [`PLAN_DE_MEJORA.md`](./PLAN_DE_MEJORA.md)  ",
         f"",
         f"---",
         f"",
@@ -185,7 +275,6 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
         f"",
     ]
 
-    # Append individual item bodies (ordered by severity)
     lines.append("## Detailed Findings")
     lines.append("")
 
@@ -201,10 +290,23 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
 
     report_content = "\n".join(lines)
     output_path.write_text(report_content, encoding="utf-8")
-
     print(f"Report written: {output_path} ({len(results)} items, verdict: {verdict})")
 
-    # Also write AUDIT_GAPS.json summary if there are blocked items
+    # Generate and Write audit/PLAN_DE_MEJORA.md & audit/REMEDIATION_ISSUES.md
+    plan_content = build_improvement_plan(cwd, results, verdict)
+    plan_path = output_path.parent / "PLAN_DE_MEJORA.md"
+    remediation_path = output_path.parent / "REMEDIATION_ISSUES.md"
+    plan_path.write_text(plan_content, encoding="utf-8")
+    remediation_path.write_text(plan_content, encoding="utf-8")
+    print(f"Improvement Plan written: {plan_path}")
+    print(f"Remediation Issues written: {remediation_path}")
+
+    # Write root PLAN_DE_MEJORA.md for immediate project visibility
+    root_plan_path = cwd / "PLAN_DE_MEJORA.md"
+    root_plan_path.write_text(plan_content, encoding="utf-8")
+    print(f"Root Improvement Plan updated: {root_plan_path}")
+
+    # Update AUDIT_GAPS.json
     blocked = [r for r in results if r["severity"] in ("critical", "high", "missing")]
     if blocked:
         gaps_path = cwd / "audit" / "AUDIT_GAPS.json"
@@ -228,7 +330,7 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="q-audit-aggregator: Deterministic AUDIT_REPORT.md generator"
+        description="q-audit-aggregator: Deterministic AUDIT_REPORT.md & PLAN_DE_MEJORA.md generator"
     )
     parser.add_argument("--cwd", default=".", help="Project root directory")
     parser.add_argument(
