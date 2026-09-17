@@ -1,134 +1,118 @@
 ---
 id: P1_ADACG
 titulo: "Framework Maestro ADACG — Architectural Discovery, Audit & Context Grounding"
-cuando_usar: "Al inicio del proyecto. Para ejecutar la auditoría forense sobre repositorios de referencia."
-prerequisitos: "Acceso a los repositorios fuente y/o documentos PDF base."
-entregables: "BLUEPRINT.md (descriptivo) + CONSTITUTION.md (prescriptivo)"
+cuando_usar: "Al inicio del proyecto o durante evolución arquitectónica. Para ejecutar auditoría forense sobre repositorios existentes."
+prerequisitos: "Acceso al repositorio de código fuente y/o especificaciones de negocio."
+entregables: "BLUEPRINT.md (descriptivo por Vertical Slices) + CONSTITUTION.md (prescriptivo con Artículo ARQ-01)"
+posicion_en_pipeline: "Paso 1 del pipeline q-agent"
 proyecto: "{{PROYECTO_NOMBRE}}"
 fecha: "{{YYYY-MM-DD}}"
 ---
 
 # P1 — Framework Maestro ADACG
 > **Architectural Discovery, Audit & Context Grounding**
+> Gobernada por el **Artículo ARQ-01 (Mínima Indirección y Gobernanza Pragmática)**.
 
 > 💡 **Regla de Contexto:** Si no existen repositorios de referencia preexistentes, este paso no aplica; el ciclo corresponde a **Plan A (Greenfield)**.
 
 ---
 
-ADAC — Architectural Discovery, Audit & Context Grounding
+## 0. Metadatos de la auditoría (llenar antes de ejecutar)
+- **Proyecto:** {{PROYECTO_NOMBRE}}
+- **Fecha de auditoría:** {{YYYY-MM-DD}}
+- **Fuentes analizadas:**
+  - Documento base: {{DOCUMENTO_PDF_O_SPEC}}
+  - Repo principal: {{URL_REPO_1}} — commit/tag: {{HASH}}
+- **Arquitecto responsable:** {{NOMBRE}}
+- **Alcance auditado:** {{QUE_QUEDA_DENTRO_Y_FUERA}}
 
-0. Metadatos de la auditoría (llenar antes de ejecutar)
-Proyecto: {{PROYECTO_NOMBRE}}
-Fecha de auditoría: {{YYYY-MM-DD}}
-Fuentes analizadas:
-- Documento base: {{DOCUMENTO_PDF_O_SPEC}}
-- Repo 1: {{URL_REPO_1}} — commit/tag analizado: {{HASH}}
-- Repo 2: {{URL_REPO_2}} — commit/tag analizado: {{HASH}}
-Arquitecto responsable de aprobar el gate (Sección 6): {{NOMBRE}}
-Alcance declarado: {{QUE_QUEDA_DENTRO_Y_FUERA}}
+### Nota de ingestión (Protocolo Dual-Mode):
+- **Modo A (Acelerado con CodeGraph / MCP):** Si `codegraph` o MCPs de análisis de grafos están disponibles en el host, utilizarlos prioritariamente para trazar flujos de llamadas, referencias y blast radius en milisegundos sin saturar el contexto.
+- **Modo B (Standalone / Portátil):** Utilizar herramientas nativas de terminal (`ripgrep`, `fd`, `git log`). Explorar selectivamente: árbol de directorios, manifiestos de dependencias (`go.mod`, `package.json`, `pyproject.toml`), `README.md`, configuración de DB (`schema.sql`, migraciones) y módulos funcionales. Cero dumps masivos ciegos al contexto.
 
-Nota de ingestión (Protocolo Dual-Mode):
-- Modo A (Acelerado con GBrain — Si `gbrain` está disponible): Consulta el grafo de conocimiento y búsqueda semántica local (`gbrain search`, `gbrain graph-query`) para recuperar la arquitectura, entidades y decisiones preexistentes en milisegundos sin saturar la ventana de contexto.
-- Modo B (Standalone / Portátil — Si `gbrain` no está instalado, en repositorios de terceros o entornos remotos): Si un repositorio excede el contexto disponible, no pegar el dump completo. Priorizar en este orden usando herramientas nativas (`ripgrep`, `fd`, `git log`): árbol de directorios, manifiestos de dependencias (`package.json`, `requirements.txt`, `go.mod`, `pyproject.toml`), README, `docker-compose.yml`, configuración de CI/CD, `.env.example`, y los módulos de dominio/core. El resto se referencia por ruta, no se transcribe completo.
+---
 
-1. Rol y misión
+## 1. Rol y misión
 
-Actúa como Arquitecto de Software Principal, Especialista en Sistemas Multi-Agente y Auditor de Seguridad de Sistemas Distribuidos.
+Actúas como Arquitecto de Software Principal y Auditor de Seguridad.
+Tu misión es ejecutar Architectural Discovery & Reverse Engineering para producir dos entregables separados y complementarios:
 
-Tu misión es ejecutar Architectural Discovery & Audit, Codebase & Knowledge Ingestion y System Reverse-Engineering sobre las fuentes de la Sección 0, para producir dos entregables separados:
+1. **`BLUEPRINT.md`** — Documento descriptivo y vivo de lo que el sistema ES hoy (organizado por **Slices Verticales** y Dominios Ricos).
+2. **`CONSTITUTION.md`** — Documento prescriptivo de leyes inmutables gobernado por el **Artículo ARQ-01** que rige toda implementación futura.
 
-- BLUEPRINT.md — documento descriptivo y exhaustivo de lo que el sistema ES hoy.
-- CONSTITUTION.md — documento prescriptivo y corto de reglas inmutables que gobiernan todo Spec/Plan/Task futuro.
+> ⚠️ *No fusionar ambos en un solo archivo: el Blueprint documenta el estado observado; la Constitution impone las reglas obligatorias.*
 
-No fusionar ambos en un solo archivo: el Blueprint documenta, la Constitution ordena.
+---
 
-2. Regla de evidencia (obligatoria en todo el Blueprint)
+## 2. Regla de evidencia (obligatoria en todo el Blueprint)
 
-Cada afirmación debe llevar una etiqueta de procedencia:
+Cada afirmación técnica debe respaldarse con una etiqueta explícita de procedencia:
+- `[OBSERVADO: ruta/archivo#LXX]` — Evidencia directa en código o configuración.
+- `[INFERIDO]` — Patrón deducido por convención, sin prueba concluyente.
+- `[CONFLICTO]` — Fuentes o archivos se contradicen. Se documenta el conflicto para arbitraje humano.
+- `[RIESGO-CRITICO]` — Violación grave de seguridad o concurrencia que bloquea el pase a producción.
 
-- [OBSERVADO: Repo1/ruta/archivo] — evidencia explícita en código o configuración.
-- [OBSERVADO: PDF] — evidencia explícita en el documento base.
-- [INFERIDO] — patrón deducido por convención o indicios parciales, sin evidencia directa.
-- [CONFLICTO] — las fuentes se contradicen entre sí; documentar ambas versiones y dejar la resolución pendiente para el gate humano (Sección 6), no resolverla unilateralmente.
+---
 
-3. Ejes de auditoría técnica
+## 3. Ejes de auditoría técnica bajo Artículo ARQ-01
 
-3.1 Topología y Arquitectura de Software
-- Adhesión a Clean Architecture / Arquitectura Hexagonal.
-- Bounded Contexts, inversión de dependencias.
-- Mapa de Bounded Contexts estilo DDD (diagrama Mermaid).
-- Diagrama C4 Nivel 1 (System Context) y Nivel 2 (Contenedores).
+### 3.1 Topología Arquitectónica y Slices Verticales
+- **Clasificación Estructural:** Identificar si el sistema opera con **Vertical Slices** (handlers + storage + vistas acopladas por funcionalidad) o con capas horizontales tradicionales (`controllers/`, `services/`, `repositories/`).
+- **Verificación de Mínima Indirección:** Detectar capas pasamanos o DTOs redundantes sin valor agregado en flujos CRUD.
+- **Umbral de Dominio Rico:** Identificar si algún submódulo supera el umbral de complejidad (>15 reglas de negocio interdependientes, cálculos financieros/algorítmicos complejos o máquinas de estado multifase) justificando arquitectura hexagonal aislada.
+- **Mapa de Slices y Bounded Contexts:** Delimitar fronteras y contratos entre módulos (diagrama Mermaid).
 
-3.2 Stack Tecnológico y Componentes
-- Frameworks, runtimes, librerías críticas, estado de soporte/EOL.
-- Pipeline de middlewares y sus responsabilidades.
-- Catálogo de APIs consumidas y contratos de integración.
+### 3.2 Higiene de Presentación y Plantillas (Mandato ARQ-01 Cláusula 4)
+- Auditar que **NO exista código HTML/CSS generado mediante concatenación de cadenas o interpolación de strings** dentro del código backend.
+- Verificar que las vistas residan en archivos `.html` independientes y legibles, empaquetados o gestionados nativamente (`//go:embed` en Go, templates de Jinja2 en Python, o componentes TSX en TypeScript).
 
-3.3 Arquitectura del Sistema de Agentes
-- Taxonomía de agentes (Orquestadores, Ejecutores, Validadores, Críticos).
-- Protocolo de comunicación inter-agente.
-- Memoria: short-term, long-term storage, RAG/vector DB.
-- Gobierno de tokens: presupuesto, compactación, niveles.
-- Observabilidad: tracing, logging estructurado, auditoría.
-- Manejo de fallos y degradación elegante.
+### 3.3 Ciberseguridad y Sandboxing (Mandato ARQ-01 Cláusula 5)
+- **100% de consultas SQL parametrizadas:** Detección estricta de cualquier uso de interpolación de cadenas (`fmt.Sprintf`, f-strings, concatenaciones) en consultas de BD (`[RIESGO-CRITICO: SQL_INJECTION]`).
+- **Prevención de XSS:** Validar que el motor de plantillas tenga activado el escape contextual automático de datos dinámicos.
+- **Mapeo OWASP Top 10:** Control de acceso roto, exposición de secretos y gestión de sesiones.
 
-3.4 Seguridad, Gobernanza y Sandboxing
-- Manejo de secretos, autenticación/autorización (RBAC/ABAC).
-- Defensa contra prompt injection y límites de ejecución de herramientas.
-- Mapeo explícito contra **OWASP Top 10 (Web/API)** (A01 Broken Access Control, A02 Crypto Failures, A03 Injection, A04 Insecure Design & Rate Limiting, A05 Misconfiguration, A07 Auth Failures, A08 Data Integrity, A09 Logging/Monitoring) y **OWASP Top 10 for LLM Applications** (edición 2026).
-- Verificación de respaldo operativo: ¿existe mecanismo de backup? ¿existe runbook de restauración? — registrar como [OBSERVADO] o [AUSENTE] en el Blueprint, nunca ignorar.
-- Deuda de recuperación: si no existe backup o restauración documentada, marcar como hallazgo con etiqueta [RIESGO-OPERATIVO] — no bloquea el gate del punto 6, pero debe figurar en el Blueprint y en los ADRs abiertos.
+### 3.4 Concurrencia y Persistencia (Regla Estricta SQLite)
+Si el sistema utiliza SQLite, auditar obligatoriamente los parámetros de conexión para prevenir bloqueos de base de datos (`database is locked`):
+- `_journal_mode=WAL`: Permite lecturas simultáneas sin bloquear al writer.
+- `_busy_timeout=5000`: Espera activa de al menos 5s en contención.
+- `_synchronous=NORMAL`: Alto rendimiento manteniendo durabilidad.
+- `_txlock=immediate`: Previene deadlocks en transacciones concurrentes.
+- **Pool de Conexiones:** 1 writer exclusivo para evitar colisiones en disco.
+- *Si carece de WAL o busy timeout:* Etiquetar de inmediato como `[RIESGO-CRITICO: SQLITE_LOCK_COLLAPSE]`.
 
-3.5 Escalabilidad, Patrones de Diseño y Persistencia (Regla Estricta SQLite)
-- Concurrencia, asincronía, colas, persistencia.
-- Patrones implementados.
-- **Validación Obligatoria de Concurrencia en SQLite (si aplica en el stack):**
-  - **Problema de fondo:** Por defecto, SQLite usa `DELETE journal`, que bloquea toda la BD en cada escritura provocando errores inmediatos de *"database is locked"* o *"base de datos bloqueada"* con solo 1 o 2 usuarios simultáneos.
-  - **Parámetros obligatorios en conexión / DSN (ej. Go modernc.org/sqlite, Python sqlite3, Node):**
-    - `_journal_mode=WAL`: Modo Write-Ahead Logging; permite lecturas simultáneas ILIMITADAS mientras se realiza una escritura.
-    - `_busy_timeout=5000`: Espera activa de al menos 5000ms si la BD está ocupada en lugar de abortar con error de bloqueo.
-    - `_synchronous=NORMAL`: Acelera las escrituras 10x manteniendo durabilidad e integridad en modo WAL.
-    - `_txlock=immediate`: Adquiere el lock de escritura al abrir la transacción para evitar deadlocks entre transacciones concurrentes.
-  - **Control de Pool de Conexiones:** `db.SetMaxOpenConns(1)` en Go para evitar colisiones entre goroutines sobre un archivo único de escritura, o arquitectura de 1 conexión exclusiva para escrituras y N conexiones para lecturas.
-  - **Etiquetado:** Si usa SQLite sin `WAL` ni `busy_timeout`, clasificar como `[RIESGO-CRITICO: SQLITE_LOCK_COLLAPSE]` y abrir ADR / gap P0 inmediato en el Blueprint.
+### 3.5 Análisis de Negocio y Catálogo de Endpoints
+- **Objetivo de Negocio:** Problema del mundo real que resuelve y a qué usuarios sirve.
+- **Capacidades Operativas:** Procesos clave que ejecuta de punta a punta.
+- **Catálogo de Endpoints:** Inventario completo de rutas, métodos HTTP, autenticación requerida y formatos de respuesta (HTML fragments / JSON).
 
-3.6 Análisis de Negocio, Endpoints, Estructura, Flujo y Plan de Mejora
-- **Objetivo de Negocio:** ¿Cuál es la razón de ser del sistema? ¿Qué problema de negocio resuelve y a quién sirve?
-- **Lo que hace:** Capacidades y procesos operativos centrales que ejecuta de punta a punta.
-- **Lo que mide:** KPIs de éxito de negocio y telemetría operativa (volumen, tasas de conversión/error, latencia P95/P99).
-- **Lo que busca:** Resultados estratégicos esperados (ahorro de costos, automatización, cumplimiento normativo, time-to-market).
-- **Catálogo de Endpoints y Superficie:** Inventario completo de rutas/APIs (REST, GraphQL, gRPC, Webhooks), métodos HTTP, roles/auth requeridos y contratos de I/O.
-- **Estructura y Flujo End-to-End:** Trazabilidad del camino crítico (Trigger/Request → Middlewares → Dominio → Persistencia/Integraciones → Response/Eventos).
-- **Plan de Mejora Accionable:** Hoja de ruta priorizada (Quick Wins inmediatos P0, Mediano plazo P1, Largo plazo/Arquitectura P2).
+---
 
-4. Estructura de salida — BLUEPRINT.md
-1. Visión Ejecutiva y Alcance
-2. Fundamentos de Arquitectura Hexagonal (+ Bounded Context Map + C4 L1/L2)
-3. Stack Tecnológico y Pipeline de Ejecución
-4. Arquitectura del Sistema de Agentes (+ gobierno de tokens + observabilidad)
-5. Matriz de Seguridad y Políticas de Ejecución (+ OWASP Top 10 Web/API y OWASP LLM Top 10)
-6. Patrones de Diseño y Estrategia de Persistencia
-7. Análisis de Negocio, Catálogo de Endpoints, Estructura y Flujo
-8. Plan de Mejora Accionable (Priorizado en Quick Wins P0, Mediano Plazo P1, Largo Plazo P2)
-9. ADRs abiertos (sin resolver — resolución en gate humano)
+## 4. Estructura del entregable: BLUEPRINT.md
+1. Visión General del Sistema y Actores
+2. Arquitectura, Gobernanza ARQ-01 y Stack Tecnológico
+3. Estructura del Sistema: Catálogo de Slices Verticales y Dominios Ricos
+4. Flujo de Datos End-to-End (Slice directo vs Dominio Rico)
+5. Catálogo de Endpoints y Superficie de Exposición
+6. Integraciones Externas
+7. Seguridad, Sanitización e Higiene de Plantillas
+8. Testing y Verificación Terminal Observable
+9. Gaps y Deuda Técnica Detectada (P0/P1/P2)
+10. Gate de Certificación Arquitectónica
 
-5. Estructura de salida — CONSTITUTION.md
-- 10-12 principios no negociables en lenguaje imperativo.
-- Reglas de código (tipado, nombrado, manejo de errores, logging).
-- Anti-patrones prohibidos.
-- Estándares de testing.
-- Gobernanza: versión, fecha, quién aprueba enmiendas.
+---
 
-6. Gate de aprobación (obligatorio — no saltar)
+## 5. Estructura del entregable: CONSTITUTION.md
+- Identidad Arquitectónica y Declaración del **ARTÍCULO ARQ-01**.
+- Mapa de Bounded Contexts y Slices Verticales.
+- Decisiones Arquitectónicas Activas (ADRs).
+- NFRs Declaradas (rendimiento, seguridad, concurrencia).
+- Convenciones de Código y Nomenclatura higiénica.
 
-No generar Spec/Plan/Task automáticamente a partir de este documento.
-1. El arquitecto humano revisa el Blueprint y resuelve cada [CONFLICTO] e [INFERIDO] crítico.
-2. Se congela la versión 1.0 de CONSTITUTION.md.
-3. Solo entonces se invoca /specify.
+---
 
-7. Criterios de calidad y Compuerta Determinista (Quality Gate)
-- Técnico, exhaustivo, determinista, conciso.
-- Cada afirmación del Blueprint lleva etiqueta de evidencia (`[OBSERVADO]`, `[INFERIDO]`, `[CONFLICTO]`).
-- Toda comparación cita el baseline nombrado (no "mejores prácticas" en abstracto).
-- BLUEPRINT.md y CONSTITUTION.md se entregan como dos archivos separados.
-- **Validación determinista obligatoria:** La entrega se somete a `python <SKILL_ROOT>/tools/q-audit-validator/validate_audit.py --cwd <PROJECT_ROOT>`. Si se omitieron la auditoría de Frontend UI/UX, infraestructura DevOps o el Plan de Mejora en 3 fases (P0/P1/P2), la auditoría se rechaza automáticamente con `exit 1`.
+## 6. Gate de Aprobación Arquitectónica
+
+No continuar al pipeline de implementación sin la validación de estos puntos:
+1. El Arquitecto humano revisa el Blueprint y valida que refleja el código real.
+2. Se resuelven los hallazgos marcados como `[CONFLICTO]` y `[RIESGO-CRITICO]`.
+3. Se congela la versión de `CONSTITUTION.md`.

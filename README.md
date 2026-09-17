@@ -1,6 +1,5 @@
 # q-agent — Master Project Orchestrator
-
-> **Hermetic deployment package v01** · Tool-agnostic · Greenfield · Brownfield · Audit
+> **Hermetic deployment package v02 (Dual Engine & Modern ODD)** · Tool-agnostic · Greenfield · Brownfield · Audit
 
 ---
 
@@ -52,7 +51,7 @@ Current agentic coding frameworks fail in production due to structural design fl
 ## Package Directory Structure
 
 ```text
-q-agent-v01/
+q-agent-v02/
 ├── SKILL.md                          # Orquestador canónico (Pasos 0 a 7 + Catálogo de Prompts)
 ├── README.md                         # Documentación del paquete
 ├── tutorial.html                     # Guía interactiva visual completa
@@ -537,7 +536,7 @@ npx skills add QuantumEdu/q-agent
 
 ### Pi (Recommended)
 ```bash
-cp -r q-agent-v01 ~/.pi/agent/skills/q-agent
+cp -r q-agent-v02 ~/.pi/agent/skills/q-agent
 pi skills list | grep q-agent
 ```
 
@@ -545,11 +544,11 @@ Activate: say **"start agent"** or **"/q-agent"** in any Pi session.
 
 ### Antigravity CLI
 ```bash
-cp -r q-agent-v01 ~/.gemini/antigravity-cli/skills/q-agent
+cp -r q-agent-v02 ~/.gemini/antigravity-cli/skills/q-agent
 ```
 
 ### Claude Code / Cursor / OpenCode
-Copy `q-agent-v01/` to your agent's skills directory. The `SKILL.md` frontmatter (`name`, `aliases`) is auto-detected.
+Copy `q-agent-v02/` to your agent's skills directory. The `SKILL.md` frontmatter (`name`, `aliases`) is auto-detected.
 
 ---
 
