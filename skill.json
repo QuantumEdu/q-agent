@@ -2,7 +2,7 @@
   "name": "q-agent",
   "version": "2.0.0",
   "description": "Master project orchestrator featuring Dual Engine (Gentle-AI Integrated ODD vs Standalone), Article ARQ-01 Vertical Slices, BMAD User Stories, and Terminal Evidence Gate.",
-  "author": "Gabriel Magallón / QuantumEdu (Quantum)",
+  "author": "Gabriel Magallón Sánchez / QuantumEdu (Quantum)",
   "license": "Apache-2.0",
   "homepage": "https://github.com/QuantumEdu/q-agent",
   "repository": {

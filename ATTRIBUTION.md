@@ -1,12 +1,12 @@
 # Manifiesto de Atribución, Reconocimiento y Autoría: q-agent v2.0
-> **Firma Oficial:** Gabriel Magallón / QuantumEdu (Quantum)  
+> **Firma Oficial:** Gabriel Magallón Sánchez / QuantumEdu (Quantum)  
 > **Licencia:** Apache License 2.0 | **Año:** 2026
 
 ---
 
 ## 🏛️ 1. Declaración de Autoría y Creaciones Propias de Quantum
 
-El proyecto **`q-agent`** ha sido concebido, diseñado y orquestado por **Gabriel Magallón (QuantumEdu)** para establecer un estándar riguroso, determinista y libre de alucinaciones en el desarrollo asistido por Inteligencia Artificial (*Concepts > Code*).
+El proyecto **`q-agent`** ha sido concebido, diseñado y orquestado por **Gabriel Magallón Sánchez (QuantumEdu)** para establecer un estándar riguroso, determinista y libre de alucinaciones en el desarrollo asistido por Inteligencia Artificial (*Concepts > Code*).
 
 ### Módulos y Skills Propias Originales de Quantum:
 1. **`q-agent` (Master Project Orchestrator v2.0):**
@@ -60,7 +60,7 @@ El proyecto **`q-agent`** ha sido concebido, diseñado y orquestado por **Gabrie
 Todo el paquete `q-agent v2.0` se distribuye bajo la **Apache License, Version 2.0**:
 - Permite el uso comercial, modificación, distribución y sublicenciamiento.
 - Otorga una **concesión expresa de patentes** que protege tanto al autor como a los usuarios.
-- Protege la marca comercial y el nombre de **Quantum** y **Gabriel Magallón**.
+- Protege la marca comercial y el nombre de **Quantum** y **Gabriel Magallón Sánchez**.
 - Exige la preservación de los avisos de derechos de autor y este manifiesto de atribución en toda redistribución.
 
 Para más detalles, consultar el archivo [`LICENSE`](LICENSE).

@@ -1,13 +1,13 @@
 ---
 name: q-agent
 description: >
-  Master project orchestrator by Gabriel Magallón (Quantum). Activate on: "start agent",
+  Master project orchestrator by Gabriel Magallón Sánchez (Quantum). Activate on: "start agent",
   "launch q-agent", "/q-agent", "new project", "new feature", "audit code", or any
   start-of-cycle trigger. Guides Steps 0–3 (one question at a time), then coordinates
   execution via Dual Engine (Gentle-AI Integrated ODD vs q-agent Standalone) in Steps 4–7.
   Enforces Article ARQ-01: Vertical Slices by default, template hygiene (.html embed),
   zero-mock terminal evidence, and minimal indirection. Tool-agnostic.
-author: Gabriel Magallón / QuantumEdu (Quantum)
+author: Gabriel Magallón Sánchez / QuantumEdu (Quantum)
 version: 2.0.0
 license: Apache-2.0
 sources: [chat]
@@ -16,7 +16,7 @@ aliases: [agente, /q-agent, iniciar agente, dev agent, orchestrator]
 
 # q-agent v2.0 — Master Project Orchestrator (Dual Engine & Modern ODD)
 
-> **Autor y Arquitecto Principal:** Gabriel Magallón / QuantumEdu (Quantum)  
+> **Autor y Arquitecto Principal:** Gabriel Magallón Sánchez / QuantumEdu (Quantum)  
 > **Licencia:** Apache License 2.0  
 > **Filosofía Fundamental:** **CONCEPTS > CODE • DUAL-ENGINE RESILIENCE • MINIMAL INDIRECTION • TERMINAL EVIDENCE GATE**  
 > Actúa como Director de Orquesta Senior (GDE & MVP), no como un codificador apresurado. Guía el contexto en los Pasos 0–3 (una pregunta por turno), y ejecuta con rigor empírico los Pasos 4–7 bajo el **Artículo Constitucional ARQ-01**.
