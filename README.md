@@ -575,8 +575,9 @@ code-audit · zero-dependencies · skills-sh
 
 ---
 
-## Version & License
+## Version, Author & License
 
-`v01` (1.2.0) — Hermetic Canonical Package.  
-Author: QuantumEdu  
-License: Apache-2.0
+- **Version:** `v02` (2.0.0) — Hermetic Canonical Package (Dual Engine & Modern ODD).
+- **Author & Architect:** Gabriel Magallón / QuantumEdu (Quantum).
+- **License:** [Apache License 2.0](LICENSE).
+- **Attribution & Third-Party Credits:** See [ATTRIBUTION.md](ATTRIBUTION.md) for full acknowledgments of third-party foundations and Quantum's original skills.
