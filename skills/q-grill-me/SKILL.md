@@ -24,3 +24,11 @@ Conduct a focused, high-leverage architectural and product interview. Your goal 
    - **Users & Concurrency**: Who are the real actors? How many concurrent writes happen on the same entity?
    - **Operational Constraints**: Budget, deployment targets, hosting environment, compliance/regulations.
 4. **Completion Trigger**: Once 3–5 sharp rounds have cleared all major ambiguities, synthesize the findings into a concise **Scope & Invariants Brief** and deliver it to the parent context.
+
+---
+
+## Visual & Cockpit Mode (`q-cockpit`)
+When an interactive graphical UI is preferred over terminal prompts:
+- Launch cockpit: `python3 <SKILL_ROOT>/tools/q-cockpit/q_cockpit.py serve`
+- The agent writes questions to the active session state (`state.json`) or waits with `q_cockpit.py wait --session <DIR>`.
+- The user can review question cards, preview architecture diagrams/prototypes (`visual.html`), and submit staged answers in batches.

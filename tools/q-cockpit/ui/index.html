@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>q-cockpit · Master Agent Observability & Socratic Grill</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-hover: #1f6feb;
+      --success: #238636;
+      --success-border: #2ea043;
+      --warning: #d29922;
+      --danger: #da3633;
+      --purple: #bc8cff;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Top Navbar */
+    header {
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .badge-tag {
+      background-color: #21262d;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+    .project-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      background-color: #21262d;
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { color: #fff; }
+    .tab-btn.active {
+      background-color: var(--accent-hover);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .meta-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--success);
+      display: inline-block;
+      margin-right: 4px;
+    }
+    .status-dot.dirty { background-color: var(--warning); }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .tab-panel {
+      display: none;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    .tab-panel.active { display: flex; }
+
+    /* TAB 1: GRILL & ELICITATION */
+    #tab-grill {
+      flex-direction: row;
+    }
+    .grill-questions-col {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      border-right: 1px solid var(--border);
+      max-width: 650px;
+    }
+    .grill-visual-col {
+      flex: 1.2;
+      display: flex;
+      flex-direction: column;
+      background-color: #0b0e14;
+    }
+    .visual-header {
+      padding: 12px 20px;
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+    }
+    .visual-frame {
+      flex: 1;
+      border: none;
+      width: 100%;
+      height: 100%;
+      background: #fff;
+    }
+
+    .card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px;
+      margin-bottom: 18px;
+      transition: border-color 0.2s;
+    }
+    .card.answered {
+      border-color: var(--success-border);
+      opacity: 0.9;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .card-question {
+      font-size: 15px;
+      color: #fff;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    .card-recommendation {
+      background-color: rgba(88, 166, 255, 0.1);
+      border-left: 3px solid var(--accent);
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #a5d6ff;
+      border-radius: 0 4px 4px 0;
+      margin-bottom: 12px;
+    }
+    .card textarea {
+      width: 100%;
+      background-color: #0d1117;
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 10px;
+      border-radius: 6px;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      resize: vertical;
+      min-height: 70px;
+      margin-bottom: 10px;
+    }
+    .card textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .btn {
+      background-color: #21262d;
+      border: 1px solid var(--border);
+      color: #c9d1d9;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      background-color: #30363d;
+      color: #fff;
+    }
+    .btn-primary {
+      background-color: var(--success);
+      border-color: var(--success-border);
+      color: #fff;
+      font-weight: 600;
+    }
+    .btn-primary:hover {
+      background-color: #2ea043;
+    }
+    .btn-danger {
+      background-color: rgba(218, 54, 51, 0.2);
+      border-color: var(--danger);
+      color: #ff7b72;
+    }
+    .btn-danger:hover {
+      background-color: var(--danger);
+      color: #fff;
+    }
+
+    /* TAB 2: SWARM COCKPIT & KANBAN */
+    #tab-cockpit {
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 24px;
+      gap: 20px;
+    }
+
+    /* Phase Progress Bar */
+    .phase-track {
+      display: flex;
+      gap: 4px;
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      overflow-x: auto;
+    }
+    .phase-pill {
+      flex: 1;
+      text-align: center;
+      padding: 8px 6px;
+      background-color: #21262d;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border: 1px solid transparent;
+      min-width: 90px;
+    }
+    .phase-pill.active {
+      background-color: rgba(88, 166, 255, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .phase-pill.done {
+      background-color: rgba(46, 160, 67, 0.15);
+      border-color: var(--success);
+      color: #3fb950;
+    }
+
+    /* Gates Row */
+    .gates-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .gate-card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .gate-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .gate-status-pill {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+    .gate-status-pill.approved { background: rgba(46, 160, 67, 0.2); color: #3fb950; }
+    .gate-status-pill.pending { background: rgba(210, 153, 34, 0.2); color: #d29922; }
+    .gate-status-pill.rejected { background: rgba(218, 54, 51, 0.2); color: #f85149; }
+
+    /* Kanban Board */
+    .kanban-board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      min-height: 280px;
+    }
+    .kanban-col {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+    }
+    .col-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+    }
+    .col-count {
+      background-color: #21262d;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-size: 11px;
+    }
+    .col-cards {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .task-card {
+      background-color: #21262d;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.4;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .task-card.in_progress {
+      border-left: 3px solid var(--warning);
+    }
+    .task-card.done {
+      border-left: 3px solid var(--success);
+      opacity: 0.8;
+    }
+    .task-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* Bottom Status / Footer */
+    footer {
+      background-color: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 6px 20px;
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <header>
+    <div class="logo-group">
+      <span class="badge-tag">q-cockpit</span>
+      <span class="project-name" id="proj-title">Cargando proyecto...</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('grill')">💬 Socratic Grill</button>
+      <button class="tab-btn" onclick="switchTab('cockpit')">🚀 Mission Cockpit</button>
+    </div>
+
+    <div class="meta-bar">
+      <span><span id="branch-dot" class="status-dot"></span> <strong id="git-branch">main</strong></span>
+      <span>•</span>
+      <span id="session-topic" style="color:#fff;">Topic: Inicial</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- TAB 1: SOCRATIC GRILL -->
+    <div id="tab-grill" class="tab-panel active">
+      <div class="grill-questions-col">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <h2 style="font-size: 16px; color:#fff;">Elicitación y Clarificación de Requisitos</h2>
+          <button class="btn btn-primary" onclick="submitAllAnswers()">Enviar Respuestas</button>
+        </div>
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">
+          Respondé las preguntas críticas de alcance y arquitectura para congelar el alcance antes de la implementación.
+        </p>
+
+        <div id="questions-list">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <div class="grill-visual-col">
+        <div class="visual-header">
+          <span><strong>Prototipo / Diagrama Visual</strong> (<span id="visual-status">visual.html</span>)</span>
+          <button class="btn" onclick="document.getElementById('vis-iframe').src='/visual?' + Date.now()">Recargar Vista</button>
+        </div>
+        <iframe id="vis-iframe" class="visual-frame" src="/visual"></iframe>
+      </div>
+    </div>
+
+    <!-- TAB 2: SWARM COCKPIT & KANBAN -->
+    <div id="tab-cockpit" class="tab-panel">
+      <!-- Phases Progress -->
+      <div class="phase-track">
+        <div class="phase-pill done">P01 Discovery</div>
+        <div class="phase-pill done">P02 Hexagonal</div>
+        <div class="phase-pill done">P03 Meta-Gate</div>
+        <div class="phase-pill active">P04 Scope Freeze</div>
+        <div class="phase-pill">P05 BDD Spec</div>
+        <div class="phase-pill">P06 Design</div>
+        <div class="phase-pill">P07 Tasks TDD</div>
+        <div class="phase-pill">P08 Apply/Verify</div>
+        <div class="phase-pill">P09 CAB-RP Audit</div>
+        <div class="phase-pill">P10 Ops Bridge</div>
+      </div>
+
+      <!-- Human in the loop Gates -->
+      <div>
+        <h3 style="font-size: 14px; margin-bottom: 10px; color:#fff;">Semáforos de Aprobación Humana (Quality Gates)</h3>
+        <div class="gates-container" id="gates-list">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Kanban Tasks -->
+      <div>
+        <h3 style="font-size: 14px; margin-bottom: 10px; color:#fff;">Matriz de Tareas TDD (Reproduction-First)</h3>
+        <div class="kanban-board">
+          <div class="kanban-col">
+            <div class="col-header">
+              <span>📋 Por Hacer (Backlog)</span>
+              <span class="col-count" id="count-todo">0</span>
+            </div>
+            <div class="col-cards" id="col-todo"></div>
+          </div>
+          <div class="kanban-col">
+            <div class="col-header">
+              <span>⚡ En Ejecución (TDD Red/Green)</span>
+              <span class="col-count" id="count-in_progress">0</span>
+            </div>
+            <div class="col-cards" id="col-in_progress"></div>
+          </div>
+          <div class="kanban-col">
+            <div class="col-header">
+              <span>✅ Completadas & Verificadas</span>
+              <span class="col-count" id="count-done">0</span>
+            </div>
+            <div class="col-cards" id="col-done"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <span>q-cockpit v2.0 · Zero-Node Native Python Runtime</span>
+    <span id="last-sync">Sincronizando...</span>
+  </footer>
+
+  <script>
+    let currentTab = 'grill';
+    let stagedAnswers = {};
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      if (tab === 'grill') {
+        document.querySelector('.tabs button:nth-child(1)').classList.add('active');
+        document.getElementById('tab-grill').classList.add('active');
+      } else {
+        document.querySelector('.tabs button:nth-child(2)').classList.add('active');
+        document.getElementById('tab-cockpit').classList.add('active');
+      }
+    }
+
+    async function fetchStatus() {
+      try {
+        const res = await fetch('/api/status');
+        if (!res.ok) return;
+        const data = await res.json();
+        renderDashboard(data);
+      } catch (err) {
+        console.error("Sync error:", err);
+      }
+    }
+
+    function renderDashboard(data) {
+      // Navbar & Meta
+      document.getElementById('proj-title').textContent = data.project.name;
+      document.getElementById('git-branch').textContent = data.project.git.branch;
+      const dot = document.getElementById('branch-dot');
+      if (data.project.git.clean) {
+        dot.className = 'status-dot';
+      } else {
+        dot.className = 'status-dot dirty';
+      }
+      document.getElementById('session-topic').textContent = `Topic: ${data.session.topic || 'General'}`;
+      document.getElementById('last-sync').textContent = `Última sincronización: ${new Date().toLocaleTimeString()}`;
+
+      // Tab 1: Grill Questions
+      renderQuestions(data.session.questions || []);
+
+      // Tab 2: Gates
+      renderGates(data.session.gates || {});
+
+      // Tab 2: Kanban Tasks
+      renderKanban(data.tasks || []);
+    }
+
+    function renderQuestions(questions) {
+      const container = document.getElementById('questions-list');
+      if (!questions.length) {
+        container.innerHTML = '<div style="color:var(--text-muted); padding:20px; text-align:center;">No hay preguntas activas en esta sesión.</div>';
+        return;
+      }
+
+      container.innerHTML = questions.map((q, idx) => {
+        const isAnswered = q.status === 'answered';
+        const savedAnswer = stagedAnswers[q.id] !== undefined ? stagedAnswers[q.id] : (q.user_answer || '');
+        return `
+          <div class="card ${isAnswered ? 'answered' : ''}">
+            <div class="card-title">
+              <span>#${idx + 1} · ${q.title || 'Requisito'}</span>
+              <span style="font-size:11px; color:${isAnswered ? '#3fb950' : 'var(--warning)'};">
+                ${isAnswered ? '✓ Respondida' : 'Pendiente'}
+              </span>
+            </div>
+            <div class="card-question">${escapeHtml(q.question)}</div>
+            ${q.recommendation ? `<div class="card-recommendation"><strong>💡 Sugerencia:</strong> ${escapeHtml(q.recommendation)}</div>` : ''}
+            <textarea placeholder="Tu decisión o aclaración..." oninput="stageAnswer('${q.id}', this.value)">${escapeHtml(savedAnswer)}</textarea>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function stageAnswer(id, val) {
+      stagedAnswers[id] = val;
+    }
+
+    async function submitAllAnswers() {
+      if (Object.keys(stagedAnswers).length === 0) {
+        alert("Escribí alguna respuesta antes de enviar.");
+        return;
+      }
+      try {
+        const res = await fetch('/api/grill/answer', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ answers: stagedAnswers })
+        });
+        if (res.ok) {
+          stagedAnswers = {};
+          fetchStatus();
+          alert("¡Respuestas registradas exitosamente!");
+        }
+      } catch (err) {
+        alert("Error al enviar respuestas: " + err);
+      }
+    }
+
+    function renderGates(gates) {
+      const container = document.getElementById('gates-list');
+      const gateEntries = Object.entries(gates);
+      if (!gateEntries.length) {
+        container.innerHTML = '<div style="color:var(--text-muted)">Sin gates declarados.</div>';
+        return;
+      }
+
+      container.innerHTML = gateEntries.map(([key, g]) => {
+        const statusClass = g.status || 'pending';
+        return `
+          <div class="gate-card">
+            <div>
+              <div class="gate-header">
+                <span>${key.replace('_', ' ').toUpperCase()}</span>
+                <span class="gate-status-pill ${statusClass}">${statusClass}</span>
+              </div>
+              <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">
+                ${g.notes || 'Revisión formal de arquitectura requerida.'}
+              </p>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-primary" style="flex:1;" onclick="decideGate('${key}', 'approve')">Aprobar Gate</button>
+              <button class="btn btn-danger" style="flex:1;" onclick="decideGate('${key}', 'reject')">Rechazar</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function decideGate(gateKey, action) {
+      const notes = prompt(`Motivo o notas para ${action === 'approve' ? 'aprobar' : 'rechazar'} ${gateKey}:`, "");
+      if (notes === null) return;
+      try {
+        await fetch('/api/gate/action', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ gate: gateKey, action: action, notes: notes })
+        });
+        fetchStatus();
+      } catch (err) {
+        alert("Error: " + err);
+      }
+    }
+
+    function renderKanban(tasks) {
+      const todoEl = document.getElementById('col-todo');
+      const inProgEl = document.getElementById('col-in_progress');
+      const doneEl = document.getElementById('col-done');
+
+      todoEl.innerHTML = '';
+      inProgEl.innerHTML = '';
+      doneEl.innerHTML = '';
+
+      let counts = { todo: 0, in_progress: 0, done: 0 };
+
+      tasks.forEach(t => {
+        const status = t.status || 'todo';
+        if (counts[status] !== undefined) counts[status]++;
+
+        const card = document.createElement('div');
+        card.className = `task-card ${status}`;
+        card.innerHTML = `
+          <div>${escapeHtml(t.text)}</div>
+          <div class="task-meta">Fuente: ${escapeHtml(t.source || 'tasks.md')}</div>
+        `;
+
+        if (status === 'done') doneEl.appendChild(card);
+        else if (status === 'in_progress') inProgEl.appendChild(card);
+        else todoEl.appendChild(card);
+      });
+
+      document.getElementById('count-todo').textContent = counts.todo;
+      document.getElementById('count-in_progress').textContent = counts.in_progress;
+      document.getElementById('count-done').textContent = counts.done;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    // Auto-polling every 3 seconds
+    fetchStatus();
+    setInterval(fetchStatus, 3000);
+  </script>
+</body>
+</html>

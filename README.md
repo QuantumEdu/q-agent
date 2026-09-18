@@ -80,7 +80,8 @@ q-agent-v02/
 │   ├── PROPOSAL.md                   # Estructura del /propose (IN/OUT scope)
 │   └── q-agent.json                  # Plantilla de configuración declarativa
 ├── tools/                            # Herramientas secundarias de apoyo
-│   └── q-checklist/                  # Matriz de decisiones rápidas de pre-vuelo (CLI TUI)
+│   ├── q-checklist/                  # Matriz de decisiones rápidas de pre-vuelo (CLI TUI)
+│   └── q-cockpit/                    # Cockpit visual interactivo (Grill UI + Observabilidad SwarmForge)
 └── skills/                           # Skills auxiliares (planas, prefijo q-)
     ├── q-grill-me/                   # Elicitación profunda y socrática (Plan A)
     ├── q-deliberate/                 # Debate dialéctico y cristalización de ADRs
