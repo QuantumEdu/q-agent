@@ -578,7 +578,7 @@ code-audit · zero-dependencies · skills-sh
 
 ## Version, Author & License
 
-- **Version:** `v02` (2.1.0) — Hermetic Canonical Package (Dual Engine, Modern ODD, Deploy Gate & Ops Bridge).
+- **Version:** `v02` (2.2.0) — Hermetic Canonical Package (Dual Engine, Modern ODD, Deploy Gate, Ops Bridge & Visual Cockpit).
 - **Author & Architect:** Gabriel Magallón Sánchez / QuantumEdu (Quantum).
 - **License:** [Apache License 2.0](LICENSE).
 - **Attribution & Third-Party Credits:** See [ATTRIBUTION.md](ATTRIBUTION.md) for full acknowledgments of third-party foundations and Quantum's original skills.
