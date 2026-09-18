@@ -55,3 +55,19 @@ Generar un informe en Markdown estructurado en:
 - **Hallazgos Críticos (P0):** Discrepancias de seguridad, falta de evidencia terminal o SQL injections.
 - **Hallazgos Medios (P1):** Gaps de usabilidad, falta de tests de integración o documentación desactualizada.
 - **Plan de Remediación:** Lista ordenada de tareas para subsanar los hallazgos en el siguiente ciclo.
+
+---
+
+## 🤖 Modo Especial: Revisión Agentiva de PR (Post-Build)
+> **Trigger:** "revisar PR", "audit post-build", "code review agentivo de diff"
+
+Cuando el objetivo sea auditar un Pull Request o diff antes de la revisión humana:
+1. **Inputs:** `git diff main..HEAD`, `odd/tasks/<feature>.md` (o `q-tasks/`), y `CONSTITUTION.md`.
+2. **Verificación de Diff:**
+   - ¿El código añadido responde estrictamente a los criterios UAC de la bitácora?
+   - ¿Se introdujeron anti-patterns o capas pasamanos prohibidas por ARQ-01?
+   - ¿Hay tests unitarios/integración con datos reales para las nuevas rutas?
+3. **Reporte Pre-Human Review:** Generar un análisis resumido con:
+   - `[APPROVE]` / `[REQUEST_CHANGES]` sugerido para el revisor humano.
+   - Puntos de atención crítica donde el ojo humano debe poner foco.
+   - Declaración de límites: lo que el agente NO puede juzgar (ej. decisiones de negocio no escritas).

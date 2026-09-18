@@ -96,6 +96,31 @@ Aplicable antes de cortes de versión, entrega a producción o evaluación de re
 
 ---
 
+## Plan A-L — Greenfield Large (Features extensos con artefactos separados)
+
+Variante opcional de Plan A para proyectos que superan **20 tareas** o **2 semanas de duración**, donde la frecuencia de cambio del *intent* difiere sustancialmente del avance diario de tareas.
+
+| Artefacto | Frecuencia de Cambio | Propósito | Audiencia |
+|---|---|---|---|
+| `intent.md` | Muy baja (estable) | Objetivos de negocio, restricciones, personas y UAC base | Stakeholders y Agente |
+| `spec.md` | Media (diseño) | Contratos de API, esquemas SQLite WAL, arquitectura de Slices | Desarrolladores y Agente |
+| `odd/tasks/<feature>.md` | Alta (diaria) | Lista atómica de tareas vivas y tabla Terminal Evidence Gate | Agente ejecutor y Reviewer |
+
+- **Regla:** Si la feature es acotada (≤20 tareas, ≤2 semanas), se mantiene el **Living Log Unificado** por defecto para evitar burocracia documental.
+
+---
+
+## Plan O — Ops Bridge (Remediación de Incidentes de Producción)
+
+Activado mediante `/ops-bridge` o el prompt `prompts/P10_ops_to_odd.md`.
+
+| Paso | Prompt / Plantilla | Artefacto Producido | Ubicación / Rama |
+|---|---|---|---|
+| **P10** | `prompts/P10_ops_to_odd.md` | Bitácora de corrección con telemetría de runtime inyectada | `odd/tasks/fix-*.md` o `q-tasks/` |
+| **RED** | Test de reproducción | Test automatizado que falla demostrando el error de runtime | `features/<slice>/reproduction_test.go` |
+| **P05/P06** | `prompts/P05_vertical_slice_apply.md` | Corrección quirúrgica y paso a verde con Terminal Evidence Gate | `features/<slice>/` |
+| **P08** | `prompts/P08_deploy_gate.md` | Generación de `REVIEW.md` con verificación y autorización de deploy | Raíz del proyecto |
+
 ## Modos de Interacción del Orquestador
 
 Configurables en `.q-agent.json` o seleccionables en el Paso 0:
