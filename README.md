@@ -101,7 +101,7 @@ q-agent operates under one of three plans, selected at the start of every cycle:
 |------|----------|---------|
 | **A — Greenfield** | New system from scratch | P0 → P2 → P4 → P5 → P6 → P7 → P8 (sync P1.5) |
 | **B — Brownfield** | Feature or evolution on existing code | P1 → P2 → P3 → P4 → P5 → P6 → P7 → P8 (sync P1.5) |
-| **C — Audit** | Review, audit and diagnose existing code | P1 → P9 (CAB-RP) → Issues de remediación |
+| **C — Audit** | Review, audit and diagnose existing code | P01 → Atomic Dispatch (`audit-manifest.yml`) → `validate_audit.py` (Exit 0) → `generate_report.py` |
 
 ---
 
@@ -226,9 +226,10 @@ flowchart TD
                 PB_P7 --> PB_P8
             end
 
-            subgraph PlanC["Plan C: Audit"]
-                PC_P1["P1: MAB-PC Audit"] --> PC_P9["P9: CAB-RP Compliance Audit"]
-                PC_P9 --> PC_Issues["Generación de Issues de Remediación"]
+            subgraph PlanC["Plan C: Audit (Atomic Dispatch)"]
+                PC_P1["C1: MAB-PC Discovery"] --> PC_P2["C2: Atomic Dispatch (A01-A17 & E01-E05)"]
+                PC_P2 --> PC_P3{"C3: validate_audit.py"}
+                PC_P3 -->|"Exit 0"| PC_P4["C4: generate_report.py (4 entregables)"]
             end
         end
 
@@ -431,12 +432,12 @@ Triggered when an architectural boundary is crossed, a new/replacement ADR is cr
 
 ### Step 7 — Closure & Delivery (Autonomous)
 
-#### 7a. Compliance Audit (CAB-RP P09)
-Executes `prompts/P09_compliance_audit.md` (unifies all compliance checks):
-- **Invariants:** Absolute disk immutability (`git status -s` identical before/after); CodeGraph first; Zero tolerance for fake completions (anti-mock / fake data checks).
-- Evaluates: base architecture, security (OWASP Top 10), telemetry, SQLite WAL concurrency, backups, recovery.
-- Outputs: `AUDIT_REPORT.md` (Traceability matrix, 9-category checklist, EARS gap specs, P0/P1 remediation plan).
-- Issues created for each gap: label `type:nfr-gap` + severity.
+#### 7a. Compliance Audit (Atomic Dispatch & CAB-RP)
+Executes the **Atomic Dispatch Protocol** via `references/audit-manifest.yml`:
+- **Invariants:** Absolute disk immutability (`git status -s` identical before/after); Zero mixed mode (no touching `src/` or `internal/` during audit); CodeGraph first; Anti-mocking verification.
+- **Atomic Dispatch:** Generates atomic item files in `audit/A*.md` (A01-A17) and `audit/E*.md` (E01-E05) via specialist prompts (`P01b_audit_item.md`, `P01c_strategic_item.md`).
+- **Mechanical Validation Gate:** Executes `python3 tools/q-audit-validator/validate_audit.py --mode manifest --level [0|1|2]` (Exit code 0 mandatory before proceeding).
+- **Deterministic Aggregation:** Executes `python3 tools/q-audit-aggregator/generate_report.py` to auto-assemble `AUDIT_REPORT.md`, `PLAN_DE_MEJORA.md`, `REMEDIATION_ISSUES.md`, and `PROPUESTA_EVOLUTIVA.md` with zero token burn.
 
 #### 7b. Retrospective Issue
 Created in the project repo with label `type:retrospective`:

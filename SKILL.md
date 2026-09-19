@@ -182,10 +182,73 @@ Emitir declaración de gate al usuario y esperar confirmación.
    - Si falla: Invocar `skills/q-ci-fixer/` con límite de **máximo 2 pasadas**.
 2. **Consolidación en `BLUEPRINT.md`:** Actualizar la Sección 3.1 registrando el nuevo Slice Vertical (archivos, contratos, seguridad y tests).
 3. **Cierre de Bitácora:** Marcar como `[ENTREGA CERTIFICADA]`.
-4. **Auditoría Pre-Release (Si aplica corte de release o Plan C):**
-   - Ejecutar `prompts/P09_compliance_audit.md` (CAB-RP 2.0) para validar conformidad pre-entrega.
+4. **Auditoría Pre-Release o Plan C (Atomic Dispatch Obligatorio):**
+   - Si se ejecuta Plan C o un corte formal de release, es **ESTRICTAMENTE MANDATORIO** ejecutar el **PROTOCOLO PLAN C (Atomic Dispatch)** detallado a continuación.
+   - ⛔ **PROHIBIDO** emitir reportes monolíticos manuales en chat o saltarse la compuerta de validación en disco.
 5. **Cierre de Sesión:** Invocar `skills/q-session-wrap/` para persistir estado en Engram y memorias.
 6. **Reporte Final al Usuario:** Resumen conciso de hechos observados, criterios UAC cumplidos y enlaces de archivos entregados.
+
+---
+
+## 🛡️ PROTOCOLO PLAN C — Auditoría Forense Atómica CAB-RP 2.0 & MAB-PC
+
+> **Principio Fundamental:** *"Completeness is a filesystem property, not an LLM output property."*  
+> (La completitud es una propiedad del sistema de archivos, jamás del texto libre generado por un LLM).
+
+Cuando el usuario selecciona **Plan C (Audit)** en el Paso 0 o se ejecuta una auditoría pre-release formal:
+
+### ⛔ INVARIANTES NO NEGOCIABLES DEL AUDITOR (Reglas Duras de Bloqueo):
+1. **Inmutabilidad Absoluta en Disco & Cero Modo Mixto (Audit + Fix):**
+   - El auditor es estrictamente de solo lectura sobre el código del sistema (`src/`, `internal/`, `cmd/`, `tests/`).
+   - ⛔ **PROHIBIDO SALTAR A PLAN F:** Queda terminantemente prohibido modificar código, crear parches en caliente o intentar corregir errores antes de que la auditoría completa esté validada y certificada en disco. Un auditor que codifica en caliente corrompe la auditoría.
+2. **Prohibición de Informes Monolíticos Generados por LLM:**
+   - ⛔ **PROHIBIDO redactar `AUDIT_REPORT.md` o conclusiones a mano en el chat.** Ningún LLM puede "resumir" la auditoría en texto libre. Todos los entregables finales son generados deterministamente por herramientas de software a partir de archivos individuales en disco.
+
+### 🔄 PIPELINE OBLIGATORIO DE ATOMIC DISPATCH (5 Fases Secuenciales):
+
+#### Fase C1: Descubrimiento y Constitución Base
+1. Crear la rama de auditoría aislada: `git checkout -b audit/$(date +%Y%m%d)-<nombre-proyecto>`.
+2. Verificar o inicializar `CONSTITUTION.md` en la raíz (usando `templates/CONSTITUTION.md` con el Artículo Constitucional ARQ-01).
+3. Ejecutar `prompts/P01_auditoria_mab_pc.md` para producir el mapa estructural base `BLUEPRINT.md`.
+
+#### Fase C2: Atomic Dispatch Iterativo (Generación de Archivos Atómicos)
+1. Cargar el manifiesto canónico: `references/audit-manifest.yml`.
+2. Identificar el nivel de madurez exigido (por defecto **Nivel 0: MVP/Bootstrap** [5 ítems], Nivel 1 [13 ítems], o Nivel 2 [17 ítems]).
+3. **Por cada ítem de cumplimiento (`A01` a `A17`) del nivel activo:**
+   - Invocar `prompts/P01b_audit_item.md` asignando estrictamente sus `scope_patterns`.
+   - Inspeccionar solo los archivos asignados (evitar contaminación de contexto).
+   - Generar el archivo atómico formal: `audit/A{ID}-{slug}.md` respetando la plantilla `templates/audit-item.md` (frontmatter obligatorio, veredicto `passed|failed`, severidad, tags de evidencia `[OBSERVADO: ...]` y especificación EARS en caso de fallo).
+4. **Por cada ítem de evolución estratégica MAB-PC (`E01` a `E05`):**
+   - Invocar `prompts/P01c_strategic_item.md` con su alcance asignado.
+   - Generar el archivo atómico formal: `audit/E{ID}-{slug}.md`.
+
+#### Fase C3: COMPUERTA MECÁNICA DE VALIDACIÓN (Hard Blocking Gate)
+El agente DEBE ejecutar en la terminal del host:
+```bash
+python3 tools/q-audit-validator/validate_audit.py --mode manifest --level [0|1|2]
+```
+⛔ **CANDADO DE BLOQUEO ABSOLUTO:**
+- Si el código de salida es `1` (`RESULT: REJECTED — Audit items are incomplete`):
+  - El agente tiene **ESTRICTAMENTE PROHIBIDO** interactuar con el usuario, dar por terminada la auditoría o proponer soluciones.
+  - El agente DEBE leer `audit/AUDIT_GAPS.json` generado por el validador, identificar los ítems faltantes o con frontmatter inválido, y ejecutar las pasadas necesarias hasta que todos los archivos existan y cumplan la especificación.
+  - Solo cuando el validador retorne código de salida `0` (`RESULT: PASSED`), el agente tiene autorización para proceder a la Fase C4.
+
+#### Fase C4: Agregación Determinista (Cero Tokens / Cero Alucinación)
+Con el 100% de los archivos atómicos validados en el filesystem, el agente ejecuta:
+```bash
+python3 tools/q-audit-aggregator/generate_report.py --level [0|1|2]
+```
+Este script en Python ensambla deterministamente sin consumir tokens del LLM:
+1. `audit/AUDIT_REPORT.md` (Informe integral consolidado y matriz de trazabilidad).
+2. `audit/PLAN_DE_MEJORA.md` (Plan priorizado de remediación P0/P1/P2).
+3. `audit/REMEDIATION_ISSUES.md` (Taxonomía de issues lista para GitHub Issues).
+4. `audit/PROPUESTA_EVOLUTIVA.md` (Evolución estratégica de producto y UX E01–E05).
+
+#### Fase C5: Presentación Ejecutiva y Retrospectiva
+1. Presentar en el chat el resumen ejecutivo estructurado **únicamente a partir de los datos consolidados por `generate_report.py`**.
+2. Mostrar tabla de Gaps detectados con severidades.
+3. Proporcionar enlaces a los archivos en `audit/`.
+4. Invocar `skills/q-session-wrap` para persistir la auditoría en Engram/SkillVault.
 
 ---
 

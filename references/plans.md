@@ -79,20 +79,31 @@ Aplicable para correcciones urgentes, ajustes de configuración o parches peque�
 
 ---
 
-## Plan C — Audit (Auditoría Forense y CAB-RP 2.0 Pre-Release)
+## Plan C — Audit (Auditoría Forense Atómica CAB-RP 2.0 & MAB-PC)
 
-Aplicable antes de cortes de versión, entrega a producción o evaluación de repositorios heredados.
+> **Principio de Oro:** *"Completeness is a filesystem property, not an LLM output property."*  
+> Aplicable antes de cortes de versión, entrega a producción o evaluación de repositorios heredados.
 
-| Paso | Prompt / Plantilla | Artefacto Producido | Ubicación / Rama |
+### ⛔ Invariantes No Negociables del Plan C:
+1. **Inmutabilidad Absoluta en Disco & Cero Modo Mixto (Audit + Fix):**
+   - El auditor es 100% de solo lectura sobre el código del proyecto (`src/`, `internal/`, `cmd/`, `tests/`).
+   - ⛔ **PROHIBIDO SALTAR A PLAN F:** Queda terminantemente prohibido modificar código, crear parches en caliente o intentar corregir errores antes de que la auditoría completa esté validada y certificada en disco. No se puede alternar entre auditor y desarrollador en la misma fase.
+2. **Prohibición de Informes Monolíticos Generados por LLM:**
+   - ⛔ **PROHIBIDO redactar `AUDIT_REPORT.md` a mano en el chat.** Todos los entregables son ensamblados deterministamente por herramientas a partir de los archivos de ítem en disco.
+
+### 🔄 Pipeline de 5 Fases de Atomic Dispatch:
+
+| Fase | Herramienta / Prompt | Entregable Producido | Ubicación / Comando |
 |---|---|---|---|
-| **P01** | `prompts/P01_auditoria_mab_pc.md` | `BLUEPRINT.md` (MAB-PC Discovery forense) | `audit/<date>` |
-| **P09** | `prompts/P09_compliance_audit.md` | `AUDIT_REPORT.md` (CAB-RP 2.0: Matriz + Specs EARS) | `audit/<date>` |
-| **Remediación** | Generador de Issues GitHub | Issues priorizados (P0 bloqueante / P1 diferible) | Repositorio GitHub |
+| **C1. Discovery** | `prompts/P01_auditoria_mab_pc.md` | `CONSTITUTION.md` + `BLUEPRINT.md` | Raíz del proyecto / `audit/<date>` |
+| **C2. Atomic Dispatch** | `prompts/P01b_audit_item.md` & `P01c_strategic_item.md` | Archivos atómicos `A01.md`–`A17.md` y `E01.md`–`E05.md` | `audit/A{ID}-{slug}.md` y `audit/E{ID}-{slug}.md` |
+| **C3. Compuerta Mecánica (Gate)** | `tools/q-audit-validator/validate_audit.py` | `audit/AUDIT_GAPS.json` + Validación Exit 0 | `python3 tools/q-audit-validator/validate_audit.py --mode manifest --level [0\|1\|2]` |
+| **C4. Agregación Determinista** | `tools/q-audit-aggregator/generate_report.py` | `AUDIT_REPORT.md`, `PLAN_DE_MEJORA.md`, `REMEDIATION_ISSUES.md`, `PROPUESTA_EVOLUTIVA.md` | `python3 tools/q-audit-aggregator/generate_report.py --level [0\|1\|2]` |
+| **C5. Cierre** | `skills/q-session-wrap` | Registro en Engram/SkillVault + Reporte en Chat | Chat del orquestador |
 
-### Invariantes Estrictos del Plan C:
-1. **Inmutabilidad Absoluta:** Ninguna herramienta de escritura o edición toca `src/` o `tests/` del proyecto.
-2. **Auditoría ARQ-01:** Prohibido penalizar por ausencia de capas horizontales pasamanos; se audita aislamiento de slices, SQL parametrizado, higiene de plantillas empaquetadas y SQLite WAL.
-3. **Anti-Mocking:** Verificación rigurosa de que las tareas históricas cuenten con pruebas observables reales.
+### ⛔ Regla Dura de la Compuerta Mecánica (Fase C3):
+- Si `validate_audit.py` retorna código de salida `1` (`RESULT: REJECTED — Audit items are incomplete`):
+  El agente tiene **ESTRICTAMENTE PROHIBIDO** interactuar con el usuario o dar por concluida la auditoría. Debe leer `audit/AUDIT_GAPS.json` y regenerar los ítems faltantes hasta obtener `RESULT: PASSED` (Exit Code 0).
 
 ---
 
