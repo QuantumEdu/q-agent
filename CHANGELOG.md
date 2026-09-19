@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.2] - 2026-09-19
+
+### Added
+- **GitHub Actions CI Pipeline (`.github/workflows/ci.yml`)**: Validación automática continua en GitHub (Python 3.10, 3.11, 3.12) para compilación de sintaxis (`py_compile`), suite de pruebas unitarias, verificación de esquemas (`skill.json`) y smoke tests de CLI.
+- **Suite de Pruebas Automatizadas (`tests/`)**:
+  - `test_skill_integrity.py`: Verificación de `skill.json`, frontmatter YAML de `SKILL.md` y `references/audit-manifest.yml`.
+  - `test_tools_execution.py`: Compilación y ejecución `--help` de todas las herramientas CLI en `tools/`.
+  - `test_audit_validator.py`: Carga y validación determinista de manifiestos y reporte `AUDIT_GAPS.json`.
+- **Taxonomía de GitHub Issue Labels**: Aprovisionamiento directo en GitHub de los 24 labels de `references/issue-labels.md` (`type:*`, `priority:*`, `status:*`, `scope:*`).
+- **Guía de Contribución y Plantillas de Comunidad**:
+  - `CONTRIBUTING.md`: Guía de contribución, estándares de calidad, principios ARQ-01, Zero-Mock evidence y flujo de ramas Git.
+  - `.github/ISSUE_TEMPLATE/bug_report.md`: Plantilla con label `type:fix`.
+  - `.github/ISSUE_TEMPLATE/feature_request.md`: Plantilla con label `type:feature`.
+  - `.github/ISSUE_TEMPLATE/audit_finding.md`: Plantilla para hallazgos y `type:nfr-gap`.
+  - `.github/ISSUE_TEMPLATE/adr.md`: Plantilla para Architecture Decision Records (`type:adr`).
+  - `.github/pull_request_template.md`: Plantilla de PR con checklist de calidad y evidencia Zero-Mock obligatoria.
+
+### Fixed
+- **`tools/q-checklist/q_checklist.py`**: Añadido soporte explícito de `-h` y `--help` para salir limpiamente sin bloquear interactivamente la terminal en entornos desatendidos o CI.
+
+---
+
 ## [2.2.1] - 2026-09-19
 
 ### Fixed

@@ -184,6 +184,12 @@ Se requiere establecer las bases arquitectónicas de {project_name} para garanti
 
 
 def main():
+    if "-h" in sys.argv or "--help" in sys.argv:
+        print("usage: q_checklist.py [-h]")
+        print("\nq-checklist: Interactive Pre-Flight Architectural Decision Matrix for q-agent")
+        print("Generates CONSTITUTION.md, ADR-0001, and .q-agent.json.")
+        sys.exit(0)
+
     print("=" * 70)
     print("  q-checklist: Matriz de Selección Rápida de Decisiones Arquitectónicas")
     print("=" * 70)

@@ -1,6 +1,6 @@
 {
   "name": "q-agent",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "Master project orchestrator featuring Dual Engine (Gentle-AI Integrated ODD vs Standalone), Article ARQ-01 Vertical Slices, BMAD User Stories, Terminal Evidence Gate, Deploy Gate, Ops Bridge, and Zero-Node Visual Cockpit.",
   "author": "Gabriel Magallón Sánchez / QuantumEdu (Quantum)",
   "license": "Apache-2.0",

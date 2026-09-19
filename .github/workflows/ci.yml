@@ -1,0 +1,48 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  validate-and-test:
+    name: Test & Integrity (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Verify Python syntax (py_compile)
+        run: |
+          python -m py_compile tools/q-cockpit/q_cockpit.py
+          python -m py_compile tools/q-checklist/q_checklist.py
+          python -m py_compile tools/q-audit-validator/validate_audit.py
+          python -m py_compile tools/q-audit-aggregator/generate_report.py
+          python -m py_compile tests/*.py
+
+      - name: Run unit & regression test suite
+        run: |
+          python -m unittest discover -s tests -v
+
+      - name: Validate skill.json schema & JSON format
+        run: |
+          python -m json.tool skill.json > /dev/null
+
+      - name: Verify CLI Tools --help smoke execution
+        run: |
+          python tools/q-cockpit/q_cockpit.py --help
+          python tools/q-checklist/q_checklist.py --help
+          python tools/q-audit-validator/validate_audit.py --help
+          python tools/q-audit-aggregator/generate_report.py --help

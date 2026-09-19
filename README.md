@@ -1,5 +1,9 @@
 # q-agent — Master Project Orchestrator
-> **Hermetic deployment package v02 (Dual Engine & Modern ODD)** · Tool-agnostic · Greenfield · Brownfield · Audit
+> **Hermetic deployment package v2.2.2 (Dual Engine & Modern ODD)** · Tool-agnostic · Greenfield · Brownfield · Audit
+
+[![CI Pipeline](https://github.com/QuantumEdu/q-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/QuantumEdu/q-agent/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-2.2.2-green.svg)](CHANGELOG.md)
 
 ---
 
@@ -577,9 +581,20 @@ code-audit · zero-dependencies · skills-sh
 
 ---
 
+## Contributing & Quality Standards
+
+We welcome issues, feedback, and pull requests! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) guide for details on:
+- Issue taxonomy and labels (`type:*`, `priority:*`, `scope:*`).
+- Git branching strategy (`develop` -> `feature/*` -> `main`).
+- Article ARQ-01 guidelines and Zero-Mock Terminal Evidence requirements.
+- Running the local validation suite (`python3 -m unittest discover -s tests -v`).
+
+---
+
 ## Version, Author & License
 
-- **Version:** `v02` (2.2.1) — Hermetic Canonical Package (Dual Engine, Modern ODD, Deploy Gate, Ops Bridge & Visual Cockpit).
+- **Version:** `v02` (2.2.2) — Hermetic Canonical Package (Dual Engine, Modern ODD, Deploy Gate, Ops Bridge, Visual Cockpit & CI Pipeline).
 - **Author & Architect:** Gabriel Magallón Sánchez / QuantumEdu (Quantum).
 - **License:** [Apache License 2.0](LICENSE).
+- **Contributing:** See [CONTRIBUTING.md](CONTRIBUTING.md).
 - **Attribution & Third-Party Credits:** See [ATTRIBUTION.md](ATTRIBUTION.md) for full acknowledgments of third-party foundations and Quantum's original skills.
