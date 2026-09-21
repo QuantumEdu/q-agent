@@ -26,6 +26,20 @@ Every decision is **traceable as a GitHub Issue** in the project repository. Eve
 | **Claude Code** | SKILL.md is auto-detected via frontmatter |
 | **OpenCode** | Load skill directory |
 
+### Universal Installation & Linking
+Link `q-agent` into all active AI runtimes on your machine with a single command (symlinks ensure `git pull` updates all agents instantly):
+
+```bash
+# Using just (recommended)
+just install
+
+# Or using the installer script directly
+./install.sh
+
+# Verify active links
+just check  # or ./install.sh --check
+```
+
 ---
 
 ## Why Deterministic SDD? (The "Amarillas" Analysis)
@@ -58,6 +72,8 @@ Current agentic coding frameworks fail in production due to structural design fl
 q-agent-v02/
 ├── SKILL.md                          # Orquestador canónico (Pasos 0 a 7 + Catálogo de Prompts)
 ├── README.md                         # Documentación del paquete
+├── install.sh                        # Universal runtime linker (AGY, Codex, Pi, Claude, OpenCode)
+├── justfile                          # Automation runner recipes (install, check, test, cockpit)
 ├── tutorial.html                     # Guía interactiva visual completa
 ├── implement-future-but-not-in-this-project.md # Blueprint del agente curricular q-academic
 ├── references/                       # Referencias operativas internas
