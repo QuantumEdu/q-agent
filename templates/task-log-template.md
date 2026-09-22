@@ -57,23 +57,29 @@
 
 ---
 
-## 4. CHECKLIST DE TAREAS ATÓMICAS (~400 LÍNEAS POR SLICE)
+## 4. CHECKLIST DE TAREAS ATÓMICAS EN OLEADAS (WAVE-BASED EXECUTION)
 
-> **Regla de ODD:** Cada tarea debe ser una unidad mínima coherente con sus propios tests y comprobaciones. Tareas estimadas en ~400 líneas de autoría.
+> **Regla de ODD & SDD:** Cada tarea es una unidad mínima coherente (~400 LOC). Las tareas se agrupan en **Oleadas (Waves)** basadas en su grafo de dependencias:
+> - **Wave 1 (Cero dependencias mutuas):** Entidades de dominio, esquemas de BD, tests reproductores en rojo (`RED_FAIL`). Ejecutables concurrentemente.
+> - **Wave 2 (Dependientes de Wave 1):** Casos de uso, servicios de aplicación y adaptadores de persistencia.
+> - **Wave 3 (Dependientes de Wave 2):** Controladores HTTP, endpoints, plantillas `.html` empaquetadas e integración UI.
 
-- [ ] **TASK-01 [UAC-01] — [Nombre de la tarea, ej. Modelo de almacenamiento y migración SQL]:**
+### 🌊 Wave 1: Contratos, Dominio y Tests Base (Sin dependencias)
+- [ ] **TASK-01 [Wave 1] [UAC-01] — [Nombre de la tarea, ej. Modelo de almacenamiento y migración SQL]:**
   - *Archivos:* `[ruta/al/storage.go]`, `[ruta/a/schema.sql]`
   - *Acción:* [descripción concreta de la implementación]
   - *Verificación prevista:* [Comando o test para validar]
 
-- [ ] **TASK-02 [UAC-01] — [Nombre de la tarea, ej. Handler HTTP y plantilla higiénica de vista]:**
-  - *Archivos:* `[ruta/al/handler.go]`, `[views/modulo/view.html]`
-  - *Acción:* [Crear controlador de ruta y archivo html empaquetado]
+### 🌊 Wave 2: Casos de Uso y Servicios de Aplicación (Depende de W1)
+- [ ] **TASK-02 [Wave 2] [UAC-01] — [Nombre de la tarea, ej. Handler HTTP y lógica de servicio]:**
+  - *Archivos:* `[ruta/al/handler.go]`, `[ruta/al/service.go]`
+  - *Acción:* [Crear controlador de ruta y caso de uso]
   - *Verificación prevista:* [Comando curl o test de integración HTTP 200]
 
-- [ ] **TASK-03 [UAC-02] — [Nombre de la tarea, ej. Interacción reactiva HTMX / Alpine]:**
-  - *Archivos:* `[views/modulo/fragment.html]`, `[assets/js/...]`
-  - *Acción:* [Implementar swap o validación dinámica]
+### 🌊 Wave 3: Vistas, Interfaz y Entrega (Depende de W2)
+- [ ] **TASK-03 [Wave 3] [UAC-02] — [Nombre de la tarea, ej. Interacción reactiva HTMX / Alpine en view.html]:**
+  - *Archivos:* `[views/modulo/view.html]`, `[assets/js/...]`
+  - *Acción:* [Implementar vista empaquetada o swap dinámico]
   - *Verificación prevista:* [Prueba de endpoint fragmento]
 
 ---
@@ -84,11 +90,11 @@
 > Queda estrictamente prohibido marcar una tarea como completada (`[x]`) sin registrar en esta tabla la evidencia real de ejecución observada en la terminal.
 > Cero falsas completitudes, cero suposiciones, cero mocks permanentes sin autorización.
 
-| Tarea ID | Comando Ejecutado en Terminal | Código de Salida (Exit Code) | Resultado Observado / Evidencia | Estado |
-|---|---|---|---|---|
-| `TASK-01` | `[ej. go test ./features/reuniones -v]` | `0` | `PASS: TestCreateReunion (0.02s)` | `[VERIFICADO]` |
-| `TASK-02` | `[ej. curl -I -s http://localhost:8080/reuniones]` | `0` | `HTTP/1.1 200 OK - Content-Type: text/html` | `[VERIFICADO]` |
-| `TASK-03` | `[ej. go vet ./... && golangci-lint run]` | `0` | `Clean - 0 warnings, 0 errors` | `[VERIFICADO]` |
+| Wave | Tarea ID | Comando Ejecutado en Terminal | Código de Salida (Exit Code) | Resultado Observado / Evidencia | Estado |
+|---|---|---|---|---|---|
+| `W1` | `TASK-01` | `[ej. go test ./features/reuniones -v]` | `0` | `PASS: TestCreateReunion (0.02s)` | `[VERIFICADO]` |
+| `W2` | `TASK-02` | `[ej. curl -I -s http://localhost:8080/reuniones]` | `0` | `HTTP/1.1 200 OK - Content-Type: text/html` | `[VERIFICADO]` |
+| `W3` | `TASK-03` | `[ej. go vet ./... && golangci-lint run]` | `0` | `Clean - 0 warnings, 0 errors` | `[VERIFICADO]` |
 
 ---
 

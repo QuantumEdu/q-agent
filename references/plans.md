@@ -70,10 +70,10 @@ Aplicable al agregar funcionalidades o refactorizaciones sobre un repositorio vi
 ## Plan F — Fast-Track (Micro-parche o Bugfix quirúrgico en ≤3 archivos)
 
 Aplicable para correcciones urgentes, ajustes de configuración o parches pequeños sin impacto en arquitectura ni modelos de base de datos.
-- **Sin Bitácora Durable:** Resuelve directamente en sesión sin generar archivos markdown durables.
+- **Plantilla de Referencia:** Para bugs con severidad o rastreo formal vía Issue, instanciar `templates/bugfix-template.md` con su estructura de 3 invariantes (Defecto Observado, Target EARS, Invariantes Inalterados).
 - **Protocolo Reproduction-First:**
-  1. Escribir test que reproduzca la falla (Fase Roja obligatoria).
-  2. Aplicar corrección quirúrgica en código fuente (Fase Verde).
+  1. Escribir test que reproduzca la falla (`RED_FAIL` obligatoria).
+  2. Aplicar corrección quirúrgica en código fuente (Fase Verde `GREEN_PASS`).
   3. Ejecutar linters locales (0 tokens si pasa).
   4. Commit atómico: `fix: <descripción del error>`.
 

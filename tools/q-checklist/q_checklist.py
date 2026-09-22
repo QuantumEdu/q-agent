@@ -177,6 +177,11 @@ Se requiere establecer las bases arquitectónicas de {project_name} para garanti
     "github_issues": true,
     "gbrain_mcp": false,
     "engram_mcp": false
+  }},
+  "guardrails": {{
+    "fs_write_allowed": ["src/**", "tests/**", "docs/**", "features/**", "odd/**", "q-tasks/**"],
+    "fs_write_denied": [".git/**", "references/**", "templates/**"],
+    "shell_denied": ["rm -rf /", "rm -rf ~*", "git push --force*", "sudo *"]
   }}
 }}
 """

@@ -73,3 +73,39 @@ class SQLiteMeetingRepository:
 3. **Registro en Flight Recorder:**
    - Cuando se realice un análisis basado en poda de contexto, registrar:
      `[STEP_ID] [AST_INDEX] [EXTRACTED] Skeletons parsed for <module_name> (reduced context footprint)`
+
+---
+
+## 5. Modos de Inclusión Condicional (Steering Inclusion Modes)
+
+Para evitar inyectar directivas completas en cada turno de conversación, los archivos de directivas y reglas secundarias pueden declarar frontmatter YAML de inclusión condicional:
+
+### 1. Inclusión Universal (`always` — por defecto):
+```yaml
+---
+inclusion: always
+---
+```
+Se inyecta en cada interacción del agente. Reservado para `CONSTITUTION.md` y reglas no negociables de arquitectura.
+
+### 2. Inclusión Condicional por Patrón (`fileMatch`):
+```yaml
+---
+inclusion: fileMatch
+fileMatchPattern: ["**/*.html", "tools/q-cockpit/ui/**", "**/*.tsx"]
+---
+```
+Se inyecta **únicamente cuando la tarea activa o los archivos abiertos coinciden con el patrón**. Si el agente trabaja en migraciones SQL o backend, las reglas de UI/CSS se omiten automáticamente, ahorrando tokens de inferencia y evitando el efecto *Lost in the Middle*.
+
+Patrones comunes recomendados:
+- `["**/storage/**", "**/db/**", "**/*.sql"]` $\to$ Reglas de persistencia, WAL mode y pooling.
+- `["**/api/**", "**/handlers/**", "**/controllers/**"]` $\to$ Contratos REST/gRPC y códigos HTTP.
+- `["**/*test*"]` $\to$ Reglas de TDD, aserciones y no uso de mocks permanentes.
+
+### 3. Inclusión Manual (`manual`):
+```yaml
+---
+inclusion: manual
+---
+```
+Solo se carga cuando se referencia explícitamente mediante `#include <ruta>` o por invocación directa en el prompt.

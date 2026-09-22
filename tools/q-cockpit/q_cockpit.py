@@ -179,12 +179,13 @@ class ProjectScanner:
                 break
 
         if not found_file:
-            # Check if any .md in openspec has tasks
-            openspec_dir = root / "openspec"
-            if openspec_dir.exists():
-                for md in openspec_dir.glob("*.md"):
-                    if "task" in md.name.lower():
+            # Check q-tasks or odd/tasks directories (ODD Bitácora)
+            for tasks_dir in [root / "q-tasks", root / "odd" / "tasks", root / "openspec"]:
+                if tasks_dir.exists():
+                    for md in sorted(tasks_dir.glob("*.md"), key=lambda x: x.stat().st_mtime, reverse=True):
                         found_file = md
+                        break
+                    if found_file:
                         break
 
         if found_file:
@@ -196,7 +197,18 @@ class ProjectScanner:
                     mark = match.group(1).lower()
                     text = match.group(2)
                     status = "done" if mark == "x" else ("in_progress" if mark == "~" else "todo")
-                    tasks.append({"text": text, "status": status, "source": found_file.name})
+                    
+                    # Extract wave metadata if present (e.g. [Wave 1], [W1], Wave 1)
+                    wave = None
+                    wave_match = re.search(r"\[(Wave\s*\d+|W\d+)\]|\b(Wave\s*\d+)\b", text, re.IGNORECASE)
+                    if wave_match:
+                        raw_wave = wave_match.group(1) or wave_match.group(2)
+                        wave = raw_wave.strip().replace("W", "Wave ").replace("Wave  ", "Wave ").title()
+
+                    task_entry = {"text": text, "status": status, "source": found_file.name}
+                    if wave:
+                        task_entry["wave"] = wave
+                    tasks.append(task_entry)
 
         # Provide defaults if none found
         if not tasks:

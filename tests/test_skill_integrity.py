@@ -38,13 +38,13 @@ class TestSkillIntegrity(unittest.TestCase):
         frontmatter = parts[1]
         self.assertIn("name: q-agent", frontmatter)
         self.assertIn("description:", frontmatter)
-        self.assertIn("version: 2.2.2", frontmatter)
+        self.assertIn("version: 2.3.0", frontmatter)
 
     def test_version_consistency(self):
         skill_json = json.loads((ROOT_DIR / "skill.json").read_text(encoding="utf-8"))
         skill_md = (ROOT_DIR / "SKILL.md").read_text(encoding="utf-8")
         version = skill_json["version"]
-        self.assertEqual(version, "2.2.2")
+        self.assertEqual(version, "2.3.0")
         self.assertIn(f"version: {version}", skill_md)
 
     def test_audit_manifest_reference_exists(self):
@@ -56,6 +56,34 @@ class TestSkillIntegrity(unittest.TestCase):
         self.assertIn("levels:", content)
         self.assertIn("items:", content)
         self.assertIn("A01", content)
+
+    def test_bugfix_template_exists_and_valid(self):
+        bugfix_path = ROOT_DIR / "templates" / "bugfix-template.md"
+        self.assertTrue(bugfix_path.exists(), "templates/bugfix-template.md must exist")
+        content = bugfix_path.read_text(encoding="utf-8")
+        self.assertIn("DEFECTO OBSERVADO", content)
+        self.assertIn("COMPORTAMIENTO ESPERADO", content)
+        self.assertIn("INVARIANTES INTACTOS", content)
+        self.assertIn("TEST REPRODUCTOR MANDATORIO", content)
+        self.assertIn("TERMINAL EVIDENCE GATE", content)
+
+    def test_task_log_template_wave_support(self):
+        task_log_path = ROOT_DIR / "templates" / "task-log-template.md"
+        self.assertTrue(task_log_path.exists(), "templates/task-log-template.md must exist")
+        content = task_log_path.read_text(encoding="utf-8")
+        self.assertIn("WAVE-BASED EXECUTION", content)
+        self.assertIn("Wave 1", content)
+        self.assertIn("Wave 2", content)
+        self.assertIn("Wave 3", content)
+
+    def test_q_agent_json_guardrails(self):
+        q_agent_json_path = ROOT_DIR / "templates" / "q-agent.json"
+        self.assertTrue(q_agent_json_path.exists(), "templates/q-agent.json must exist")
+        data = json.loads(q_agent_json_path.read_text(encoding="utf-8"))
+        self.assertIn("guardrails", data)
+        self.assertIn("fs_write_allowed", data["guardrails"])
+        self.assertIn("fs_write_denied", data["guardrails"])
+        self.assertIn("shell_denied", data["guardrails"])
 
 
 if __name__ == "__main__":

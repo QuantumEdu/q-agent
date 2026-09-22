@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.0] - 2026-09-21
+
+### Added
+- **Wave-Based Task Execution en Bitácora ODD (`templates/task-log-template.md` & `prompts/P04_odd_feature_log.md` / `P05_vertical_slice_apply.md`)**:
+  - Descomposición topológica de tareas en Oleadas (Waves) para permitir ejecución concurrente/paralela de tareas independientes (Wave 1: contratos, esquemas, tests rojos; Wave 2: servicios y casos de uso; Wave 3: UI, endpoints, integración).
+  - Soporte de columna `Wave` en la compuerta mecánica de `Terminal Evidence Gate`.
+- **Plantilla Quirúrgica de Bugfix con Invariantes (`templates/bugfix-template.md`)**:
+  - Estructura formal de 3 dimensiones para resolución de defectos en Plan F: Defecto Observado (con log real), Target EARS (`WHEN ... THE SYSTEM SHALL ...`), e Invariantes Inalterados para prevenir regresiones colaterales.
+  - Vínculo formal en `references/plans.md` (Plan F Fast-Track).
+- **Modos de Inclusión Condicional de Steering (`references/context-budgeting.md`)**:
+  - Documentación y formalización de frontmatter YAML: `inclusion: always`, `inclusion: fileMatch` (`fileMatchPattern`) e `inclusion: manual` para poda inteligente de contexto y ahorro de tokens.
+- **Visual Cockpit Wave Badges & ODD Scan (`tools/q-cockpit/ui/index.html` & `q_cockpit.py`)**:
+  - Detección automática y renderizado de insignias estilizadas `🌊 Wave X` en las tarjetas Kanban del cockpit visual.
+  - Escaneo automático de bitácoras vivas en carpetas `q-tasks/` y `odd/tasks/`.
+- **Guardrails Declarativos en Configuración (`templates/q-agent.json` & `q_checklist.py`)**:
+  - Bloque `guardrails` con listas permitidas y denegadas para escritura en filesystem (`fs_write_allowed`, `fs_write_denied`) y comandos de shell protegidos (`shell_denied`).
+- **Suite de Pruebas de Integridad Ampliada (`tests/test_skill_integrity.py`)**:
+  - Tests unitarios para validar la existencia y estructura de `bugfix-template.md`, el soporte de Waves en `task-log-template.md` y la sección de `guardrails`.
+
+---
+
 ## [2.2.2] - 2026-09-19
 
 ### Added

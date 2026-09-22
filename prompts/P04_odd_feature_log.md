@@ -43,13 +43,16 @@ El archivo generado debe instanciar fielmente [`templates/task-log-template.md`]
   - *Cláusula 4:* Higiene estricta; vistas en archivos `.html` independientes empaquetados (`//go:embed` o templates nativos). Cero HTML en strings de código.
   - *Cláusula 5:* 100% SQL parametrizado y escape XSS activo.
 
-### 2.3 Desglose de Tareas Atómicas (~400 líneas / slice)
-- Dividir la implementación en tareas coherentes acotadas a la heurística de ~400 líneas.
-- Cada tarea debe tener un identificador estable (`TASK-01`, `TASK-02`) y estar asociada directamente a un `UAC`.
+### 2.3 Desglose de Tareas Atómicas en Oleadas (~400 líneas / slice)
+- Dividir la implementación en tareas coherentes acotadas a la heurística de ~400 líneas, organizadas en **Oleadas (Waves)**:
+  - **Wave 1 (Sin dependencias):** Esquemas, contratos, entidades de dominio y tests en rojo (`RED_FAIL`).
+  - **Wave 2 (Dependientes de W1):** Casos de uso, servicios de aplicación y adaptadores.
+  - **Wave 3 (Dependientes de W2):** Controladores HTTP, endpoints, vistas `.html` empaquetadas e integración UI.
+- Cada tarea debe tener un identificador estable (`TASK-01`, `TASK-02`), estar asociada directamente a un `UAC` y declarar su Wave.
 - Detallar los archivos a crear o modificar (handlers, queries/storage, plantillas).
 
 ### 2.4 Terminal Evidence Gate (Vacío Inicialmente)
-- Incluir la tabla de verificación donde se registrarán obligatoriamente los comandos, códigos de salida y resultados observados en P06 antes de dar cualquier tarea por completada.
+- Incluir la tabla de verificación (con columna `Wave`) donde se registrarán obligatoriamente los comandos, códigos de salida y resultados observados en P06 antes de dar cualquier tarea por completada.
 
 ---
 

@@ -37,12 +37,15 @@ fecha: "{{YYYY-MM-DD}}"
 
 ---
 
-## 2. Flujo de Trabajo Tarea por Tarea
+## 2. Flujo de Trabajo por Oleadas (Wave-by-Wave Execution)
 
-Para cada tarea pendiente en la bitácora:
+Para cada oleada de tareas en la bitácora:
+1. **Ejecutar Wave 1 primero:** Las tareas de Wave 1 (contratos, modelos y tests reproductores) no tienen dependencias mutuas y pueden construirse de forma concurrente o paralela.
+2. **Avanzar a Wave 2:** Una vez que las tareas de Wave 1 están verificadas en terminal (`exit 0`), construir los casos de uso y lógica de aplicación.
+3. **Completar con Wave 3:** Integrar controladores, vistas `.html` empaquetadas y endpoints de cara al usuario.
 
 ```
-[Leer Tarea y UAC en Bitácora]
+[Wave N: Tareas Independientes]
               │
               ▼
 [Escribir / Modificar Código del Slice]
