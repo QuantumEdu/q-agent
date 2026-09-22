@@ -122,7 +122,7 @@ case "$ACTION" in
                 # Create idempotent symlink
                 ln -sfn "$SKILL_ROOT" "$target"
                 echo -e "  [${GREEN}LINKED${NC}] $name ➜ ${target}"
-                ((linked_count++))
+                linked_count=$((linked_count + 1))
             else
                 echo -e "  [${BLUE}SKIPPED${NC}] $name (Runtime directory ${parent} not present)"
             fi
