@@ -91,12 +91,50 @@ Aplicable para correcciones urgentes, ajustes de configuración o parches peque�
 2. **Prohibición de Informes Monolíticos Generados por LLM:**
    - ⛔ **PROHIBIDO redactar `AUDIT_REPORT.md` a mano en el chat.** Todos los entregables son ensamblados deterministamente por herramientas a partir de los archivos de ítem en disco.
 
+### 🌊 Matriz de Olas Paralelas de Auditoría (Parallel Audit Waves)
+
+Para evitar la saturación de la ventana de contexto (*Lost in the Middle*) y optimizar el tiempo de ejecución, los 17 ejes forenses se agrupan en **4 Olas Temáticas Paralelas** (más 1 Ola Estratégica):
+
+| Ola | Temática / Dominio | Ítems Asignados | Enfoque de Aislamiento de Contexto |
+|---|---|---|---|
+| **Wave 1** | **Seguridad & Secretos** | `A02`, `A09`, `A10`, `A11` | Zero blast-radius external scanning: credenciales, inyecciones SQL/XSS, middleware auth/JWT y SSRF |
+| **Wave 2** | **Arquitectura, Capas & Contratos** | `A01`, `A06`, `A13`, `A16` | Structural & API boundaries: capas Hexagonal/Clean, catálogo REST/OpenAPI, complejidad ciclomática y multi-tenancy |
+| **Wave 3** | **DevOps, Calidad & Confiabilidad** | `A03`, `A04`, `A05`, `A12`, `A14`, `A17` | CI/CD gates, cobertura de tests, typos/500 fatales, drift de dependencias, logs estructurados y disaster recovery |
+| **Wave 4** | **Frontend, Diseño & Accesibilidad** | `A07`, `A08`, `A15` | Design system tokens, a11y WCAG 2.1 AA (aria/focus traps) y optimización de render/vitals |
+| **Wave 5** | **Evolución Estratégica (MAB-PC)** | `E01`, `E02`, `E03`, `E04`, `E05` | Latencia asíncrona, UX ergonomía, capacidades de dominio core, benchmark de mercado e innovaciones no contempladas |
+
+### 📊 Catálogo Exhaustivo de 17 Ejes Forenses y 3 Niveles de Madurez
+
+| ID | Eje Forense / Slug | Categoría | Wave | Nivel 0 (MVP) | Nivel 1 (Growth) | Nivel 2 (Maturity) |
+|---|---|---|:---:|:---:|:---:|:---:|
+| `A01` | `architecture-layers` | Architecture | 2 | ✅ | ✅ | ✅ |
+| `A02` | `security-secrets` | Security | 1 | ✅ | ✅ | ✅ |
+| `A03` | `ci-pipeline-integrity` | DevOps | 3 | ✅ | ✅ | ✅ |
+| `A04` | `test-coverage-exists` | Quality | 3 | ✅ | ✅ | ✅ |
+| `A05` | `fatal-errors-typos` | Runtime | 3 | ✅ | ✅ | ✅ |
+| `A06` | `api-contracts-catalog` | API | 2 | ❌ | ✅ | ✅ |
+| `A07` | `ui-design-system` | Frontend | 4 | ❌ | ✅ | ✅ |
+| `A08` | `ui-accessibility` | Frontend | 4 | ❌ | ✅ | ✅ |
+| `A09` | `owasp-injection` | Security | 1 | ❌ | ✅ | ✅ |
+| `A10` | `owasp-auth` | Security | 1 | ❌ | ✅ | ✅ |
+| `A11` | `owasp-ssrf` | Security | 1 | ❌ | ✅ | ✅ |
+| `A12` | `dependency-drift` | Maintenance | 3 | ❌ | ✅ | ✅ |
+| `A13` | `monolith-complexity` | Architecture | 2 | ❌ | ✅ | ✅ |
+| `A14` | `observability-logging` | DevOps | 3 | ❌ | ❌ | ✅ |
+| `A15` | `performance-rendering` | Frontend | 4 | ❌ | ❌ | ✅ |
+| `A16` | `multi-tenant-isolation` | Architecture | 2 | ❌ | ❌ | ✅ |
+| `A17` | `disaster-recovery` | Infrastructure | 3 | ❌ | ❌ | ✅ |
+
+- **Nivel 0 (MVP/Bootstrap):** 5 ítems esenciales (`A01`–`A05`). Siempre activo en cualquier proyecto.
+- **Nivel 1 (Growth):** 13 ítems acumulados (`A01`–`A13`) + ítems `E01`–`E05` si se activa evolución estratégica.
+- **Nivel 2 (Maturity):** 17 ítems completos (`A01`–`A17`) para pre-release a producción, auditorías enterprise y SOC2/ISO readiness.
+
 ### 🔄 Pipeline de 5 Fases de Atomic Dispatch:
 
 | Fase | Herramienta / Prompt | Entregable Producido | Ubicación / Comando |
 |---|---|---|---|
 | **C1. Discovery** | `prompts/P01_auditoria_mab_pc.md` | `CONSTITUTION.md` + `BLUEPRINT.md` | Raíz del proyecto / `audit/<date>` |
-| **C2. Atomic Dispatch** | `prompts/P01b_audit_item.md` & `P01c_strategic_item.md` | Archivos atómicos `A01.md`–`A17.md` y `E01.md`–`E05.md` | `audit/A{ID}-{slug}.md` y `audit/E{ID}-{slug}.md` |
+| **C2. Atomic Wave Dispatch** | `prompts/P01b_audit_item.md` & `P01c_strategic_item.md` | Archivos atómicos `A01.md`–`A17.md` y `E01.md`–`E05.md` en olas paralelas | `audit/A{ID}-{slug}.md` y `audit/E{ID}-{slug}.md` |
 | **C3. Compuerta Mecánica (Gate)** | `tools/q-audit-validator/validate_audit.py` | `audit/AUDIT_GAPS.json` + Validación Exit 0 | `python3 tools/q-audit-validator/validate_audit.py --mode manifest --level [0\|1\|2]` |
 | **C4. Agregación Determinista** | `tools/q-audit-aggregator/generate_report.py` | `AUDIT_REPORT.md`, `PLAN_DE_MEJORA.md`, `REMEDIATION_ISSUES.md`, `PROPUESTA_EVOLUTIVA.md` | `python3 tools/q-audit-aggregator/generate_report.py --level [0\|1\|2]` |
 | **C5. Cierre** | `skills/q-session-wrap` | Registro en Engram/SkillVault + Reporte en Chat | Chat del orquestador |

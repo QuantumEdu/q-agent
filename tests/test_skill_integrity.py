@@ -38,13 +38,13 @@ class TestSkillIntegrity(unittest.TestCase):
         frontmatter = parts[1]
         self.assertIn("name: q-agent", frontmatter)
         self.assertIn("description:", frontmatter)
-        self.assertIn("version: 2.3.0", frontmatter)
+        self.assertIn("version: 2.4.0", frontmatter)
 
     def test_version_consistency(self):
         skill_json = json.loads((ROOT_DIR / "skill.json").read_text(encoding="utf-8"))
         skill_md = (ROOT_DIR / "SKILL.md").read_text(encoding="utf-8")
         version = skill_json["version"]
-        self.assertEqual(version, "2.3.0")
+        self.assertEqual(version, "2.4.0")
         self.assertIn(f"version: {version}", skill_md)
 
     def test_audit_manifest_reference_exists(self):
@@ -54,8 +54,22 @@ class TestSkillIntegrity(unittest.TestCase):
         content = manifest_path.read_text(encoding="utf-8")
         self.assertIn("version:", content)
         self.assertIn("levels:", content)
+        self.assertIn("waves:", content)
         self.assertIn("items:", content)
-        self.assertIn("A01", content)
+
+        # Verify all 17 audit items (A01-A17) are defined with wave assignments
+        for i in range(1, 18):
+            item_id = f"A{i:02d}"
+            self.assertIn(f'- id: "{item_id}"', content, f"Missing audit item {item_id}")
+
+        # Verify strategic evolution items (E01-E05)
+        for i in range(1, 6):
+            item_id = f"E{i:02d}"
+            self.assertIn(f'- id: "{item_id}"', content, f"Missing strategic evolution item {item_id}")
+
+        # Verify wave definitions in manifest
+        for wave_num in range(1, 6):
+            self.assertIn(f'  {wave_num}:', content, f"Missing wave {wave_num} definition")
 
     def test_bugfix_template_exists_and_valid(self):
         bugfix_path = ROOT_DIR / "templates" / "bugfix-template.md"

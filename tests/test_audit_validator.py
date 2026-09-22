@@ -33,8 +33,17 @@ class TestAuditValidator(unittest.TestCase):
         item0 = items[0]
         self.assertEqual(item0["id"], "A01")
         self.assertEqual(item0["level"], 0)
+        self.assertEqual(item0.get("wave"), 2)
         self.assertIn("output", item0)
         self.assertIn("required_sections", item0)
+
+        # Check all 17 items have valid wave
+        for item in items:
+            self.assertIn("wave", item)
+            if item["id"].startswith("A"):
+                self.assertIn(item["wave"], {1, 2, 3, 4}, f"Item {item['id']} has invalid wave {item['wave']}")
+            elif item["id"].startswith("E"):
+                self.assertEqual(item["wave"], 5, f"Strategic item {item['id']} should have wave 5")
 
     def test_validate_manifest_mode_with_missing_files(self):
         manifest_path = ROOT_DIR / "references" / "audit-manifest.yml"

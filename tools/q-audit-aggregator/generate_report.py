@@ -62,12 +62,14 @@ def load_manifest(manifest_path: Path) -> list[dict]:
     id_pattern = re.compile(r'^\s+- id:\s+"?([AE]\d+)"?', re.MULTILINE)
     slug_pattern = re.compile(r'^\s+slug:\s+"?([^"\n]+)"?', re.MULTILINE)
     level_pattern = re.compile(r'^\s+level:\s+(\d+)', re.MULTILINE)
+    wave_pattern = re.compile(r'^\s+wave:\s+(\d+)', re.MULTILINE)
     output_pattern = re.compile(r'^\s+output:\s+"?([^"\n]+)"?', re.MULTILINE)
     category_pattern = re.compile(r'^\s+category:\s+"?([^"\n]+)"?', re.MULTILINE)
 
     ids = id_pattern.findall(content)
     slugs = slug_pattern.findall(content)
     levels = [int(x) for x in level_pattern.findall(content)]
+    waves = [int(x) for x in wave_pattern.findall(content)]
     outputs = output_pattern.findall(content)
     categories = category_pattern.findall(content)
 
@@ -76,6 +78,7 @@ def load_manifest(manifest_path: Path) -> list[dict]:
             "id": item_id,
             "slug": slugs[i] if i < len(slugs) else "unknown",
             "level": levels[i] if i < len(levels) else 0,
+            "wave": waves[i] if i < len(waves) else 0,
             "output": outputs[i].strip() if i < len(outputs) else f"audit/{item_id}.md",
             "category": categories[i] if i < len(categories) else "unknown",
             "type": "strategic_evolution" if item_id.startswith("E") else "defect_compliance",

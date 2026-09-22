@@ -9,11 +9,19 @@ levels:
   1: "Growth — 8 additional quality and contract items"
   2: "Maturity — observability, NFRs, and scalability items"
 
+waves:
+  1: "Security & Secrets (A02, A09, A10, A11) — Zero blast-radius external scanning"
+  2: "Architecture, Layers & Contracts (A01, A06, A13, A16) — Structural and API boundaries"
+  3: "DevOps, Quality & Reliability (A03, A04, A05, A12, A14, A17) — CI, tests, typos, runtime"
+  4: "Frontend, Design & Accessibility (A07, A08, A15) — Design system, WCAG AA, Web Vitals"
+  5: "Strategic Evolution & Market Value (E01–E05) — Latency, UX ergonomics, domain, benchmark, innovations"
+
 items:
   # ── LEVEL 0 — MVP/Bootstrap (always active) ─────────────────────────────────
 
   - id: "A01"
     level: 0
+    wave: 2
     slug: "architecture-layers"
     category: "architecture"
     description: >
@@ -39,6 +47,7 @@ items:
 
   - id: "A02"
     level: 0
+    wave: 1
     slug: "security-secrets"
     category: "security"
     description: >
@@ -62,6 +71,7 @@ items:
 
   - id: "A03"
     level: 0
+    wave: 3
     slug: "ci-pipeline-integrity"
     category: "devops"
     description: >
@@ -84,6 +94,7 @@ items:
 
   - id: "A04"
     level: 0
+    wave: 3
     slug: "test-coverage-exists"
     category: "quality"
     description: >
@@ -112,6 +123,7 @@ items:
 
   - id: "A05"
     level: 0
+    wave: 3
     slug: "fatal-errors-typos"
     category: "runtime"
     description: >
@@ -138,6 +150,7 @@ items:
 
   - id: "A06"
     level: 1
+    wave: 2
     slug: "api-contracts-catalog"
     category: "api"
     description: >
@@ -160,6 +173,7 @@ items:
 
   - id: "A07"
     level: 1
+    wave: 4
     slug: "ui-design-system"
     category: "frontend"
     description: >
@@ -184,6 +198,7 @@ items:
 
   - id: "A08"
     level: 1
+    wave: 4
     slug: "ui-accessibility"
     category: "frontend"
     description: >
@@ -205,6 +220,7 @@ items:
 
   - id: "A09"
     level: 1
+    wave: 1
     slug: "owasp-injection"
     category: "security"
     description: >
@@ -226,6 +242,7 @@ items:
 
   - id: "A10"
     level: 1
+    wave: 1
     slug: "owasp-auth"
     category: "security"
     description: >
@@ -247,6 +264,7 @@ items:
 
   - id: "A11"
     level: 1
+    wave: 1
     slug: "owasp-ssrf"
     category: "security"
     description: >
@@ -271,6 +289,7 @@ items:
 
   - id: "A12"
     level: 1
+    wave: 3
     slug: "dependency-drift"
     category: "maintenance"
     description: >
@@ -295,6 +314,7 @@ items:
 
   - id: "A13"
     level: 1
+    wave: 2
     slug: "monolith-complexity"
     category: "architecture"
     description: >
@@ -320,6 +340,7 @@ items:
 
   - id: "A14"
     level: 2
+    wave: 3
     slug: "observability-logging"
     category: "devops"
     description: >
@@ -341,6 +362,7 @@ items:
 
   - id: "A15"
     level: 2
+    wave: 4
     slug: "performance-rendering"
     category: "frontend"
     description: >
@@ -361,6 +383,7 @@ items:
 
   - id: "A16"
     level: 2
+    wave: 2
     slug: "multi-tenant-isolation"
     category: "architecture"
     description: >
@@ -382,6 +405,7 @@ items:
 
   - id: "A17"
     level: 2
+    wave: 3
     slug: "disaster-recovery"
     category: "infrastructure"
     description: >
@@ -405,6 +429,7 @@ items:
 
   - id: "E01"
     level: 1
+    wave: 5
     type: "strategic_evolution"
     slug: "latency-performance-architecture"
     category: "performance"
@@ -426,6 +451,7 @@ items:
 
   - id: "E02"
     level: 1
+    wave: 5
     type: "strategic_evolution"
     slug: "ux-gui-ergonomics"
     category: "frontend"
@@ -447,6 +473,7 @@ items:
 
   - id: "E03"
     level: 1
+    wave: 5
     type: "strategic_evolution"
     slug: "core-domain-capabilities"
     category: "business_domain"
@@ -468,6 +495,7 @@ items:
 
   - id: "E04"
     level: 1
+    wave: 5
     type: "strategic_evolution"
     slug: "competitive-benchmarking"
     category: "benchmarking"
@@ -489,6 +517,7 @@ items:
 
   - id: "E05"
     level: 1
+    wave: 5
     type: "strategic_evolution"
     slug: "uncontemplated-innovations"
     category: "innovation"

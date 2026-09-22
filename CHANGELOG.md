@@ -5,6 +5,26 @@ All notable changes to **q-agent** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-09-21
+
+### Added
+- **Parallel Audit Waves en Manifiesto y Orquestación (`references/audit-manifest.yml`, `SKILL.md` y `references/plans.md`)**:
+  - Agrupación formal de los 17 ejes forenses en 4 Olas Temáticas Paralelas más 1 Ola Estratégica:
+    - **Wave 1: Seguridad & Secretos** (`A02`, `A09`, `A10`, `A11`): Escaneo perimetral sin efectos colaterales (fugas de credenciales, inyecciones SQL/XSS, middleware auth/JWT y vectores SSRF).
+    - **Wave 2: Arquitectura, Capas & Contratos** (`A01`, `A06`, `A13`, `A16`): Límites estructurales, separación Clean/Hexagonal, catálogo de endpoints REST/OpenAPI, límites de complejidad LOC y aislamiento multi-tenant.
+    - **Wave 3: DevOps, Calidad & Confiabilidad** (`A03`, `A04`, `A05`, `A12`, `A14`, `A17`): Gates en pipelines CI/CD, infraestructura de tests, typos y errores 500 en hot paths, drift de dependencias, observabilidad/logs estructurados y planes de contingencia (DR).
+    - **Wave 4: Frontend, Diseño & Accesibilidad** (`A07`, `A08`, `A15`): Cumplimiento de tokens del design system, accesibilidad WCAG 2.1 AA (aria/focus traps en modales) y auditoría de render/Web Vitals.
+    - **Wave 5: Evolución Estratégica MAB-PC** (`E01`–`E05`): Latencia asíncrona, UX ergonomía, capacidades de dominio core, benchmark de mercado e innovaciones no contempladas.
+- **Protocolo de Aislamiento de Contexto y Despacho Concurrente**:
+  - Mecanismo de despacho paralelo vía subagentes especializados (`invoke_subagent`) o llamadas atómicas aisladas en lote, garantizando que cada subagente solo inspeccione sus `scope_patterns` asignados.
+  - Eliminación del fenómeno *Lost in the Middle* y de la degradación por saturación de la ventana de contexto durante auditorías profundas.
+- **Soporte de Waves y Prefijo `[AE]` en Herramientas de Auditoría**:
+  - `tools/q-audit-validator/validate_audit.py`: Extracción de campo `wave` y soporte unificado de IDs `[AE]\d+` en el fallback parser sin dependencias.
+  - `tools/q-audit-aggregator/generate_report.py`: Inclusión de atributos de wave en la ingesta del manifiesto canónico.
+- **Suite de Pruebas de Integridad Ampliada (`tests/test_skill_integrity.py`)**:
+  - Verificación estricta de versión `2.4.0` en `skill.json` y `SKILL.md`.
+  - Validación del bloque `waves:` en `audit-manifest.yml`, existencia de los 17 ítems `A01`–`A17`, asignación válida de `wave: 1|2|3|4` y mapeo de `E01`–`E05` a `wave: 5`.
+
 ---
 
 ## [2.3.0] - 2026-09-21
