@@ -15,6 +15,44 @@ Through rigorous empirical testing and community defect analysis (the "Amarillas
    - *GitHub Spec-Kit [Issue #3752](https://github.com/github/spec-kit/issues/3752):* `/speckit.converge` falsely emits "converged" without auditable verification of acceptance scenarios.
 3. **Conversational Swarm Overhead (BMAD / ChatDev):** Unconstrained multi-agent swarms burn 3x–5x more tokens, introduce high latency, and multiply hallucination risk through chat chatter without verifiable quality gates.
 
+### 1.1 The Paradigm: Horizontal Specs (BDUF) vs. Vertical Slices with Atomic Specs
+
+A common misunderstanding in modern Specification-Driven Development (SDD) is viewing **Specifications** and **Vertical Slices** as opposing methodologies. In reality, they are complementary dimensions of the same problem:
+
+```text
+❌ HORIZONTAL SPECIFICATION (Spec-Kit / OpenSpec BDUF Pattern)
+┌────────────────────────────────────────────────────────┐
+│ Layer 1: Database (All DB tables for entire system)    │ ──► Monolithic DB Spec
+├────────────────────────────────────────────────────────┤
+│ Layer 2: Backend (All controllers, services, routes)   │ ──► Monolithic API Spec
+├────────────────────────────────────────────────────────┤
+│ Layer 3: Frontend (All UI views, components, CSS)      │ ──► Monolithic UI Spec
+└────────────────────────────────────────────────────────┘
+  Root Failure: Emitting 20+ pages of horizontal Markdown across all system layers
+  saturates the model's working memory. Late tasks suffer severe attention loss
+  ("Lost in the Middle"), resulting in mocks, broken integrations, and hallucinations.
+```
+
+```text
+✅ VERTICAL SLICES + ATOMIC SPECS (q-agent & Article ARQ-01)
+           Slice 1                 Slice 2                 Slice 3
+       (User Registration)   (Publish Article)       (Stripe Checkout)
+       ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+UI     │ Registration UI │    │ Markdown Editor │    │ Payment Modal   │
+API    │ POST /register  │    │ POST /articles  │    │ POST /checkout  │
+Domain │ Password Hashing│    │ Slug Validation │    │ Payment Intent  │
+DB     │ `users` table   │    │ `articles` table│    │ `charges` table │
+Test   │ E2E test GREEN  │    │ E2E test GREEN  │    │ E2E test GREEN  │
+       └─────────────────┘    └─────────────────┘    └─────────────────┘
+         [Atomic Spec 1]        [Atomic Spec 2]        [Atomic Spec 3]
+```
+
+#### Key Distinctions:
+- **The Vertical Slice is the Unit of Delivery and Architecture:** Each slice cuts through the entire stack (UI, domain logic, persistence, and test verification) delivering a single, fully functional capability end-to-end.
+- **The Spec is the Contract of Verification:** Instead of a single 40-page monolith, each slice owns its **Atomic Spec** (Given/When/Then, EARS invariants, and acceptance criteria).
+- **Context Preservation:** By constraining the agent's context to the atomic spec of a single slice (~200–400 LOC), the LLM operates with 100% of its reasoning budget. If an invariant breaks, only that slice is rolled back without destabilizing the entire system.
+- **Cross-Domain Applicability (Code & Non-Code):** In non-code production (`q-universal-orchestrator`), the same principle applies: instead of drafting an entire book or campaign horizontally, the agent produces complete, self-contained atomic slices (e.g. 1 complete conversion funnel or 1 research sub-question) governed by its individual rubric spec.
+
 ---
 
 ## 2. Alternatives Evaluated
