@@ -99,6 +99,17 @@ class TestSkillIntegrity(unittest.TestCase):
         self.assertIn("fs_write_denied", data["guardrails"])
         self.assertIn("shell_denied", data["guardrails"])
 
+    def test_adversarial_review_skill_exists_and_registered(self):
+        skill_path = ROOT_DIR / "skills" / "q-adversarial-review" / "SKILL.md"
+        self.assertTrue(skill_path.exists(), "skills/q-adversarial-review/SKILL.md must exist")
+        content = skill_path.read_text(encoding="utf-8")
+        self.assertIn("name: q:adversarial-review", content)
+        self.assertIn("Context Isolation", content)
+        self.assertIn("ARQ-01", content)
+
+        skill_json = json.loads((ROOT_DIR / "skill.json").read_text(encoding="utf-8"))
+        self.assertIn("q-adversarial-review", skill_json.get("skills", []))
+
 
 if __name__ == "__main__":
     unittest.main()

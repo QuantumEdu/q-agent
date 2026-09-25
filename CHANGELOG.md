@@ -5,6 +5,17 @@ All notable changes to **q-agent** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Compuerta de Revisión Adversarial Aislada (`skills/q-adversarial-review` & `prompts/P06_terminal_evidence_gate.md`)**:
+  - Incorporación de la compuerta de revisión adversarial (inspirada en Shopify Helix) para eliminar el sesgo de auto-confirmación del agente implementador.
+  - Despacho de un subagente independiente con contexto limpio para auditar el `git diff` contra el Artículo Constitucional ARQ-01 y criterios UAC antes de marcar tareas `[x]`.
+  - Protocolo de compuerta dual en Paso 6 de `SKILL.md`: Fase A (Verificación empírica de máquina) + Fase B (Revisión adversarial aislada vinculante).
+  - Registro formal de `q-adversarial-review` en `skill.json` y verificación en `tests/test_skill_integrity.py`.
+
+---
+
 ## [2.4.0] - 2026-09-21
 
 ### Added

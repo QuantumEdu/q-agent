@@ -27,25 +27,28 @@ En el desarrollo asistido por IA, el fallo más común es dar por terminado un c
 
 ---
 
-## 2. Protocolo de Verificación en 3 Frentes
+## 2. Protocolo de Verificación Dual (Máquina + Adversarial)
 
-Para cada tarea atómica construida en P05, ejecutar en terminal al menos dos de las siguientes comprobaciones:
+Para cada tarea atómica construida en P05, la compuerta se divide en dos fases obligatorias y secuenciales:
 
-### 2.1 Verificación de Compilación e Integridad de Tipos
+### 2.1 Fase A: Verificación Empírica de Máquina
+Ejecutar en terminal al menos dos de las siguientes comprobaciones:
+
+#### A.1 Compilación e Integridad de Tipos
 Ejecutar el compilador o checker de tipos del stack:
 - En Go: `go vet ./...` y `go build ./...`
 - En TypeScript: `npx tsc --noEmit`
 - En Python: `python -m py_compile <archivos>` o `mypy`
 *Condición de paso:* Código de salida `0` y cero errores de sintaxis.
 
-### 2.2 Verificación de Tests Automatizados
+#### A.2 Tests Automatizados
 Ejecutar la suite de tests que cubre el slice vertical o módulo modificado:
 - En Go: `go test -v -race ./features/<nombre-slice>/...`
 - En Python: `pytest tests/<modulo>/`
 - En Node: `npm test`
 *Condición de paso:* Todos los tests en verde (`PASS`), sin panics ni fallos de aserción.
 
-### 2.3 Verificación de Humo y Superficie HTTP
+#### A.3 Humo y Superficie HTTP
 Si la tarea incluye un endpoint o fragmento de vista (HTMX/HTML):
 - Comprobar mediante un test de integración HTTP o invocación directa que el handler devuelve el código HTTP esperado (`200 OK` o `303 Redirect`).
 - Verificar que los headers de respuesta sean correctos (`Content-Type: text/html; charset=utf-8`).
@@ -53,14 +56,25 @@ Si la tarea incluye un endpoint o fragmento de vista (HTMX/HTML):
 
 ---
 
+### 2.2 Fase B: Compuerta de Revisión Adversarial Aislada (`skills/q-adversarial-review`)
+
+Una vez que la máquina confirma verde (`exit code 0`), se activa la revisión de arquitectura y diseño:
+
+1. **Aislamiento de Contexto:** Despachar un subagente independiente (`invoke_subagent`) invocando `skills/q-adversarial-review`.
+2. **Auditoría del Diff:** El revisor evalúa el `git diff` contra el **Artículo ARQ-01** (mínima indirección, higiene de plantillas `.html`, 100% queries parametrizadas y cero mocks simulados).
+3. **Condición de Paso:** Veredicto explícito `APPROVED`.
+   - Si emite `REJECTED`: El agente escritor debe corregir las observaciones y repetir la compuerta 6.1 y 6.2.
+
+---
+
 ## 3. Registro Obligatorio en la Bitácora
 
-Una vez obtenida la salida exitosa en terminal:
+Una vez aprobadas AMBAS fases (Máquina + Adversarial):
 
 1. **Abrir la bitácora activa** (`q-tasks/{{FEATURE_NAME}}.md` o `odd/tasks/{{FEATURE_NAME}}.md`).
 2. **Registrar la fila en la tabla `Terminal Evidence Gate`:**
    ```markdown
-   | TASK-01 | go test ./features/reuniones -v | 0 | PASS: TestCreateReunion (0.02s) | [VERIFICADO] |
+   | TASK-01 | go test ./features/reuniones -v | 0 | PASS: TestCreateReunion (0.02s) | [VERIFICADO + ADVERSARIAL APPROVED] |
    ```
 3. **Marcar el checkbox:**
    Cambiar `- [ ] **TASK-01` por `- [x] **TASK-01`.

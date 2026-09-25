@@ -157,19 +157,22 @@ Emitir declaración de gate al usuario y esperar confirmación.
 
 ---
 
-## STEP 6 — Terminal Evidence Gate (Verificación Empírica Obligatoria)
+## STEP 6 — Dual Verification Gate (Terminal Evidence + Adversarial Review)
 
 > **Ejecutar `prompts/P06_terminal_evidence_gate.md`.**
 
-1. Ejecutar en la terminal del host:
+1. **Fase A — Verificación Empírica de Máquina:**
    - Compilación y chequeo de tipos (`go build`, `go vet`, `tsc`, `mypy`).
    - Tests automatizados del slice (`go test -v ./features/...`).
    - Pruebas de humo HTTP (`curl -I http://localhost:PORT/endpoint`).
-2. **Registro Obligatorio:** Escribir en la tabla `Terminal Evidence Gate` de la bitácora:
+2. **Fase B — Compuerta Adversarial Aislada (`skills/q-adversarial-review`):**
+   - Despachar un subagente independiente (`invoke_subagent`) con contexto limpio para auditar el `git diff` contra el **Artículo ARQ-01** (mínima indirección, higiene de plantillas, SQL parametrizado, cero mocks).
+   - Requerir veredicto `APPROVED` antes de autorizar el cierre.
+3. **Registro Obligatorio:** Escribir en la tabla `Terminal Evidence Gate` de la bitácora:
    ```markdown
-   | TASK-01 | go test ./features/reuniones -v | 0 | PASS: TestCreateReunion (0.02s) | [VERIFICADO] |
+   | TASK-01 | go test ./features/reuniones -v | 0 | PASS: TestCreateReunion (0.02s) | [VERIFICADO + ADVERSARIAL APPROVED] |
    ```
-3. **Tachar Checkbox:** Cambiar `- [ ]` a `- [x]` únicamente tras registrar el resultado exitoso (exit code 0). Cero tolerancia a mocks o fakes simulados.
+4. **Tachar Checkbox:** Cambiar `- [ ]` a `- [x]` únicamente tras registrar la salida exitosa de máquina (exit code 0) y el veredicto `APPROVED` del auditor adversarial. Cero tolerancia a mocks o atajos.
 
 ---
 

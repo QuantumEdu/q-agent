@@ -36,6 +36,7 @@
     "q-gbrain-assistant",
     "q-ci-fixer",
     "q-audit-readonly",
+    "q-adversarial-review",
     "q-session-wrap"
   ]
 }
