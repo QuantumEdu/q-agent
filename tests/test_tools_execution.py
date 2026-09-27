@@ -190,6 +190,12 @@ class TestCockpitSecurity(unittest.TestCase):
                 html_text = resp.read().decode("utf-8")
                 self.assertIn("mermaid", html_text.lower())
                 self.assertIn("A--&gt;B", html_text)
+                self.assertIn("zoom-btn", html_text)
+                self.assertIn("zoomDiagram", html_text)
+                self.assertIn("fitDiagram", html_text)
+                self.assertIn("toggleFullscreen", html_text)
+                self.assertIn("diagram-viewport", html_text)
+                self.assertIn("zoom-val-0", html_text)
         finally:
             if readme.exists():
                 readme.unlink()

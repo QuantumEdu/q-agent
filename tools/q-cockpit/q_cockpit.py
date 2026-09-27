@@ -416,15 +416,27 @@ class CockpitHTTPHandler(http.server.BaseHTTPRequestHandler):
             escaped_code = html.escape(d["code"])
             escaped_src = html.escape(d["source"])
             diagram_cards.append(f"""
-    <div class="diagram-card">
+    <div class="diagram-card" id="card-{idx}">
       <div class="diagram-header">
-        <span>Diagrama #{idx+1} · Fuente: <code>{escaped_src}</code></span>
-        <span class="badge">Mermaid.js Live</span>
+        <div class="diagram-title">
+          <span>Diagrama #{idx+1} · Fuente: <code>{escaped_src}</code></span>
+          <span class="badge">Mermaid.js Live</span>
+        </div>
+        <div class="zoom-toolbar">
+          <button type="button" class="zoom-btn" onclick="zoomDiagram({idx}, -0.15)" title="Reducir zoom (Zoom Out)">[-]</button>
+          <span class="zoom-badge" id="zoom-val-{idx}">100%</span>
+          <button type="button" class="zoom-btn" onclick="zoomDiagram({idx}, 0.15)" title="Aumentar zoom (Zoom In)">[+]</button>
+          <button type="button" class="zoom-btn" onclick="resetZoom({idx})" title="Tamaño real 100% (1:1)">[1:1]</button>
+          <button type="button" class="zoom-btn" onclick="fitDiagram({idx})" title="Ajustar al ancho (Fit to width)">[↔ Fit]</button>
+          <button type="button" class="zoom-btn" id="fullscreen-btn-{idx}" onclick="toggleFullscreen({idx})" title="Pantalla completa (Fullscreen)">[⛶]</button>
+        </div>
       </div>
-      <div class="diagram-body">
-        <pre class="mermaid">{escaped_code}</pre>
-        <div class="offline-fallback" style="display:none; font-family:monospace; font-size:12px; white-space:pre-wrap; color:#a5d6ff;">
-          <code>{escaped_code}</code>
+      <div class="diagram-body" id="body-{idx}">
+        <div class="diagram-viewport" id="viewport-{idx}">
+          <pre class="mermaid" id="mermaid-{idx}">{escaped_code}</pre>
+          <div class="offline-fallback" style="display:none; font-family:monospace; font-size:12px; white-space:pre-wrap; color:#a5d6ff;">
+            <code>{escaped_code}</code>
+          </div>
         </div>
       </div>
     </div>
@@ -466,8 +478,41 @@ class CockpitHTTPHandler(http.server.BaseHTTPRequestHandler):
       background-color: #161b22;
       border: 1px solid #30363d;
       border-radius: 8px;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: all 0.2s ease;
+    }}
+    .diagram-card.is-fullscreen {{
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: 100vw !important;
+      max-height: 100vh !important;
+      z-index: 99999 !important;
+      margin: 0 !important;
+      border-radius: 0 !important;
+      border: none !important;
+      background-color: rgba(13, 17, 23, 0.96) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }}
+    .diagram-card.is-fullscreen .diagram-header {{
+      background-color: #161b22;
+      padding: 12px 20px;
+      border-bottom: 1px solid #30363d;
+    }}
+    .diagram-card.is-fullscreen .diagram-body {{
+      flex: 1 1 auto !important;
+      height: calc(100vh - 54px) !important;
+      max-height: calc(100vh - 54px) !important;
+      min-height: 0 !important;
     }}
     .diagram-header {{
       background-color: #21262d;
@@ -477,6 +522,58 @@ class CockpitHTTPHandler(http.server.BaseHTTPRequestHandler):
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid #30363d;
+      gap: 12px;
+      flex-wrap: wrap;
+    }}
+    .diagram-title {{
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }}
+    .zoom-toolbar {{
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+    }}
+    .zoom-btn {{
+      background-color: #21262d;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-family: inherit;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+      line-height: 1.2;
+    }}
+    .zoom-btn:hover {{
+      background-color: #30363d;
+      color: #58a6ff;
+      border-color: #58a6ff;
+    }}
+    .zoom-btn:active {{
+      background-color: #1f6feb;
+      color: #ffffff;
+      border-color: #1f6feb;
+    }}
+    .zoom-badge {{
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 11px;
+      color: #8b949e;
+      min-width: 44px;
+      text-align: center;
+      padding: 3px 6px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 4px;
+      user-select: none;
     }}
     .badge {{
       background-color: rgba(56, 189, 248, 0.15);
@@ -489,14 +586,48 @@ class CockpitHTTPHandler(http.server.BaseHTTPRequestHandler):
       font-weight: 600;
     }}
     .diagram-body {{
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      height: 520px;
+      min-height: 450px;
+      max-height: 75vh;
+      overflow: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #388bfd #161b22;
+      cursor: grab;
+      user-select: none;
+      position: relative;
       background-color: #0b0e14;
-      overflow-x: auto;
-      min-height: 120px;
+      padding: 24px;
+      box-sizing: border-box;
+    }}
+    .diagram-body.is-dragging {{
+      cursor: grabbing !important;
+    }}
+    .diagram-body::-webkit-scrollbar {{
+      width: 8px;
+      height: 8px;
+    }}
+    .diagram-body::-webkit-scrollbar-track {{
+      background: #161b22;
+    }}
+    .diagram-body::-webkit-scrollbar-thumb {{
+      background: #388bfd;
+      border-radius: 4px;
+    }}
+    .diagram-body::-webkit-scrollbar-thumb:hover {{
+      background: #58a6ff;
+    }}
+    .diagram-viewport {{
+      transform-origin: 0 0;
+      transition: transform 0.12s ease-out;
+      display: inline-block;
+      min-width: 100%;
+    }}
+    .mermaid svg,
+    .diagram-viewport svg {{
+      max-width: none !important;
+      height: auto !important;
+      display: block;
+      margin: auto;
     }}
     pre.mermaid {{
       margin: 0;
@@ -537,6 +668,195 @@ class CockpitHTTPHandler(http.server.BaseHTTPRequestHandler):
     }} else {{
       document.querySelectorAll('.offline-fallback').forEach(el => el.style.display = 'block');
     }}
+
+    const diagramStates = {{}};
+
+    function getDiagramState(idx) {{
+      if (!diagramStates[idx]) {{
+        diagramStates[idx] = {{
+          scale: 1.0,
+          isDragging: false,
+          startX: 0,
+          startY: 0,
+          scrollLeft: 0,
+          scrollTop: 0
+        }};
+      }}
+      return diagramStates[idx];
+    }}
+
+    function applyScale(idx) {{
+      const state = getDiagramState(idx);
+      const viewport = document.getElementById('viewport-' + idx);
+      const badge = document.getElementById('zoom-val-' + idx);
+      if (viewport) {{
+        viewport.style.transform = `scale(${{state.scale}})`;
+      }}
+      if (badge) {{
+        badge.textContent = Math.round(state.scale * 100) + '%';
+      }}
+    }}
+
+    function zoomDiagram(idx, delta) {{
+      const state = getDiagramState(idx);
+      let newScale = state.scale + delta;
+      newScale = Math.max(0.2, Math.min(4.0, Math.round(newScale * 100) / 100));
+      state.scale = newScale;
+      applyScale(idx);
+    }}
+
+    function zoom(idx, delta) {{
+      zoomDiagram(idx, delta);
+    }}
+
+    function resetZoom(idx) {{
+      const state = getDiagramState(idx);
+      state.scale = 1.0;
+      applyScale(idx);
+      const body = document.getElementById('body-' + idx);
+      if (body) {{
+        body.scrollLeft = 0;
+        body.scrollTop = 0;
+      }}
+    }}
+
+    function fitDiagram(idx) {{
+      const body = document.getElementById('body-' + idx);
+      if (!body) return;
+      const svg = body.querySelector('svg');
+      if (!svg) return;
+      const state = getDiagramState(idx);
+
+      const availWidth = body.clientWidth - 48;
+      if (availWidth <= 0) return;
+
+      let naturalWidth = 0;
+      if (svg.viewBox && svg.viewBox.baseVal && svg.viewBox.baseVal.width > 0) {{
+        naturalWidth = svg.viewBox.baseVal.width;
+      }} else if (svg.getBoundingClientRect().width > 0) {{
+        naturalWidth = svg.getBoundingClientRect().width / (state.scale || 1.0);
+      }}
+
+      if (naturalWidth > 0) {{
+        let fitScale = availWidth / naturalWidth;
+        fitScale = Math.max(0.2, Math.min(4.0, Math.round(fitScale * 100) / 100));
+        state.scale = fitScale;
+        applyScale(idx);
+        body.scrollLeft = 0;
+        body.scrollTop = 0;
+      }}
+    }}
+
+    function toggleFullscreen(idx) {{
+      const card = document.getElementById('card-' + idx);
+      if (!card) return;
+      const isFull = card.classList.toggle('is-fullscreen');
+      const btn = document.getElementById('fullscreen-btn-' + idx);
+      if (btn) {{
+        btn.textContent = isFull ? '[✕]' : '[⛶]';
+        btn.title = isFull ? 'Salir de pantalla completa (Esc)' : 'Pantalla completa';
+      }}
+      if (isFull) {{
+        document.body.style.overflow = 'hidden';
+      }} else {{
+        document.body.style.overflow = '';
+      }}
+    }}
+
+    document.addEventListener('keydown', (e) => {{
+      if (e.key === 'Escape') {{
+        const fullCard = document.querySelector('.diagram-card.is-fullscreen');
+        if (fullCard) {{
+          const idx = fullCard.id.replace('card-', '');
+          toggleFullscreen(idx);
+        }}
+      }}
+    }});
+
+    let activeDragIdx = null;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let dragScrollLeft = 0;
+    let dragScrollTop = 0;
+
+    function initPanZoom() {{
+      document.querySelectorAll('.diagram-body').forEach(body => {{
+        const idx = body.id.replace('body-', '');
+
+        body.addEventListener('mousedown', (e) => {{
+          if (e.target.closest('button') || e.target.closest('a')) return;
+          activeDragIdx = idx;
+          dragStartX = e.clientX;
+          dragStartY = e.clientY;
+          dragScrollLeft = body.scrollLeft;
+          dragScrollTop = body.scrollTop;
+          body.classList.add('is-dragging');
+        }});
+
+        body.addEventListener('mousemove', (e) => {{
+          if (activeDragIdx === idx) {{
+            const dx = e.clientX - dragStartX;
+            const dy = e.clientY - dragStartY;
+            body.scrollLeft = dragScrollLeft - dx;
+            body.scrollTop = dragScrollTop - dy;
+          }}
+        }});
+
+        body.addEventListener('mouseup', () => {{
+          if (activeDragIdx === idx) {{
+            body.classList.remove('is-dragging');
+            activeDragIdx = null;
+          }}
+        }});
+
+        body.addEventListener('mouseleave', () => {{
+          // Handled by window mouseup / mousemove
+        }});
+
+        body.addEventListener('wheel', (e) => {{
+          if (e.ctrlKey || e.metaKey) {{
+            e.preventDefault();
+            const state = getDiagramState(idx);
+            const delta = e.deltaY < 0 ? 0.15 : -0.15;
+            const oldScale = state.scale;
+            let newScale = oldScale + delta;
+            newScale = Math.max(0.2, Math.min(4.0, Math.round(newScale * 100) / 100));
+            if (newScale !== oldScale) {{
+              const rect = body.getBoundingClientRect();
+              const mouseX = e.clientX - rect.left;
+              const mouseY = e.clientY - rect.top;
+              state.scale = newScale;
+              applyScale(idx);
+              body.scrollLeft = (body.scrollLeft + mouseX) * (newScale / oldScale) - mouseX;
+              body.scrollTop = (body.scrollTop + mouseY) * (newScale / oldScale) - mouseY;
+            }}
+          }}
+        }}, {{ passive: false }});
+      }});
+
+      window.addEventListener('mousemove', (e) => {{
+        if (activeDragIdx === null) return;
+        const body = document.getElementById('body-' + activeDragIdx);
+        if (!body) return;
+        e.preventDefault();
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+        body.scrollLeft = dragScrollLeft - dx;
+        body.scrollTop = dragScrollTop - dy;
+      }});
+
+      window.addEventListener('mouseup', () => {{
+        if (activeDragIdx !== null) {{
+          const body = document.getElementById('body-' + activeDragIdx);
+          if (body) {{
+            body.classList.remove('is-dragging');
+          }}
+          activeDragIdx = null;
+        }}
+      }});
+    }}
+
+    initPanZoom();
   </script>
 </body>
 </html>"""
