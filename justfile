@@ -32,3 +32,7 @@ cockpit PORT="4242":
 # Run interactive pre-flight architectural decision matrix (CLI TUI)
 checklist:
     python3 tools/q-checklist/q_checklist.py
+
+# Run deterministic technical contracts audit gate (Disaster Recovery, CI, Observability, API)
+audit-contracts CWD=".":
+    python3 tools/q-audit-validator/validate_audit.py --mode technical --cwd {{CWD}}
