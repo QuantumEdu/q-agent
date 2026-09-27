@@ -67,17 +67,23 @@ Una vez que la máquina confirma verde (`exit code 0`), se activa la revisión d
 
 ---
 
-## 3. Registro Obligatorio en la Bitácora
+## 3. Registro Obligatorio en la Bitácora y Cierre de Slice (Work-Unit Commit)
 
 Una vez aprobadas AMBAS fases (Máquina + Adversarial):
 
-1. **Abrir la bitácora activa** (`q-tasks/{{FEATURE_NAME}}.md` o `odd/tasks/{{FEATURE_NAME}}.md`).
-2. **Registrar la fila en la tabla `Terminal Evidence Gate`:**
-   ```markdown
-   | TASK-01 | go test ./features/reuniones -v | 0 | PASS: TestCreateReunion (0.02s) | [VERIFICADO + ADVERSARIAL APPROVED] |
+1. **Sellar el Slice con un Work-Unit Commit Convencional:**
+   Empaquetar en un commit atómico el código del slice vertical, sus pruebas automatizadas y documentación:
+   ```bash
+   git add <archivos-del-slice>
+   git commit -m "feat(slice): descripción del comportamiento vertical probado"
    ```
-3. **Marcar el checkbox:**
-   Cambiar `- [ ] **TASK-01` por `- [x] **TASK-01`.
+2. **Abrir la bitácora activa** (`q-tasks/{{FEATURE_NAME}}.md` o `odd/tasks/{{FEATURE_NAME}}.md`).
+3. **Registrar la fila en la tabla `Terminal Evidence Gate`:**
+   ```markdown
+   | TASK-01 | go test ./features/reuniones -v | 0 | PASS: TestCreateReunion (0.02s) | [VERIFICADO + ADVERSARIAL APPROVED + Commit: a1b2c3d] |
+   ```
+4. **Marcar el checkbox:**
+   Cambiar `- [ ] **TASK-01` por `- [x] **TASK-01 (Commit: a1b2c3d)`.
 
 ---
 

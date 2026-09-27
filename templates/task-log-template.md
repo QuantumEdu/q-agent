@@ -59,7 +59,7 @@
 
 ## 4. CHECKLIST DE TAREAS ATÓMICAS EN OLEADAS (WAVE-BASED EXECUTION)
 
-> **Regla de ODD & SDD:** Cada tarea es una unidad mínima coherente (~400 LOC). Las tareas se agrupan en **Oleadas (Waves)** basadas en su grafo de dependencias:
+> **Regla de Vertical Slices & Wave Execution:** Cada tarea es una unidad mínima coherente (~400 LOC) construida como un slice vertical o paso atómico con sus tests. Toda tarea verificada en terminal (`exit 0`) se sella con un commit convencional atómico (código + tests + docs) antes de marcar el checkbox. Las tareas se agrupan en **Oleadas (Waves)** basadas en su grafo de dependencias:
 > - **Wave 1 (Cero dependencias mutuas):** Entidades de dominio, esquemas de BD, tests reproductores en rojo (`RED_FAIL`). Ejecutables concurrentemente.
 > - **Wave 2 (Dependientes de Wave 1):** Casos de uso, servicios de aplicación y adaptadores de persistencia.
 > - **Wave 3 (Dependientes de Wave 2):** Controladores HTTP, endpoints, plantillas `.html` empaquetadas e integración UI.

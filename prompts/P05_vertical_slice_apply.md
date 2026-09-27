@@ -35,9 +35,14 @@ fecha: "{{YYYY-MM-DD}}"
 - Diseñar el código en unidades atómicas y manejables.
 - Preferir pequeños slices cohesivos con sus tests respectivos antes que gigantescos monolitos en un solo commit.
 
+### 1.5 Cierre Atómico por Slice Vertical (Work-Unit Commit)
+- **Un Commit por Slice Verificado:** Una vez que el slice vertical pasa exitosamente la verificación en terminal (`exit 0` en P06), debe sellarse con un commit atómico convencional (`feat(...)`, `fix(...)`).
+- **Comportamiento + Tests + Docs Juntos:** El commit debe incluir el código del slice, sus pruebas automatizadas y la documentación/plantilla correspondiente en la misma transacción de Git.
+- **Prohibido commitear por capas técnicas separadas:** Jamás hacer un commit solo de modelos, otro de servicios y otro de vistas si ninguno funciona de forma aislada.
+
 ---
 
-## 2. Flujo de Trabajo por Oleadas (Wave-by-Wave Execution)
+## 2. Flujo de Trabajo por Oleadas (Wave Execution)
 
 Para cada oleada de tareas en la bitácora:
 1. **Ejecutar Wave 1 primero:** Las tareas de Wave 1 (contratos, modelos y tests reproductores) no tienen dependencias mutuas y pueden construirse de forma concurrente o paralela.
@@ -48,14 +53,17 @@ Para cada oleada de tareas en la bitácora:
 [Wave N: Tareas Independientes]
               │
               ▼
-[Escribir / Modificar Código del Slice]
-(Storage SQL ──► Handler HTTP ──► Template .html)
+[Construir Slice Vertical]
+(Storage SQL ──► Handler HTTP ──► Template .html + Tests)
               │
               ▼
-[NO MARCAR CHECKBOX AÚN]
+[P06: Terminal Evidence Gate (exit 0)]
               │
               ▼
-[Transicionar de Inmediato a P06 (Terminal Evidence Gate)]
+[Work-Unit Commit Convencional (código + tests + docs)]
+              │
+              ▼
+[Marcar Checkbox [x] con Hash del Commit como Evidencia]
 ```
 
-> ⚠️ **REGLA DE BLOQUEO:** Queda estrictamente prohibido marcar el checkbox `[x]` en la bitácora al terminar de escribir el código. La tarea permanece en estado pendiente `[ ]` hasta que el Paso 6 ejecute los comandos de terminal y registre la evidencia observable.
+> ⚠️ **REGLA DE BLOQUEO:** Queda estrictamente prohibido marcar el checkbox `[x]` en la bitácora al terminar de escribir el código. La tarea permanece en estado pendiente `[ ]` hasta que el Paso 6 ejecute los comandos de terminal, registre la evidencia observable y se selle el commit atómico del slice.

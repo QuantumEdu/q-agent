@@ -17,7 +17,7 @@ Un orquestador de nivel Senior no puede depender ciegamente de un solo runtime o
 
 ## 2. Comparativa de Motores
 
-| Dimensión | Motor A: Gentle-AI Integrated ODD | Motor B: q-agent Standalone ODD |
+| Dimensión | Motor A: Gentle-AI Integrated ODD | Motor B: q-agent Standalone (Vertical Slices & Wave Execution) |
 |---|---|---|
 | **Condición de Activación** | `gentle-ai --version` responde en el host. | `gentle-ai` no detectado / entorno estándar. |
 | **Ruta de Bitácora Viva** | `odd/tasks/{{FEATURE_NAME}}.md` | `q-tasks/{{FEATURE_NAME}}.md` |
@@ -37,7 +37,7 @@ flowchart TD
     Start["Inicio Paso 3 (Gate de Metaorquestación)"] --> ProbeGentleAI{"¿Responde 'gentle-ai --version'?"}
     
     ProbeGentleAI -- SÍ --> SelectGentleAI["Activar MOTOR A: Gentle-AI Integrated ODD"]
-    ProbeGentleAI -- NO --> SelectStandalone["Activar MOTOR B: q-agent Standalone ODD"]
+    ProbeGentleAI -- NO --> SelectStandalone["Activar MOTOR B: q-agent Standalone (Vertical Slices & Wave Execution)"]
     
     SelectGentleAI --> CheckCodeGraph{"¿MCP codegraph disponible?"}
     CheckCodeGraph -- SÍ --> UseCodeGraph["Exploración prioritaria vía codegraph_explore"]
