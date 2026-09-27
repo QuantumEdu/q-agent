@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Human-Scoped Execution Authority (`references/execution-authority.md`)**:
+  - Formal operation taxonomy (`local-read`, `public-research`, `local-write`, `private-read`, `external-write`, `remote-execute`, `deploy`, `merge`).
+  - Elimination of redundant onboarding prompts: established project context and human decisions are reused across phases rather than replayed.
+  - Prohibition of unconditional credential probing (`gh auth status` removed from general onboarding).
+- **Selective & Optional Context Retrieval (`references/context-retrieval.md` & `templates/q-agent.json`)**:
+  - Local-first baseline: external memory providers (`gbrain`, `engram`, `skillvault`) are strictly optional and disabled by default (`enabled: false`).
+  - Aggregate retrieval budget ceilings (max 3 candidate results, max 6,000 chars, ~1,500 token estimate).
+  - Strict scope boundaries distinguishing public web research, general-reference libraries, and private-project memory.
+- **Context Retrieval Test Suite (`tests/test_context_retrieval.py`)**:
+  - 7 unit tests asserting zero-provider baseline defaults, `q_checklist.py` template parity, typed activation contracts, and absence of intrusive probing.
+
 ---
 
 ## [2.5.2] - 2026-09-26
