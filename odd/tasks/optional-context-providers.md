@@ -35,6 +35,8 @@ Checks: focused tests observed RED then GREEN, full suite, diff check, structura
 T2 RED: focused runner observed 1 failure + 3 errors (missing authority defaults/document/example and entrypoint link); later contradiction assertion also observed FAIL before correction.
 T2 GREEN/REFACTOR: focused 7/7 passed; full suite 41/41 passed, exit 0; git diff --check passed. Fixture audit reports include expected failure text, not a failing suite.
 Structural readback: typed activation example/config parity, distinct public/general/private scopes, gate consistency, P03 optional writes and no onboarding authentication probing inspected.
-T2 commit pending. Parent independent verification pending; no actual provider activation or private/remote access. Runtime enforcement remains outside this instruction/config change.
+T2 work-unit commit: cab92f405a985fc7a6fb13daf4833382a7a2e433. Parent independent verification pending; no actual provider activation or private/remote access. Runtime enforcement remains outside this instruction/config change.
 
-Slice 2 precommit authored count: 360 additions plus deletions including tracking; accumulated feature count 699. Cached feature-branch-chain separates slices; no PR created.
+Slice 2 precommit authored count: 361 additions plus deletions including tracking; accumulated feature count 700. Cached feature-branch-chain separates slices; no PR created.
+
+Slice 2 holds cab92f4 plus its evidence-tracking commit; slice 1 remains 4afc35a + 72d9391. No child PR branches or remote PRs created.
