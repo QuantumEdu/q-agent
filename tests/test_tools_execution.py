@@ -151,6 +151,16 @@ class TestCockpitSecurity(unittest.TestCase):
             self.assertEqual(resp.headers.get("Access-Control-Allow-Origin"), "http://127.0.0.1:4242")
             self.assertIn("GET", resp.headers.get("Access-Control-Allow-Methods", ""))
 
+    def test_diff_api_stats_returned(self):
+        url = f"http://127.0.0.1:{self.port}/api/diff"
+        with urllib.request.urlopen(url) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+            self.assertIn("diff", data)
+            self.assertIn("stats", data)
+            self.assertIn("total_loc", data["stats"])
+            self.assertIn("files_changed", data["stats"])
+
 
 if __name__ == "__main__":
     unittest.main()

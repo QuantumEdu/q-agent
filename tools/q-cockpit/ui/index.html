@@ -8,16 +8,26 @@
     :root {
       --bg: #0d1117;
       --surface: #161b22;
+      --surface-elevated: #21262d;
       --border: #30363d;
+      --border-muted: #21262d;
       --text: #c9d1d9;
       --text-muted: #8b949e;
+      --text-bright: #f0f6fc;
       --accent: #58a6ff;
       --accent-hover: #1f6feb;
+      --accent-subtle: rgba(88, 166, 255, 0.12);
       --success: #238636;
       --success-border: #2ea043;
+      --success-subtle: rgba(46, 160, 67, 0.15);
+      --success-bright: #3fb950;
       --warning: #d29922;
+      --warning-subtle: rgba(210, 153, 34, 0.15);
       --danger: #da3633;
+      --danger-subtle: rgba(218, 54, 51, 0.15);
+      --danger-bright: #f85149;
       --purple: #bc8cff;
+      --purple-subtle: rgba(188, 140, 255, 0.15);
       --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
       --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     }
@@ -42,6 +52,7 @@
       align-items: center;
       justify-content: space-between;
       flex-shrink: 0;
+      gap: 16px;
     }
     .logo-group {
       display: flex;
@@ -49,7 +60,7 @@
       gap: 12px;
     }
     .badge-tag {
-      background-color: #21262d;
+      background-color: var(--surface-elevated);
       border: 1px solid var(--border);
       color: var(--accent);
       padding: 3px 8px;
@@ -59,14 +70,14 @@
       font-weight: 600;
     }
     .project-name {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
-      color: #fff;
+      color: var(--text-bright);
     }
     .tabs {
       display: flex;
-      gap: 8px;
-      background-color: #21262d;
+      gap: 6px;
+      background-color: var(--surface-elevated);
       padding: 4px;
       border-radius: 8px;
       border: 1px solid var(--border);
@@ -81,12 +92,22 @@
       font-size: 13px;
       font-weight: 500;
       transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     .tab-btn:hover { color: #fff; }
     .tab-btn.active {
       background-color: var(--accent-hover);
       color: #fff;
       font-weight: 600;
+    }
+    .tab-count-badge {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 10px;
+      background-color: rgba(0,0,0,0.3);
+      font-family: var(--font-mono);
     }
 
     .meta-bar {
@@ -105,6 +126,40 @@
       margin-right: 4px;
     }
     .status-dot.dirty { background-color: var(--warning); }
+
+    /* Slice Budget Indicator */
+    .budget-pill {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      padding: 3px 8px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 600;
+      border: 1px solid transparent;
+    }
+    .budget-pill.safe {
+      background-color: var(--success-subtle);
+      border-color: var(--success-border);
+      color: var(--success-bright);
+    }
+    .budget-pill.warning {
+      background-color: var(--warning-subtle);
+      border-color: var(--warning);
+      color: var(--warning);
+    }
+    .budget-pill.danger {
+      background-color: var(--danger-subtle);
+      border-color: var(--danger);
+      color: var(--danger-bright);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
 
     /* Main Container */
     main {
@@ -153,7 +208,8 @@
       border: none;
       width: 100%;
       height: 100%;
-      background: #fff;
+      background: var(--bg);
+      color: var(--text);
     }
 
     .card {
@@ -178,12 +234,12 @@
     }
     .card-question {
       font-size: 15px;
-      color: #fff;
+      color: var(--text-bright);
       margin-bottom: 12px;
       line-height: 1.4;
     }
     .card-recommendation {
-      background-color: rgba(88, 166, 255, 0.1);
+      background-color: var(--accent-subtle);
       border-left: 3px solid var(--accent);
       padding: 8px 12px;
       font-size: 12px;
@@ -193,7 +249,7 @@
     }
     .card textarea {
       width: 100%;
-      background-color: #0d1117;
+      background-color: var(--bg);
       border: 1px solid var(--border);
       color: #fff;
       padding: 10px;
@@ -209,14 +265,17 @@
       border-color: var(--accent);
     }
     .btn {
-      background-color: #21262d;
+      background-color: var(--surface-elevated);
       border: 1px solid var(--border);
-      color: #c9d1d9;
+      color: var(--text);
       padding: 6px 14px;
       border-radius: 6px;
       font-size: 13px;
       cursor: pointer;
       transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
     .btn:hover {
       background-color: #30363d;
@@ -232,7 +291,7 @@
       background-color: #2ea043;
     }
     .btn-danger {
-      background-color: rgba(218, 54, 51, 0.2);
+      background-color: var(--danger-subtle);
       border-color: var(--danger);
       color: #ff7b72;
     }
@@ -263,7 +322,7 @@
       flex: 1;
       text-align: center;
       padding: 8px 6px;
-      background-color: #21262d;
+      background-color: var(--surface-elevated);
       border-radius: 6px;
       font-size: 11px;
       font-weight: 600;
@@ -272,20 +331,20 @@
       min-width: 90px;
     }
     .phase-pill.active {
-      background-color: rgba(88, 166, 255, 0.15);
+      background-color: var(--accent-subtle);
       border-color: var(--accent);
       color: var(--accent);
     }
     .phase-pill.done {
-      background-color: rgba(46, 160, 67, 0.15);
+      background-color: var(--success-subtle);
       border-color: var(--success);
-      color: #3fb950;
+      color: var(--success-bright);
     }
 
     /* Gates Row */
     .gates-container {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 16px;
     }
     .gate-card {
@@ -311,9 +370,9 @@
       text-transform: uppercase;
       font-weight: bold;
     }
-    .gate-status-pill.approved { background: rgba(46, 160, 67, 0.2); color: #3fb950; }
-    .gate-status-pill.pending { background: rgba(210, 153, 34, 0.2); color: #d29922; }
-    .gate-status-pill.rejected { background: rgba(218, 54, 51, 0.2); color: #f85149; }
+    .gate-status-pill.approved { background: var(--success-subtle); color: var(--success-bright); }
+    .gate-status-pill.pending { background: var(--warning-subtle); color: var(--warning); }
+    .gate-status-pill.rejected { background: var(--danger-subtle); color: var(--danger-bright); }
 
     /* Kanban Board */
     .kanban-board {
@@ -338,7 +397,7 @@
       justify-content: space-between;
     }
     .col-count {
-      background-color: #21262d;
+      background-color: var(--surface-elevated);
       padding: 2px 6px;
       border-radius: 10px;
       font-size: 11px;
@@ -352,22 +411,34 @@
       overflow-y: auto;
     }
     .task-card {
-      background-color: #21262d;
+      background-color: var(--surface-elevated);
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 10px 12px;
+      padding: 12px;
       font-size: 13px;
       line-height: 1.4;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .task-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
     }
     .task-card.in_progress {
       border-left: 3px solid var(--warning);
     }
     .task-card.done {
-      border-left: 3px solid var(--success);
-      opacity: 0.8;
+      border-left: 3px solid var(--success-bright);
+      opacity: 0.9;
+    }
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
     }
     .wave-badge {
       display: inline-block;
@@ -381,7 +452,37 @@
       width: fit-content;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 2px;
+    }
+    .task-id-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: rgba(188, 140, 255, 0.15);
+      color: var(--purple);
+      border: 1px solid rgba(188, 140, 255, 0.3);
+      font-weight: 600;
+    }
+    .evidence-chip {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 3px 7px;
+      border-radius: 4px;
+      background: var(--success-subtle);
+      color: var(--success-bright);
+      border: 1px solid var(--success-border);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .commit-chip {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--surface);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
     }
     .task-meta {
       font-size: 11px;
@@ -389,7 +490,212 @@
       font-family: var(--font-mono);
     }
 
-    /* Bottom Status / Footer */
+    /* TAB 3: CODE & DIFF INSPECTOR */
+    #tab-diff {
+      flex-direction: column;
+      overflow: hidden;
+      height: 100%;
+    }
+    .diff-toolbar {
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      gap: 16px;
+    }
+    .diff-stats-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+    }
+    .stat-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background-color: var(--surface-elevated);
+      border: 1px solid var(--border);
+      font-family: var(--font-mono);
+    }
+    .stat-badge.add { color: var(--success-bright); border-color: rgba(46, 160, 67, 0.4); }
+    .stat-badge.del { color: var(--danger-bright); border-color: rgba(218, 54, 51, 0.4); }
+    .stat-badge.budget { font-weight: bold; }
+
+    .diff-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+    .diff-sidebar {
+      width: 280px;
+      border-right: 1px solid var(--border);
+      background-color: var(--surface);
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .diff-file-item {
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: var(--surface-elevated);
+      border: 1px solid transparent;
+      transition: all 0.15s;
+    }
+    .diff-file-item:hover {
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .diff-content-area {
+      flex: 1;
+      overflow: auto;
+      background-color: #0b0e14;
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .diff-line {
+      white-space: pre-wrap;
+      word-break: break-all;
+      padding: 1px 6px;
+    }
+    .diff-line.header {
+      background-color: rgba(88, 166, 255, 0.15);
+      color: var(--accent);
+      font-weight: 700;
+      border-top: 1px solid var(--border);
+      margin-top: 12px;
+      padding: 6px 10px;
+      border-radius: 4px;
+    }
+    .diff-line.hunk {
+      background-color: rgba(188, 140, 255, 0.12);
+      color: var(--purple);
+      padding: 3px 6px;
+    }
+    .diff-line.add {
+      background-color: rgba(46, 160, 67, 0.18);
+      color: #7ee787;
+    }
+    .diff-line.del {
+      background-color: rgba(218, 54, 51, 0.18);
+      color: #ffa198;
+    }
+    .diff-line.context {
+      color: var(--text-muted);
+    }
+
+    /* Modal Dialogs */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+    }
+    .modal-backdrop.active { display: flex; }
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      max-height: 85vh;
+      overflow: hidden;
+      animation: modalIn 0.2s ease-out;
+    }
+    @keyframes modalIn {
+      from { transform: scale(0.96); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-bright);
+    }
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .modal-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      background: var(--bg);
+    }
+    .code-block {
+      background: #090d13;
+      border: 1px solid var(--border);
+      padding: 10px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      overflow-x: auto;
+      margin: 8px 0;
+      color: #79c0ff;
+    }
+
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 10000;
+    }
+    .toast {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-bright);
+      padding: 10px 16px;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: toastIn 0.25s ease-out;
+    }
+    .toast.success { border-color: var(--success); }
+    .toast.error { border-color: var(--danger); }
+    @keyframes toastIn {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Footer */
     footer {
       background-color: var(--surface);
       border-top: 1px solid var(--border);
@@ -414,9 +720,16 @@
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('grill')">💬 Socratic Grill</button>
       <button class="tab-btn" onclick="switchTab('cockpit')">🚀 Mission Cockpit</button>
+      <button class="tab-btn" onclick="switchTab('diff')">
+        🔍 Code & Diff <span class="tab-count-badge" id="diff-tab-badge">0 LOC</span>
+      </button>
     </div>
 
     <div class="meta-bar">
+      <span id="slice-budget-pill" class="budget-pill safe" title="Heurística ARQ-01: ~400 LOC por Slice">
+        Slice: <strong id="slice-loc-header">0</strong> / 400 LOC
+      </span>
+      <span>•</span>
       <span><span id="branch-dot" class="status-dot"></span> <strong id="git-branch">main</strong></span>
       <span>•</span>
       <span id="session-topic" style="color:#fff;">Topic: Inicial</span>
@@ -443,7 +756,7 @@
       <div class="grill-visual-col">
         <div class="visual-header">
           <span><strong>Prototipo / Diagrama Visual</strong> (<span id="visual-status">visual.html</span>)</span>
-          <button class="btn" onclick="document.getElementById('vis-iframe').src='/visual?' + Date.now()">Recargar Vista</button>
+          <button class="btn" onclick="reloadVisual()">Recargar Vista</button>
         </div>
         <iframe id="vis-iframe" class="visual-frame" src="/visual"></iframe>
       </div>
@@ -459,8 +772,8 @@
         <div class="phase-pill active">P04 Scope Freeze</div>
         <div class="phase-pill">P05 BDD Spec</div>
         <div class="phase-pill">P06 Design</div>
-        <div class="phase-pill">P07 Tasks TDD</div>
-        <div class="phase-pill">P08 Apply/Verify</div>
+        <div class="phase-pill">P07 Tasks Matrix</div>
+        <div class="phase-pill">P08 Wave Slices</div>
         <div class="phase-pill">P09 CAB-RP Audit</div>
         <div class="phase-pill">P10 Ops Bridge</div>
       </div>
@@ -475,7 +788,7 @@
 
       <!-- Kanban Tasks -->
       <div>
-        <h3 style="font-size: 14px; margin-bottom: 10px; color:#fff;">Matriz de Tareas TDD (Reproduction-First)</h3>
+        <h3 style="font-size: 14px; margin-bottom: 10px; color:#fff;">Matriz de Tareas TDD & Wave Execution</h3>
         <div class="kanban-board">
           <div class="kanban-col">
             <div class="col-header">
@@ -501,28 +814,85 @@
         </div>
       </div>
     </div>
+
+    <!-- TAB 3: CODE & DIFF INSPECTOR -->
+    <div id="tab-diff" class="tab-panel">
+      <div class="diff-toolbar">
+        <div class="diff-stats-group">
+          <span class="stat-badge"><strong id="diff-files-count">0</strong> archivos modificados</span>
+          <span class="stat-badge add">+<strong id="diff-additions">0</strong> líneas</span>
+          <span class="stat-badge del">-<strong id="diff-deletions">0</strong> líneas</span>
+          <span class="stat-badge budget" id="diff-budget-badge">Slice: 0 / 400 LOC</span>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn" onclick="loadDiff()">↻ Refrescar Diff</button>
+          <button class="btn btn-primary" onclick="switchTab('cockpit')">Ir a Aprobar Gate</button>
+        </div>
+      </div>
+
+      <div class="diff-body">
+        <div class="diff-sidebar" id="diff-file-list">
+          <!-- Populated by JS -->
+        </div>
+        <div class="diff-content-area" id="diff-content">
+          <div style="color:var(--text-muted); padding:30px; text-align:center;">Cargando diff...</div>
+        </div>
+      </div>
+    </div>
   </main>
 
+  <!-- Dark Modal Overlay -->
+  <div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span id="modal-title">Título del Modal</span>
+        <button class="btn" style="padding:2px 8px;" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <!-- Injected dynamically -->
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <button class="btn" onclick="closeModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
   <footer>
-    <span>q-cockpit v2.0 · Zero-Node Native Python Runtime</span>
+    <span>q-cockpit v2.4.0 · Zero-Node Native Python Runtime · Heurística ~400 LOC</span>
     <span id="last-sync">Sincronizando...</span>
   </footer>
 
   <script>
     let currentTab = 'grill';
     let stagedAnswers = {};
+    let currentTasks = [];
+    let currentDiffStats = null;
 
     function switchTab(tab) {
       currentTab = tab;
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      
       if (tab === 'grill') {
         document.querySelector('.tabs button:nth-child(1)').classList.add('active');
         document.getElementById('tab-grill').classList.add('active');
-      } else {
+      } else if (tab === 'cockpit') {
         document.querySelector('.tabs button:nth-child(2)').classList.add('active');
         document.getElementById('tab-cockpit').classList.add('active');
+      } else if (tab === 'diff') {
+        document.querySelector('.tabs button:nth-child(3)').classList.add('active');
+        document.getElementById('tab-diff').classList.add('active');
+        loadDiff();
       }
+    }
+
+    function reloadVisual() {
+      const iframe = document.getElementById('vis-iframe');
+      iframe.src = '/visual?' + Date.now();
+      showToast("Vista visual recargada", "info");
     }
 
     async function fetchStatus() {
@@ -540,6 +910,7 @@
       // Navbar & Meta
       document.getElementById('proj-title').textContent = data.project.name;
       document.getElementById('git-branch').textContent = data.project.git.branch;
+      
       const dot = document.getElementById('branch-dot');
       if (data.project.git.clean) {
         dot.className = 'status-dot';
@@ -549,6 +920,10 @@
       document.getElementById('session-topic').textContent = `Topic: ${data.session.topic || 'General'}`;
       document.getElementById('last-sync').textContent = `Última sincronización: ${new Date().toLocaleTimeString()}`;
 
+      // Slice Budget update
+      const sliceLoc = data.project.git.slice_loc || 0;
+      updateSliceBudget(sliceLoc);
+
       // Tab 1: Grill Questions
       renderQuestions(data.session.questions || []);
 
@@ -556,7 +931,26 @@
       renderGates(data.session.gates || {});
 
       // Tab 2: Kanban Tasks
-      renderKanban(data.tasks || []);
+      currentTasks = data.tasks || [];
+      renderKanban(currentTasks);
+    }
+
+    function updateSliceBudget(loc) {
+      const pill = document.getElementById('slice-budget-pill');
+      document.getElementById('slice-loc-header').textContent = loc;
+      document.getElementById('diff-tab-badge').textContent = `${loc} LOC`;
+
+      pill.className = 'budget-pill';
+      if (loc <= 350) {
+        pill.classList.add('safe');
+        pill.title = `Slice Saludable (${loc}/400 LOC) — Dentro de la heurística ARQ-01`;
+      } else if (loc <= 450) {
+        pill.classList.add('warning');
+        pill.title = `Atención: Slice aproximándose al límite de 400 LOC (${loc}/400 LOC)`;
+      } else {
+        pill.classList.add('danger');
+        pill.title = `Alerta: Slice Monolítico (${loc} LOC > 400). Recomendado cerrar slice o fragmentar en chained PR.`;
+      }
     }
 
     function renderQuestions(questions) {
@@ -573,13 +967,13 @@
           <div class="card ${isAnswered ? 'answered' : ''}">
             <div class="card-title">
               <span>#${idx + 1} · ${q.title || 'Requisito'}</span>
-              <span style="font-size:11px; color:${isAnswered ? '#3fb950' : 'var(--warning)'};">
+              <span style="font-size:11px; color:${isAnswered ? 'var(--success-bright)' : 'var(--warning)'}; font-weight:600;">
                 ${isAnswered ? '✓ Respondida' : 'Pendiente'}
               </span>
             </div>
             <div class="card-question">${escapeHtml(q.question)}</div>
             ${q.recommendation ? `<div class="card-recommendation"><strong>💡 Sugerencia:</strong> ${escapeHtml(q.recommendation)}</div>` : ''}
-            <textarea placeholder="Tu decisión o aclaración..." oninput="stageAnswer('${q.id}', this.value)">${escapeHtml(savedAnswer)}</textarea>
+            <textarea placeholder="Tu decisión o aclaración técnica..." oninput="stageAnswer('${q.id}', this.value)">${escapeHtml(savedAnswer)}</textarea>
           </div>
         `;
       }).join('');
@@ -591,7 +985,7 @@
 
     async function submitAllAnswers() {
       if (Object.keys(stagedAnswers).length === 0) {
-        alert("Escribí alguna respuesta antes de enviar.");
+        showToast("Escribe alguna respuesta antes de enviar.", "warning");
         return;
       }
       try {
@@ -603,10 +997,10 @@
         if (res.ok) {
           stagedAnswers = {};
           fetchStatus();
-          alert("¡Respuestas registradas exitosamente!");
+          showToast("¡Respuestas registradas exitosamente en la sesión!", "success");
         }
       } catch (err) {
-        alert("Error al enviar respuestas: " + err);
+        showToast("Error al enviar respuestas: " + err, "error");
       }
     }
 
@@ -624,34 +1018,60 @@
           <div class="gate-card">
             <div>
               <div class="gate-header">
-                <span>${key.replace('_', ' ').toUpperCase()}</span>
+                <span>${key.replace(/_/g, ' ').toUpperCase()}</span>
                 <span class="gate-status-pill ${statusClass}">${statusClass}</span>
               </div>
               <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">
-                ${g.notes || 'Revisión formal de arquitectura requerida.'}
+                ${escapeHtml(g.notes || 'Revisión formal de arquitectura requerida.')}
               </p>
             </div>
             <div style="display:flex; gap:8px;">
-              <button class="btn btn-primary" style="flex:1;" onclick="decideGate('${key}', 'approve')">Aprobar Gate</button>
-              <button class="btn btn-danger" style="flex:1;" onclick="decideGate('${key}', 'reject')">Rechazar</button>
+              <button class="btn btn-primary" style="flex:1;" onclick="openGateModal('${key}', 'approve')">Aprobar Gate</button>
+              <button class="btn btn-danger" style="flex:1;" onclick="openGateModal('${key}', 'reject')">Rechazar</button>
             </div>
           </div>
         `;
       }).join('');
     }
 
-    async function decideGate(gateKey, action) {
-      const notes = prompt(`Motivo o notas para ${action === 'approve' ? 'aprobar' : 'rechazar'} ${gateKey}:`, "");
-      if (notes === null) return;
+    function openGateModal(gateKey, action) {
+      const isApprove = action === 'approve';
+      const title = `${isApprove ? 'Aprobar' : 'Rechazar'} Quality Gate: ${gateKey}`;
+      const bodyHtml = `
+        <p style="margin-bottom:12px; color:var(--text);">
+          ${isApprove ? 'Confirma que has revisado los entregables del Gate y autorizas el avance de fase.' : 'Especifica el motivo del rechazo para que el agente aplique remediación.'}
+        </p>
+        <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Notas o Justificación de Decisión:</label>
+        <textarea id="gate-decision-notes" style="width:100%; height:80px; background:var(--bg); border:1px solid var(--border); color:#fff; border-radius:6px; padding:8px; font-family:var(--font-sans); font-size:13px;"></textarea>
+      `;
+
+      const footerHtml = `
+        <button class="btn" onclick="closeModal()">Cancelar</button>
+        <button class="btn ${isApprove ? 'btn-primary' : 'btn-danger'}" onclick="confirmGateDecision('${gateKey}', '${action}')">
+          ${isApprove ? '✓ Confirmar Aprobación' : '✕ Confirmar Rechazo'}
+        </button>
+      `;
+
+      showCustomModal(title, bodyHtml, footerHtml);
+    }
+
+    async function confirmGateDecision(gateKey, action) {
+      const notesEl = document.getElementById('gate-decision-notes');
+      const notes = notesEl ? notesEl.value.trim() : "";
+      closeModal();
+      
       try {
-        await fetch('/api/gate/action', {
+        const res = await fetch('/api/gate/action', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ gate: gateKey, action: action, notes: notes })
         });
-        fetchStatus();
+        if (res.ok) {
+          fetchStatus();
+          showToast(`Gate ${gateKey} ${action === 'approve' ? 'aprobado' : 'rechazado'} correctamente`, "success");
+        }
       } catch (err) {
-        alert("Error: " + err);
+        showToast("Error en gate action: " + err, "error");
       }
     }
 
@@ -666,17 +1086,41 @@
 
       let counts = { todo: 0, in_progress: 0, done: 0 };
 
-      tasks.forEach(t => {
+      tasks.forEach((t, index) => {
         const status = t.status || 'todo';
         if (counts[status] !== undefined) counts[status]++;
 
         const card = document.createElement('div');
         card.className = `task-card ${status}`;
+        card.onclick = () => openTaskDetailsModal(t);
+
         const waveHtml = t.wave ? `<div class="wave-badge">🌊 ${escapeHtml(t.wave)}</div>` : '';
+        const idHtml = t.task_id ? `<div class="task-id-badge">${escapeHtml(t.task_id)}</div>` : '';
+        
+        let evidenceHtml = '';
+        if (t.evidence && t.evidence.cmd) {
+          evidenceHtml = `
+            <div class="evidence-chip" title="Comando: ${escapeHtml(t.evidence.cmd)}">
+              <span>💻</span>
+              <span>exit ${escapeHtml(t.evidence.exit_code)}</span>
+              <span>· ${escapeHtml(t.evidence.cmd.slice(0, 24))}...</span>
+            </div>
+          `;
+        } else if (t.status === 'done') {
+          evidenceHtml = `<div class="evidence-chip"><span>✓</span><span>Verificado</span></div>`;
+        }
+
+        const commitHtml = t.commit ? `<div class="commit-chip">🔖 ${escapeHtml(t.commit)}</div>` : '';
+
         card.innerHTML = `
-          ${waveHtml}
-          <div>${escapeHtml(t.text)}</div>
-          <div class="task-meta">Fuente: ${escapeHtml(t.source || 'tasks.md')}</div>
+          <div class="card-tags">
+            ${waveHtml}
+            ${idHtml}
+            ${commitHtml}
+          </div>
+          <div style="font-weight:500;">${escapeHtml(t.text)}</div>
+          ${evidenceHtml}
+          <div class="task-meta">Fuente: ${escapeHtml(t.source || 'tasks.md')} · Clic para detalles</div>
         `;
 
         if (status === 'done') doneEl.appendChild(card);
@@ -689,10 +1133,179 @@
       document.getElementById('count-done').textContent = counts.done;
     }
 
+    function openTaskDetailsModal(task) {
+      const title = `Detalle de Tarea: ${task.task_id || 'Tarea'}`;
+      let evidenceBlock = '';
+      if (task.evidence) {
+        evidenceBlock = `
+          <div style="margin-top:14px; background:var(--surface-elevated); padding:12px; border-radius:6px; border:1px solid var(--border);">
+            <div style="font-size:12px; font-weight:600; color:var(--success-bright); margin-bottom:6px;">
+              🛡️ Evidencia en Terminal (P06 Gate):
+            </div>
+            <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;">Comando ejecutado:</div>
+            <div class="code-block">${escapeHtml(task.evidence.cmd)}</div>
+            <div style="display:flex; gap:12px; font-size:12px; margin-top:8px;">
+              <span>Código de Salida: <strong style="color:${task.evidence.exit_code === '0' ? 'var(--success-bright)' : 'var(--danger-bright)'}">${escapeHtml(task.evidence.exit_code)}</strong></span>
+              <span>Estado: <strong>${escapeHtml(task.evidence.status || 'VERIFICADO')}</strong></span>
+            </div>
+            ${task.evidence.output ? `
+              <div style="font-size:11px; color:var(--text-muted); margin-top:8px; margin-bottom:4px;">Salida observada:</div>
+              <div class="code-block" style="color:var(--text); max-height:120px; overflow-y:auto;">${escapeHtml(task.evidence.output)}</div>
+            ` : ''}
+          </div>
+        `;
+      } else {
+        evidenceBlock = `
+          <div style="margin-top:14px; background:var(--surface-elevated); padding:12px; border-radius:6px; border:1px solid var(--border); color:var(--text-muted); font-size:12px;">
+            ℹ️ Sin registro de comando en tabla Terminal Evidence aún.
+          </div>
+        `;
+      }
+
+      const bodyHtml = `
+        <div style="font-size:15px; font-weight:600; color:var(--text-bright); margin-bottom:12px;">
+          ${escapeHtml(task.text)}
+        </div>
+        <div style="display:flex; gap:10px; font-size:12px; margin-bottom:12px;">
+          <span>Estado: <strong style="text-transform:uppercase;">${escapeHtml(task.status)}</strong></span>
+          ${task.wave ? `<span>Oleada: <strong>${escapeHtml(task.wave)}</strong></span>` : ''}
+          ${task.commit ? `<span>Commit Atómico: <code>${escapeHtml(task.commit)}</code></span>` : ''}
+        </div>
+        <div style="font-size:12px; color:var(--text-muted);">
+          Archivo Origen: <code>${escapeHtml(task.source)}</code>
+        </div>
+        ${evidenceBlock}
+      `;
+
+      const footerHtml = `
+        <button class="btn btn-primary" onclick="closeModal()">Entendido</button>
+      `;
+
+      showCustomModal(title, bodyHtml, footerHtml);
+    }
+
+    async function loadDiff() {
+      const container = document.getElementById('diff-content');
+      const sidebar = document.getElementById('diff-file-list');
+      container.innerHTML = '<div style="color:var(--text-muted); padding:30px; text-align:center;">Analizando diff unificado de git...</div>';
+      
+      try {
+        const res = await fetch('/api/diff');
+        if (!res.ok) {
+          container.innerHTML = '<div style="color:var(--danger-bright); padding:20px;">Error al obtener diff</div>';
+          return;
+        }
+        const data = await res.json();
+        currentDiffStats = data.stats;
+        renderDiffView(data);
+      } catch (err) {
+        container.innerHTML = `<div style="color:var(--danger-bright); padding:20px;">Error de red: ${err}</div>`;
+      }
+    }
+
+    function renderDiffView(data) {
+      const stats = data.stats || { files_changed: 0, additions: 0, deletions: 0, total_loc: 0, files: [] };
+      document.getElementById('diff-files-count').textContent = stats.files_changed;
+      document.getElementById('diff-additions').textContent = stats.additions;
+      document.getElementById('diff-deletions').textContent = stats.deletions;
+      
+      const badge = document.getElementById('diff-budget-badge');
+      badge.textContent = `Slice: ${stats.total_loc} / 400 LOC`;
+      badge.className = 'stat-badge budget';
+      if (stats.total_loc <= 350) badge.classList.add('add');
+      else if (stats.total_loc <= 450) badge.style.color = 'var(--warning)';
+      else badge.classList.add('del');
+
+      // Render File Sidebar
+      const sidebar = document.getElementById('diff-file-list');
+      if (!stats.files || !stats.files.length) {
+        sidebar.innerHTML = '<div style="color:var(--text-muted); font-size:12px; padding:10px;">Árbol limpio (sin cambios pendientes)</div>';
+      } else {
+        sidebar.innerHTML = stats.files.map(f => `
+          <div class="diff-file-item" onclick="jumpToDiffFile('${escapeHtml(f.file)}')">
+            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px;" title="${escapeHtml(f.file)}">
+              ${escapeHtml(f.file.split('/').pop())}
+            </span>
+            <span style="font-size:10px;">
+              <span style="color:var(--success-bright);">+${f.add}</span>
+              <span style="color:var(--danger-bright);">-${f.del}</span>
+            </span>
+          </div>
+        `).join('');
+      }
+
+      // Render Highlighted Diff Lines
+      const container = document.getElementById('diff-content');
+      const rawDiff = data.diff || "";
+      if (!rawDiff.trim()) {
+        container.innerHTML = '<div style="color:var(--text-muted); padding:30px; text-align:center;">Working tree limpio. Sin cambios detectados frente a HEAD.</div>';
+        return;
+      }
+
+      const lines = rawDiff.split('\n');
+      const renderedLines = lines.map(line => {
+        let cls = 'context';
+        if (line.startsWith('diff --git')) cls = 'header';
+        else if (line.startsWith('+++') || line.startsWith('---')) cls = 'header';
+        else if (line.startsWith('@@')) cls = 'hunk';
+        else if (line.startsWith('+')) cls = 'add';
+        else if (line.startsWith('-')) cls = 'del';
+
+        return `<div class="diff-line ${cls}">${escapeHtml(line)}</div>`;
+      }).join('');
+
+      container.innerHTML = renderedLines;
+    }
+
+    function jumpToDiffFile(filename) {
+      const container = document.getElementById('diff-content');
+      const headers = container.querySelectorAll('.diff-line.header');
+      for (let h of headers) {
+        if (h.textContent.includes(filename)) {
+          h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          h.style.outline = '2px solid var(--accent)';
+          setTimeout(() => { h.style.outline = 'none'; }, 2000);
+          break;
+        }
+      }
+    }
+
+    // Modal Helpers
+    function showCustomModal(title, bodyHtml, footerHtml) {
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-body').innerHTML = bodyHtml;
+      document.getElementById('modal-footer').innerHTML = footerHtml;
+      document.getElementById('modal-backdrop').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('modal-backdrop').classList.remove('active');
+    }
+
+    // Toast Notifications
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      const icon = type === 'success' ? '✓' : (type === 'error' ? '✕' : 'ℹ');
+      toast.innerHTML = `<strong>${icon}</strong> <span>${escapeHtml(message)}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
     function escapeHtml(str) {
       if (!str) return '';
-      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
+
+    // Escape key closes modal
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
 
     // Auto-polling every 3 seconds
     fetchStatus();

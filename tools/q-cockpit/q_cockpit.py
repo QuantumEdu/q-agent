@@ -145,6 +145,22 @@ class ProjectScanner:
             s_res = subprocess.run(["git", "status", "--porcelain"], cwd=root, capture_output=True, text=True)
             info["clean"] = len(s_res.stdout.strip()) == 0
 
+            # Calculate slice LOC count (heurística ~400 LOC)
+            loc_res = subprocess.run(["git", "diff", "--numstat", "HEAD"], cwd=root, capture_output=True, text=True)
+            stat_out = loc_res.stdout if (loc_res.returncode == 0 and loc_res.stdout.strip()) else ""
+            if not stat_out.strip():
+                loc_res2 = subprocess.run(["git", "diff", "--numstat", "HEAD~1..HEAD"], cwd=root, capture_output=True, text=True)
+                if loc_res2.returncode == 0:
+                    stat_out = loc_res2.stdout
+            add_tot = 0
+            del_tot = 0
+            for line in stat_out.splitlines():
+                p = line.strip().split("\t")
+                if len(p) >= 3 and p[0].isdigit() and p[1].isdigit():
+                    add_tot += int(p[0])
+                    del_tot += int(p[1])
+            info["slice_loc"] = add_tot + del_tot
+
             l_res = subprocess.run(
                 ["git", "log", "-5", "--pretty=format:%h|%an|%ar|%s"],
                 cwd=root,
@@ -190,6 +206,23 @@ class ProjectScanner:
 
         if found_file:
             content = found_file.read_text(encoding="utf-8")
+            
+            # 1. Parse Terminal Evidence Table if present
+            # | Wave | Tarea ID | Comando Ejecutado en Terminal | Código de Salida (Exit Code) | Resultado Observado / Evidencia | Estado |
+            evidence_map = {}
+            for line in content.splitlines():
+                if "|" in line:
+                    parts = [p.strip() for p in line.split("|")]
+                    if len(parts) >= 6:
+                        t_id = parts[2].replace("`", "").strip().upper()
+                        if t_id and (t_id.startswith("TASK-") or t_id.startswith("T-")):
+                            evidence_map[t_id] = {
+                                "cmd": parts[3].replace("`", "").strip(),
+                                "exit_code": parts[4].replace("`", "").strip(),
+                                "output": parts[5].strip(),
+                                "status": parts[6].strip() if len(parts) > 6 else ""
+                            }
+
             for line in content.splitlines():
                 line_s = line.strip()
                 match = re.match(r"^-\s*\[([ xX~])\]\s*(.+)$", line_s)
@@ -205,9 +238,28 @@ class ProjectScanner:
                         raw_wave = wave_match.group(1) or wave_match.group(2)
                         wave = raw_wave.strip().replace("W", "Wave ").replace("Wave  ", "Wave ").title()
 
+                    # Extract task ID (e.g. TASK-01)
+                    task_id = None
+                    id_match = re.search(r"\b(TASK-\d+|T-\d+)\b", text, re.IGNORECASE)
+                    if id_match:
+                        task_id = id_match.group(1).upper()
+
+                    # Extract commit hash if present
+                    commit = None
+                    commit_match = re.search(r"\(Commit:\s*([a-f0-9]+)\)", text, re.IGNORECASE)
+                    if commit_match:
+                        commit = commit_match.group(1)
+
                     task_entry = {"text": text, "status": status, "source": found_file.name}
                     if wave:
                         task_entry["wave"] = wave
+                    if task_id:
+                        task_entry["task_id"] = task_id
+                        if task_id in evidence_map:
+                            task_entry["evidence"] = evidence_map[task_id]
+                    if commit:
+                        task_entry["commit"] = commit
+
                     tasks.append(task_entry)
 
         # Provide defaults if none found
@@ -389,12 +441,47 @@ class CockpitHTTPHandler(http.server.BaseHTTPRequestHandler):
 
     def serve_api_diff(self) -> None:
         diff_text = ""
+        additions = 0
+        deletions = 0
+        files_list = []
         try:
             res = subprocess.run(["git", "diff", "HEAD"], cwd=self.project_root, capture_output=True, text=True)
-            diff_text = res.stdout
+            diff_text = res.stdout if res.returncode == 0 else ""
+            if not diff_text.strip():
+                # If working tree is clean, show diff of latest commit
+                res2 = subprocess.run(["git", "diff", "HEAD~1..HEAD"], cwd=self.project_root, capture_output=True, text=True)
+                if res2.returncode == 0 and res2.stdout.strip():
+                    diff_text = res2.stdout
+
+            # Parse numstat
+            n_res = subprocess.run(["git", "diff", "--numstat", "HEAD"], cwd=self.project_root, capture_output=True, text=True)
+            stat_out = n_res.stdout if (n_res.returncode == 0 and n_res.stdout.strip()) else ""
+            if not stat_out.strip():
+                n_res2 = subprocess.run(["git", "diff", "--numstat", "HEAD~1..HEAD"], cwd=self.project_root, capture_output=True, text=True)
+                if n_res2.returncode == 0:
+                    stat_out = n_res2.stdout
+
+            for line in stat_out.splitlines():
+                parts = line.strip().split("\t")
+                if len(parts) >= 3:
+                    a = int(parts[0]) if parts[0].isdigit() else 0
+                    d = int(parts[1]) if parts[1].isdigit() else 0
+                    additions += a
+                    deletions += d
+                    files_list.append({"file": parts[2], "add": a, "del": d})
         except Exception as e:
             diff_text = f"Error capturing diff: {e}"
-        self.send_json({"diff": diff_text})
+
+        self.send_json({
+            "diff": diff_text,
+            "stats": {
+                "files_changed": len(files_list),
+                "additions": additions,
+                "deletions": deletions,
+                "total_loc": additions + deletions,
+                "files": files_list,
+            }
+        })
 
     def serve_api_file(self, query: Dict[str, List[str]]) -> None:
         rel_path = query.get("path", [""])[0]
