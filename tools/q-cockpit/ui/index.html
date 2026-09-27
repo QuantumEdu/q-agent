@@ -127,6 +127,36 @@
     }
     .status-dot.dirty { background-color: var(--warning); }
 
+    /* Language Selector */
+    .lang-selector {
+      display: inline-flex;
+      background-color: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .lang-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      padding: 2px 7px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      line-height: 1.3;
+    }
+    .lang-btn:hover {
+      color: var(--text-bright);
+    }
+    .lang-btn.active {
+      background-color: var(--accent);
+      color: #fff;
+    }
+
     /* Slice Budget Indicator */
     .budget-pill {
       font-size: 11px;
@@ -945,13 +975,13 @@
     </div>
 
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('grill')">💬 Socratic Grill</button>
-      <button class="tab-btn" onclick="switchTab('cockpit')">🚀 Mission Cockpit</button>
-      <button class="tab-btn" onclick="switchTab('artifacts')">
-        📁 Artefactos <span class="tab-count-badge" id="artifacts-tab-badge">0</span>
+      <button id="tab-btn-grill" class="tab-btn active" onclick="switchTab('grill')">💬 Socratic Grill</button>
+      <button id="tab-btn-cockpit" class="tab-btn" onclick="switchTab('cockpit')">🚀 Mission Cockpit</button>
+      <button id="tab-btn-artifacts" class="tab-btn" onclick="switchTab('artifacts')">
+        📁 <span id="tab-label-artifacts">Artefactos</span> <span class="tab-count-badge" id="artifacts-tab-badge">0</span>
       </button>
-      <button class="tab-btn" onclick="switchTab('diff')">
-        🔍 Code & Diff <span class="tab-count-badge" id="diff-tab-badge">0 LOC</span>
+      <button id="tab-btn-diff" class="tab-btn" onclick="switchTab('diff')">
+        🔍 <span id="tab-label-diff">Code & Diff</span> <span class="tab-count-badge" id="diff-tab-badge">0 LOC</span>
       </button>
     </div>
 
@@ -963,7 +993,12 @@
       <span><span id="branch-dot" class="status-dot"></span> <strong id="git-branch">main</strong></span>
       <span id="git-commit-badge" class="commit-chip" style="margin-left: 2px;">🔖 ...</span>
       <span>•</span>
-      <span id="session-topic" style="color:#fff;">Topic: Inicial</span>
+      <span id="session-topic" style="color:#fff;">Tema: Inicial</span>
+      <span>•</span>
+      <div class="lang-selector">
+        <button id="lang-btn-es" class="lang-btn active" onclick="setLanguage('es')">ES</button>
+        <button id="lang-btn-en" class="lang-btn" onclick="setLanguage('en')">EN</button>
+      </div>
     </div>
   </header>
 
@@ -972,10 +1007,10 @@
     <div id="tab-grill" class="tab-panel active">
       <div class="grill-questions-col">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-          <h2 style="font-size: 16px; color:#fff;">Elicitación y Clarificación de Requisitos</h2>
-          <button class="btn btn-primary" onclick="submitAllAnswers()">Enviar Respuestas</button>
+          <h2 style="font-size: 16px; color:#fff;" id="grill-title">Elicitación y Clarificación de Requisitos</h2>
+          <button class="btn btn-primary" id="btn-submit-answers" onclick="submitAllAnswers()">Enviar Respuestas</button>
         </div>
-        <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;" id="grill-subtitle">
           Respondé las preguntas críticas de alcance y arquitectura para congelar el alcance antes de la implementación.
         </p>
 
@@ -986,8 +1021,8 @@
 
       <div class="grill-visual-col">
         <div class="visual-header">
-          <span><strong>Prototipo / Diagrama Visual</strong> (<span id="visual-status">visual.html</span>)</span>
-          <button class="btn" onclick="reloadVisual()">Recargar Vista</button>
+          <span><strong id="visual-header-title">Prototipo / Diagrama Visual</strong> (<span id="visual-status">visual.html</span>)</span>
+          <button class="btn" id="btn-reload-visual" onclick="reloadVisual()">Recargar Vista</button>
         </div>
         <iframe id="vis-iframe" class="visual-frame" src="/visual"></iframe>
       </div>
@@ -997,7 +1032,7 @@
     <div id="tab-cockpit" class="tab-panel">
       <!-- Phases Progress -->
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <span style="font-size:12px; color:var(--text-muted); font-weight:600;">FLUJO DEL PIPELINE Q-AGENT</span>
+        <span id="pipeline-flow-header" style="font-size:12px; color:var(--text-muted); font-weight:600;">FLUJO DEL PIPELINE Q-AGENT</span>
         <span id="phase-status-badge" class="badge-tag">⚪ Proyecto en Reposo</span>
       </div>
       <div class="phase-track" id="phase-track">
@@ -1006,7 +1041,7 @@
 
       <!-- Human in the loop Gates -->
       <div>
-        <h3 style="font-size: 14px; margin-bottom: 10px; color:#fff;">Semáforos de Aprobación Humana (Quality Gates)</h3>
+        <h3 id="gates-title" style="font-size: 14px; margin-bottom: 10px; color:#fff;">Semáforos de Aprobación Humana (Quality Gates)</h3>
         <div class="gates-container" id="gates-list">
           <!-- Rendered by JS -->
         </div>
@@ -1015,7 +1050,7 @@
       <!-- Kanban Tasks & Idle Container -->
       <div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <h3 style="font-size: 14px; color:#fff;">Matriz de Tareas TDD & Wave Execution</h3>
+          <h3 id="kanban-title" style="font-size: 14px; color:#fff;">Matriz de Tareas TDD & Wave Execution</h3>
           <span id="kanban-source-badge" style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono);"></span>
         </div>
 
@@ -1026,21 +1061,21 @@
         <div class="kanban-board" id="kanban-active-board">
           <div class="kanban-col">
             <div class="col-header">
-              <span>📋 Por Hacer (Backlog)</span>
+              <span id="col-title-todo">📋 Por Hacer (Backlog)</span>
               <span class="col-count" id="count-todo">0</span>
             </div>
             <div class="col-cards" id="col-todo"></div>
           </div>
           <div class="kanban-col">
             <div class="col-header">
-              <span>⚡ En Ejecución (TDD Red/Green)</span>
+              <span id="col-title-in_progress">⚡ En Ejecución (TDD Red/Green)</span>
               <span class="col-count" id="count-in_progress">0</span>
             </div>
             <div class="col-cards" id="col-in_progress"></div>
           </div>
           <div class="kanban-col">
             <div class="col-header">
-              <span>✅ Completadas & Verificadas</span>
+              <span id="col-title-done">✅ Completadas & Verificadas</span>
               <span class="col-count" id="count-done">0</span>
             </div>
             <div class="col-cards" id="col-done"></div>
@@ -1051,8 +1086,8 @@
       <!-- Real Artifacts Quick Panel in Mission Cockpit -->
       <div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <h3 style="font-size: 14px; color:#fff;">Artefactos Clave del Proyecto</h3>
-          <button class="btn" onclick="switchTab('artifacts')">Ver todos los artefactos →</button>
+          <h3 id="cockpit-artifacts-title" style="font-size: 14px; color:#fff;">Artefactos Clave del Proyecto</h3>
+          <button id="cockpit-artifacts-btn" class="btn" onclick="switchTab('artifacts')">Ver todos los artefactos →</button>
         </div>
         <div class="artifacts-quick-grid" id="cockpit-artifacts-quick">
           <!-- Rendered by JS -->
@@ -1064,14 +1099,14 @@
     <div id="tab-diff" class="tab-panel">
       <div class="diff-toolbar">
         <div class="diff-stats-group">
-          <span class="stat-badge"><strong id="diff-files-count">0</strong> archivos modificados</span>
-          <span class="stat-badge add">+<strong id="diff-additions">0</strong> líneas</span>
-          <span class="stat-badge del">-<strong id="diff-deletions">0</strong> líneas</span>
+          <span class="stat-badge"><strong id="diff-files-count">0</strong> <span id="diff-label-files">archivos modificados</span></span>
+          <span class="stat-badge add">+<strong id="diff-additions">0</strong> <span id="diff-label-additions">líneas</span></span>
+          <span class="stat-badge del">-<strong id="diff-deletions">0</strong> <span id="diff-label-deletions">líneas</span></span>
           <span class="stat-badge budget" id="diff-budget-badge">Slice: 0 / 400 LOC</span>
         </div>
         <div style="display:flex; gap:8px;">
-          <button class="btn" onclick="loadDiff()">↻ Refrescar Diff</button>
-          <button class="btn btn-primary" onclick="switchTab('cockpit')">Ir a Aprobar Gate</button>
+          <button id="diff-btn-refresh" class="btn" onclick="loadDiff()">↻ Refrescar Diff</button>
+          <button id="diff-btn-gate" class="btn btn-primary" onclick="switchTab('cockpit')">Ir a Aprobar Gate</button>
         </div>
       </div>
 
@@ -1090,11 +1125,17 @@
       <div class="artifacts-sidebar">
         <div class="artifacts-header">
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="font-size: 14px; color:#fff;">Artefactos Detectados</h3>
+            <h3 id="artifacts-title" style="font-size: 14px; color:#fff;">Artefactos del Proyecto</h3>
             <span class="tab-count-badge" id="artifacts-total-count">0</span>
           </div>
-          <input type="text" id="artifacts-filter" placeholder="Filtrar artefactos..." oninput="filterArtifacts(this.value)"
-                 style="background:var(--bg); border:1px solid var(--border); color:#fff; padding:6px 10px; border-radius:6px; font-size:12px;" />
+          <p id="artifacts-subtitle" style="font-size:11px; color:var(--text-muted); line-height:1.4;">
+            Documentos de arquitectura, bitácoras ODD y reportes de auditoría detectados en el repositorio.
+          </p>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <input type="text" id="artifacts-filter" placeholder="Filtrar artefactos..." oninput="filterArtifacts(this.value)"
+                   style="flex:1; background:var(--bg); border:1px solid var(--border); color:#fff; padding:6px 10px; border-radius:6px; font-size:12px;" />
+            <button class="btn" id="btn-filter-all" style="font-size:11px; padding:6px 10px;" onclick="resetArtifactFilter()">Todos</button>
+          </div>
         </div>
         <div class="artifacts-list" id="artifacts-list-container">
           <!-- Rendered by JS -->
@@ -1111,8 +1152,8 @@
           </button>
         </div>
         <div class="artifact-preview-content" id="artifact-preview-content">
-          <div style="color:var(--text-muted); padding:40px; text-align:center;">
-            Selecciona cualquier artefacto de la lista izquierda para previsualizarlo en vivo.
+          <div id="preview-empty-text" style="color:var(--text-muted); padding:40px; text-align:center;">
+            Selecciona un artefacto a la izquierda para previsualizar su contenido.
           </div>
         </div>
       </div>
@@ -1130,7 +1171,7 @@
         <!-- Injected dynamically -->
       </div>
       <div class="modal-footer" id="modal-footer">
-        <button class="btn" onclick="closeModal()">Cerrar</button>
+        <button id="modal-default-close-btn" class="btn" onclick="closeModal()">Cerrar</button>
       </div>
     </div>
   </div>
@@ -1139,17 +1180,433 @@
   <div class="toast-container" id="toast-container"></div>
 
   <footer>
-    <span>q-cockpit v2.5.1 · Zero-Node Native Python Runtime · Heurística ~400 LOC</span>
+    <span id="footer-info">q-cockpit v2.5.1 · Zero-Node Native Python Runtime · Heurística ~400 LOC</span>
     <span id="last-sync">Sincronizando...</span>
   </footer>
 
   <script>
+    const I18N = {
+      es: {
+        // Tabs
+        tab_grill: "💬 Socratic Grill",
+        tab_cockpit: "🚀 Mission Cockpit",
+        tab_artifacts: "Artefactos",
+        tab_diff: "Code & Diff",
+
+        // Header & Meta
+        proj_loading: "Cargando proyecto...",
+        status_idle: "⚪ EN REPOSO (IDLE)",
+        status_active: "🟢 ACTIVO",
+        slice_header: "Slice: {0} / 400 LOC",
+        topic_prefix: "Tema:",
+        topic_label: "Tema: {0}",
+        slice_safe_title: "Slice Saludable ({0}/400 LOC) — Dentro de la heurística ARQ-01",
+        slice_warning_title: "Atención: Slice aproximándose al límite de 400 LOC ({0}/400 LOC)",
+        slice_danger_title: "Alerta: Slice Monolítico ({0} LOC > 400). Recomendado cerrar slice o fragmentar en chained PR.",
+
+        // Socratic Grill
+        grill_title: "Elicitación y Clarificación de Requisitos",
+        grill_subtitle: "Respondé las preguntas críticas de alcance y arquitectura para congelar el alcance antes de la implementación.",
+        grill_submit_btn: "Enviar Respuestas",
+        visual_header_title: "Prototipo / Diagrama Visual",
+        visual_reload_btn: "Recargar Vista",
+        questions_empty: "No hay preguntas activas en esta sesión.",
+        question_answered: "✓ Respondida",
+        question_pending: "Pendiente",
+        question_req_default: "Requisito",
+        question_suggestion: "💡 Sugerencia:",
+        question_placeholder: "Tu decisión o aclaración técnica...",
+        toast_empty_answers: "Escribe alguna respuesta antes de enviar.",
+        toast_answers_saved: "¡Respuestas registradas exitosamente en la sesión!",
+        toast_answers_error: "Error al enviar respuestas: ",
+        toast_visual_reloaded: "Vista visual recargada",
+
+        // Pipeline
+        pipeline_header: "FLUJO DEL PIPELINE Q-AGENT",
+        pipeline_idle_badge: "⚪ Proyecto en Reposo",
+        pipeline_running_badge: "🟢 En Ejecución: {0}",
+        pipeline_idle_pill_title: "{0} (En reposo)",
+
+        // Quality Gates
+        gates_title: "Semáforos de Aprobación Humana (Quality Gates)",
+        gates_empty: "Sin gates declarados.",
+        gate_btn_approve: "Aprobar Gate",
+        gate_btn_reject: "Rechazar",
+        gate_default_notes: "Revisión formal de arquitectura requerida.",
+        gate_modal_title_approve: "Aprobar Quality Gate: {0}",
+        gate_modal_title_reject: "Rechazar Quality Gate: {0}",
+        gate_modal_body_approve: "Confirma que has revisado los entregables del Gate y autorizas el avance de fase.",
+        gate_modal_body_reject: "Especifica el motivo del rechazo para que el agente aplique remediación.",
+        gate_modal_notes_label: "Notas o Justificación de Decisión:",
+        gate_modal_confirm_approve: "✓ Confirmar Aprobación",
+        gate_modal_confirm_reject: "✕ Confirmar Rechazo",
+        gate_toast_approved: "Gate {0} aprobado correctamente",
+        gate_toast_rejected: "Gate {0} rechazado correctamente",
+        gate_toast_error: "Error en gate action: ",
+
+        // Kanban Board
+        kanban_title: "Matriz de Tareas TDD & Wave Execution",
+        col_todo: "📋 Por Hacer (Backlog)",
+        col_in_progress: "⚡ En Ejecución (TDD Red/Green)",
+        col_done: "✅ Completadas & Verificadas",
+        kanban_no_tasks: "Sin tareas activas",
+        kanban_tasks_loaded: "{0} tarea(s) cargada(s)",
+        task_source_label: "Fuente: {0} · Clic para detalles",
+        task_verified: "Verificado",
+        // Kanban Idle Card
+        idle_title: "Proyecto en Reposo (Idle State)",
+        idle_notice: "No hay tareas activas en este proyecto (sin bitácoras en odd/tasks/ ni tasks.md)",
+        idle_commits_title: "Últimos Commits Realizados en Git:",
+        idle_commits_empty: "Sin historial de commits reciente.",
+        idle_author: "Autor:",
+        idle_quick_title: "Acciones Rápidas",
+        idle_quick_p: "Inicia una nueva tarea creando una bitácora ODD o ejecutando el agente:",
+        idle_quick_hints: "El proyecto está en reposo. Para iniciar una oleada, ejecuta q-agent o define una tarea en odd/tasks/.",
+        idle_explore_btn: "Explorar Artefactos del Proyecto →",
+        git_clean_status: "Árbol de trabajo limpio (sin cambios locales pendientes)",
+        git_dirty_status: "Cambios pendientes en el árbol de trabajo",
+
+        // Cockpit Quick Artifacts
+        cockpit_quick_title: "Artefactos Clave del Proyecto",
+        cockpit_quick_btn: "Ver todos los artefactos →",
+        cockpit_quick_empty: "No se detectaron artefactos.",
+
+        // Artifacts Tab
+        artifacts_title: "Artefactos del Proyecto",
+        artifacts_subtitle: "Documentos de arquitectura, bitácoras ODD y reportes de auditoría detectados en el repositorio.",
+        artifacts_filter_placeholder: "Filtrar artefactos...",
+        artifacts_filter_all: "Todos",
+        artifacts_files_suffix: "archivos",
+        artifacts_empty_list: "No se encontraron artefactos en este proyecto.",
+        preview_default_filename: "Selecciona un artefacto",
+        preview_btn_modal: "Ampliar en Modal ↗",
+        preview_empty: "Selecciona un artefacto a la izquierda para previsualizar su contenido.",
+        preview_meta_label: "Categoría: {0} · Tamaño: {1}",
+        preview_loading: "Cargando contenido desde /api/file...",
+        preview_error_http: "Error al cargar archivo (HTTP {0})",
+        preview_network_error: "Error de red: {0}",
+
+        // Diff Tab
+        diff_files_changed: "archivos modificados",
+        diff_lines_add: "líneas",
+        diff_lines_del: "líneas",
+        diff_refresh_btn: "↻ Refrescar Diff",
+        diff_gate_btn: "Ir a Aprobar Gate",
+        diff_loading: "Analizando diff unificado de git...",
+        diff_error: "Error al obtener diff",
+        diff_clean_tree: "Árbol limpio (sin cambios pendientes)",
+        diff_clean_content: "Working tree limpio. Sin cambios detectados frente a HEAD.",
+        diff_total_changes: "Total de cambios",
+        diff_additions: "Adiciones",
+        diff_deletions: "Eliminaciones",
+
+        // Modals & General
+        btn_close: "Cerrar",
+        btn_understood: "Entendido",
+        btn_cancel: "Cancelar",
+        task_modal_title: "Detalle de Tarea: {0}",
+        task_modal_status: "Estado:",
+        task_modal_wave: "Oleada:",
+        task_modal_commit: "Commit Atómico:",
+        task_modal_source: "Archivo Origen:",
+        evidence_block_title: "🛡️ Evidencia en Terminal (P06 Gate):",
+        evidence_cmd_executed: "Comando ejecutado:",
+        evidence_exit_code: "Código de Salida:",
+        evidence_status: "Estado:",
+        evidence_output_observed: "Salida observada:",
+        evidence_none: "ℹ️ Sin registro de comando en tabla Terminal Evidence aún.",
+        preview_modal_title: "Previsualización: {0}",
+        preview_location: "Ubicación:",
+        preview_chars: "caracteres",
+
+        // Footer
+        footer_info: "q-cockpit v2.5.1 · Zero-Node Native Python Runtime · Heurística ~400 LOC",
+        last_sync: "Última sincronización:"
+      },
+      en: {
+        // Tabs
+        tab_grill: "💬 Socratic Grill",
+        tab_cockpit: "🚀 Mission Cockpit",
+        tab_artifacts: "Artifacts",
+        tab_diff: "Code & Diff",
+
+        // Header & Meta
+        proj_loading: "Loading project...",
+        status_idle: "⚪ IDLE",
+        status_active: "🟢 ACTIVE",
+        slice_header: "Slice: {0} / 400 LOC",
+        topic_prefix: "Topic:",
+        topic_label: "Topic: {0}",
+        slice_safe_title: "Healthy Slice ({0}/400 LOC) — Within ARQ-01 heuristic",
+        slice_warning_title: "Warning: Slice approaching 400 LOC threshold ({0}/400 LOC)",
+        slice_danger_title: "Alert: Monolithic Slice ({0} LOC > 400). Recommended to close slice or split into chained PR.",
+
+        // Socratic Grill
+        grill_title: "Requirements Elicitation & Clarification",
+        grill_subtitle: "Answer critical scope and architectural questions to freeze scope prior to implementation.",
+        grill_submit_btn: "Submit Answers",
+        visual_header_title: "Visual Prototype / Diagram",
+        visual_reload_btn: "Reload View",
+        questions_empty: "No active questions in this session.",
+        question_answered: "✓ Answered",
+        question_pending: "Pending",
+        question_req_default: "Requirement",
+        question_suggestion: "💡 Suggestion:",
+        question_placeholder: "Your decision or technical clarification...",
+        toast_empty_answers: "Write an answer before submitting.",
+        toast_answers_saved: "Answers saved successfully to session!",
+        toast_answers_error: "Error submitting answers: ",
+        toast_visual_reloaded: "Visual view reloaded",
+
+        // Pipeline
+        pipeline_header: "Q-AGENT PIPELINE FLOW",
+        pipeline_idle_badge: "⚪ Project Idle",
+        pipeline_running_badge: "🟢 Running: {0}",
+        pipeline_idle_pill_title: "{0} (Idle)",
+
+        // Quality Gates
+        gates_title: "Human Approval Gates (Quality Gates)",
+        gates_empty: "No gates declared.",
+        gate_btn_approve: "Approve Gate",
+        gate_btn_reject: "Reject",
+        gate_default_notes: "Formal architecture review required.",
+        gate_modal_title_approve: "Approve Quality Gate: {0}",
+        gate_modal_title_reject: "Reject Quality Gate: {0}",
+        gate_modal_body_approve: "Confirm you have reviewed the Gate deliverables and authorize phase advancement.",
+        gate_modal_body_reject: "Specify the rejection reason so the agent can apply remediation.",
+        gate_modal_notes_label: "Decision Notes or Justification:",
+        gate_modal_confirm_approve: "✓ Confirm Approval",
+        gate_modal_confirm_reject: "✕ Confirm Rejection",
+        gate_toast_approved: "Gate {0} approved successfully",
+        gate_toast_rejected: "Gate {0} rejected successfully",
+        gate_toast_error: "Error in gate action: ",
+
+        // Kanban Board
+        kanban_title: "TDD & Wave Execution Task Matrix",
+        col_todo: "📋 Backlog (To Do)",
+        col_in_progress: "⚡ In Progress (TDD Red/Green)",
+        col_done: "✅ Completed & Verified",
+        kanban_no_tasks: "No active tasks",
+        kanban_tasks_loaded: "{0} task(s) loaded",
+        task_source_label: "Source: {0} · Click for details",
+        task_verified: "Verified",
+        // Kanban Idle Card
+        idle_title: "Project Idle (Idle State)",
+        idle_notice: "No active tasks in this project (no logs in odd/tasks/ or tasks.md)",
+        idle_commits_title: "Recent Git Commits:",
+        idle_commits_empty: "No recent commit history.",
+        idle_author: "Author:",
+        idle_quick_title: "Quick Actions",
+        idle_quick_p: "Start a new task by creating an ODD log or running the agent:",
+        idle_quick_hints: "Project is idle. To start a wave, run q-agent or define a task in odd/tasks/.",
+        idle_explore_btn: "Explore Project Artifacts →",
+        git_clean_status: "Working tree clean (no pending local changes)",
+        git_dirty_status: "Pending changes in working tree",
+
+        // Cockpit Quick Artifacts
+        cockpit_quick_title: "Key Project Artifacts",
+        cockpit_quick_btn: "View all artifacts →",
+        cockpit_quick_empty: "No artifacts detected.",
+
+        // Artifacts Tab
+        artifacts_title: "Project Artifacts",
+        artifacts_subtitle: "Architecture documents, ODD logs, and audit reports discovered in the repository.",
+        artifacts_filter_placeholder: "Filter artifacts...",
+        artifacts_filter_all: "All",
+        artifacts_files_suffix: "files",
+        artifacts_empty_list: "No artifacts found in this project.",
+        preview_default_filename: "Select an artifact",
+        preview_btn_modal: "Expand in Modal ↗",
+        preview_empty: "Select an artifact on the left to preview its content.",
+        preview_meta_label: "Category: {0} · Size: {1}",
+        preview_loading: "Loading content from /api/file...",
+        preview_error_http: "Error loading file (HTTP {0})",
+        preview_network_error: "Network error: {0}",
+
+        // Diff Tab
+        diff_files_changed: "files changed",
+        diff_lines_add: "lines",
+        diff_lines_del: "lines",
+        diff_refresh_btn: "↻ Refresh Diff",
+        diff_gate_btn: "Go to Gate Approval",
+        diff_loading: "Analyzing unified git diff...",
+        diff_error: "Error getting diff",
+        diff_clean_tree: "Clean tree (no pending changes)",
+        diff_clean_content: "Clean working tree. No changes detected against HEAD.",
+        diff_total_changes: "Total changes",
+        diff_additions: "Additions",
+        diff_deletions: "Deletions",
+
+        // Modals & General
+        btn_close: "Close",
+        btn_understood: "Understood",
+        btn_cancel: "Cancel",
+        task_modal_title: "Task Details: {0}",
+        task_modal_status: "Status:",
+        task_modal_wave: "Wave:",
+        task_modal_commit: "Atomic Commit:",
+        task_modal_source: "Source File:",
+        evidence_block_title: "🛡️ Terminal Evidence (P06 Gate):",
+        evidence_cmd_executed: "Command executed:",
+        evidence_exit_code: "Exit Code:",
+        evidence_status: "Status:",
+        evidence_output_observed: "Observed output:",
+        evidence_none: "ℹ️ No command record in Terminal Evidence table yet.",
+        preview_modal_title: "Preview: {0}",
+        preview_location: "Location:",
+        preview_chars: "characters",
+
+        // Footer
+        footer_info: "q-cockpit v2.5.1 · Zero-Node Native Python Runtime · Heuristic ~400 LOC",
+        last_sync: "Last sync:"
+      }
+    };
+
+    let currentLang = 'es';
+    try {
+      currentLang = localStorage.getItem('q_cockpit_lang') || 'es';
+      if (currentLang !== 'es' && currentLang !== 'en') currentLang = 'es';
+    } catch (e) {
+      currentLang = 'es';
+    }
+
+    function t(key, ...args) {
+      const dict = I18N[currentLang] || I18N.es;
+      let val = dict[key] !== undefined ? dict[key] : (I18N.es[key] || key);
+      if (args.length > 0) {
+        args.forEach((arg, i) => {
+          val = val.replace(new RegExp(`\\{${i}\\}`, 'g'), arg);
+        });
+      }
+      return val;
+    }
+
     let currentTab = 'grill';
     let stagedAnswers = {};
     let currentTasks = [];
     let currentArtifacts = [];
     let currentDiffStats = null;
+    let currentDiffData = null;
     let selectedArtifact = null;
+    let lastDashboardData = null;
+    let lastSliceLoc = 0;
+    let lastTopic = 'Inicial';
+    let lastSyncTime = '';
+
+    function setLanguage(lang) {
+      if (lang !== 'es' && lang !== 'en') lang = 'es';
+      currentLang = lang;
+      try {
+        localStorage.setItem('q_cockpit_lang', lang);
+      } catch (e) {
+        console.warn('localStorage not accessible:', e);
+      }
+      document.documentElement.lang = lang;
+
+      const btnEs = document.getElementById('lang-btn-es');
+      const btnEn = document.getElementById('lang-btn-en');
+      if (btnEs) btnEs.classList.toggle('active', lang === 'es');
+      if (btnEn) btnEn.classList.toggle('active', lang === 'en');
+
+      applyStaticTranslations();
+
+      if (lastDashboardData) {
+        renderDashboard(lastDashboardData);
+      }
+      if (currentDiffData) {
+        renderDiffView(currentDiffData);
+      }
+    }
+
+    function applyStaticTranslations() {
+      const tabGrill = document.getElementById('tab-btn-grill');
+      if (tabGrill) tabGrill.textContent = t('tab_grill');
+      const tabCockpit = document.getElementById('tab-btn-cockpit');
+      if (tabCockpit) tabCockpit.textContent = t('tab_cockpit');
+      const tabArtifactsLabel = document.getElementById('tab-label-artifacts');
+      if (tabArtifactsLabel) tabArtifactsLabel.textContent = t('tab_artifacts');
+      const tabDiffLabel = document.getElementById('tab-label-diff');
+      if (tabDiffLabel) tabDiffLabel.textContent = t('tab_diff');
+
+      const elGrill = document.getElementById('grill-title');
+      if (elGrill) elGrill.textContent = t('grill_title');
+      const elGrillSub = document.getElementById('grill-subtitle');
+      if (elGrillSub) elGrillSub.textContent = t('grill_subtitle');
+      const btnSubmit = document.getElementById('btn-submit-answers');
+      if (btnSubmit) btnSubmit.textContent = t('grill_submit_btn');
+      const visTitle = document.getElementById('visual-header-title');
+      if (visTitle) visTitle.textContent = t('visual_header_title');
+      const btnReloadVis = document.getElementById('btn-reload-visual');
+      if (btnReloadVis) btnReloadVis.textContent = t('visual_reload_btn');
+
+      const pipeHeader = document.getElementById('pipeline-flow-header');
+      if (pipeHeader) pipeHeader.textContent = t('pipeline_header');
+      const gatesTitle = document.getElementById('gates-title');
+      if (gatesTitle) gatesTitle.textContent = t('gates_title');
+      const kanbanTitle = document.getElementById('kanban-title');
+      if (kanbanTitle) kanbanTitle.textContent = t('kanban_title');
+      const colTodo = document.getElementById('col-title-todo');
+      if (colTodo) colTodo.textContent = t('col_todo');
+      const colInProg = document.getElementById('col-title-in_progress');
+      if (colInProg) colInProg.textContent = t('col_in_progress');
+      const colDone = document.getElementById('col-title-done');
+      if (colDone) colDone.textContent = t('col_done');
+
+      const cockArtTitle = document.getElementById('cockpit-artifacts-title');
+      if (cockArtTitle) cockArtTitle.textContent = t('cockpit_quick_title');
+      const cockArtBtn = document.getElementById('cockpit-artifacts-btn');
+      if (cockArtBtn) cockArtBtn.textContent = t('cockpit_quick_btn');
+
+      const artTitle = document.getElementById('artifacts-title');
+      if (artTitle) artTitle.textContent = t('artifacts_title');
+      const artSub = document.getElementById('artifacts-subtitle');
+      if (artSub) artSub.textContent = t('artifacts_subtitle');
+      const artFilter = document.getElementById('artifacts-filter');
+      if (artFilter) artFilter.placeholder = t('artifacts_filter_placeholder');
+      const btnFilterAll = document.getElementById('btn-filter-all');
+      if (btnFilterAll) btnFilterAll.textContent = t('artifacts_filter_all');
+      const previewEmpty = document.getElementById('preview-empty-text');
+      if (previewEmpty) previewEmpty.textContent = t('preview_empty');
+      const btnModalPrev = document.getElementById('btn-modal-preview');
+      if (btnModalPrev) btnModalPrev.textContent = t('preview_btn_modal');
+
+      const diffLabelFiles = document.getElementById('diff-label-files');
+      if (diffLabelFiles) diffLabelFiles.textContent = t('diff_files_changed');
+      const diffLabelAdd = document.getElementById('diff-label-additions');
+      if (diffLabelAdd) diffLabelAdd.textContent = t('diff_lines_add');
+      const diffLabelDel = document.getElementById('diff-label-deletions');
+      if (diffLabelDel) diffLabelDel.textContent = t('diff_lines_del');
+      const diffBtnRefresh = document.getElementById('diff-btn-refresh');
+      if (diffBtnRefresh) diffBtnRefresh.textContent = t('diff_refresh_btn');
+      const diffBtnGate = document.getElementById('diff-btn-gate');
+      if (diffBtnGate) diffBtnGate.textContent = t('diff_gate_btn');
+
+      const modalClose = document.getElementById('modal-default-close-btn');
+      if (modalClose) modalClose.textContent = t('btn_close');
+      const footerInfo = document.getElementById('footer-info');
+      if (footerInfo) footerInfo.textContent = t('footer_info');
+
+      if (selectedArtifact) {
+        const prevMeta = document.getElementById('preview-meta');
+        if (prevMeta) {
+          prevMeta.textContent = t('preview_meta_label', selectedArtifact.category, formatBytes(selectedArtifact.size_bytes || 0));
+        }
+      } else {
+        const prevFilename = document.getElementById('preview-filename');
+        if (prevFilename) prevFilename.textContent = t('preview_default_filename');
+      }
+
+      if (lastDashboardData) {
+        const sessionTopic = document.getElementById('session-topic');
+        if (sessionTopic) {
+          sessionTopic.textContent = `${t('topic_prefix')} ${lastDashboardData.session.topic || 'General'}`;
+        }
+        const lastSyncEl = document.getElementById('last-sync');
+        if (lastSyncEl && lastSyncTime) {
+          lastSyncEl.textContent = `${t('last_sync')} ${lastSyncTime}`;
+        }
+      }
+    }
 
     function switchTab(tab) {
       currentTab = tab;
@@ -1157,16 +1614,20 @@
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
       
       if (tab === 'grill') {
-        document.querySelector('.tabs button:nth-child(1)').classList.add('active');
+        const btn = document.getElementById('tab-btn-grill');
+        if (btn) btn.classList.add('active');
         document.getElementById('tab-grill').classList.add('active');
       } else if (tab === 'cockpit') {
-        document.querySelector('.tabs button:nth-child(2)').classList.add('active');
+        const btn = document.getElementById('tab-btn-cockpit');
+        if (btn) btn.classList.add('active');
         document.getElementById('tab-cockpit').classList.add('active');
       } else if (tab === 'artifacts') {
-        document.querySelector('.tabs button:nth-child(3)').classList.add('active');
+        const btn = document.getElementById('tab-btn-artifacts');
+        if (btn) btn.classList.add('active');
         document.getElementById('tab-artifacts').classList.add('active');
       } else if (tab === 'diff') {
-        document.querySelector('.tabs button:nth-child(4)').classList.add('active');
+        const btn = document.getElementById('tab-btn-diff');
+        if (btn) btn.classList.add('active');
         document.getElementById('tab-diff').classList.add('active');
         loadDiff();
       }
@@ -1193,13 +1654,13 @@
       const isIdle = project.status === 'idle' || !activePhase;
 
       if (isIdle) {
-        badge.textContent = '⚪ Proyecto en Reposo';
+        badge.textContent = t('pipeline_idle_badge');
         badge.className = 'badge-tag';
         track.innerHTML = PIPELINE_PHASES.map(p => `
-          <div class="phase-pill" title="${p.label} (En reposo)">${p.label}</div>
+          <div class="phase-pill" title="${t('pipeline_idle_pill_title', p.label)}">${p.label}</div>
         `).join('');
       } else {
-        badge.textContent = `🟢 En Ejecución: ${activePhase}`;
+        badge.textContent = t('pipeline_running_badge', activePhase);
         badge.className = 'badge-tag';
         badge.style.color = 'var(--accent)';
         
@@ -1220,7 +1681,7 @@
     function reloadVisual() {
       const iframe = document.getElementById('vis-iframe');
       iframe.src = '/visual?' + Date.now();
-      showToast("Vista visual recargada", "info");
+      showToast(t('toast_visual_reloaded'), "info");
     }
 
     async function fetchStatus() {
@@ -1235,6 +1696,8 @@
     }
 
     function renderDashboard(data) {
+      lastDashboardData = data;
+
       // Navbar & Meta
       document.getElementById('proj-title').textContent = data.project.name;
       document.getElementById('proj-version').textContent = `v${data.project.version || '2.5.1'}`;
@@ -1242,10 +1705,10 @@
       const statusBadge = document.getElementById('proj-status-badge');
       if (data.project.status === 'active') {
         statusBadge.className = 'status-badge active';
-        statusBadge.textContent = '🟢 ACTIVO';
+        statusBadge.textContent = t('status_active');
       } else {
         statusBadge.className = 'status-badge idle';
-        statusBadge.textContent = '⚪ EN REPOSO (IDLE)';
+        statusBadge.textContent = t('status_idle');
       }
 
       document.getElementById('git-branch').textContent = data.project.git.branch;
@@ -1269,8 +1732,11 @@
       } else {
         dot.className = 'status-dot dirty';
       }
-      document.getElementById('session-topic').textContent = `Topic: ${data.session.topic || 'General'}`;
-      document.getElementById('last-sync').textContent = `Última sincronización: ${new Date().toLocaleTimeString()}`;
+
+      lastTopic = data.session.topic || 'General';
+      document.getElementById('session-topic').textContent = `${t('topic_prefix')} ${lastTopic}`;
+      lastSyncTime = new Date().toLocaleTimeString();
+      document.getElementById('last-sync').textContent = `${t('last_sync')} ${lastSyncTime}`;
 
       // Slice Budget update
       const sliceLoc = data.project.git.slice_loc || 0;
@@ -1305,6 +1771,7 @@
     }
 
     function updateSliceBudget(loc) {
+      lastSliceLoc = loc;
       const pill = document.getElementById('slice-budget-pill');
       document.getElementById('slice-loc-header').textContent = loc;
       document.getElementById('diff-tab-badge').textContent = `${loc} LOC`;
@@ -1312,20 +1779,20 @@
       pill.className = 'budget-pill';
       if (loc <= 350) {
         pill.classList.add('safe');
-        pill.title = `Slice Saludable (${loc}/400 LOC) — Dentro de la heurística ARQ-01`;
+        pill.title = t('slice_safe_title', loc);
       } else if (loc <= 450) {
         pill.classList.add('warning');
-        pill.title = `Atención: Slice aproximándose al límite de 400 LOC (${loc}/400 LOC)`;
+        pill.title = t('slice_warning_title', loc);
       } else {
         pill.classList.add('danger');
-        pill.title = `Alerta: Slice Monolítico (${loc} LOC > 400). Recomendado cerrar slice o fragmentar en chained PR.`;
+        pill.title = t('slice_danger_title', loc);
       }
     }
 
     function renderQuestions(questions) {
       const container = document.getElementById('questions-list');
       if (!questions.length) {
-        container.innerHTML = '<div style="color:var(--text-muted); padding:20px; text-align:center;">No hay preguntas activas en esta sesión.</div>';
+        container.innerHTML = `<div style="color:var(--text-muted); padding:20px; text-align:center;">${t('questions_empty')}</div>`;
         return;
       }
 
@@ -1335,14 +1802,14 @@
         return `
           <div class="card ${isAnswered ? 'answered' : ''}">
             <div class="card-title">
-              <span>#${idx + 1} · ${q.title || 'Requisito'}</span>
+              <span>#${idx + 1} · ${escapeHtml(q.title || t('question_req_default'))}</span>
               <span style="font-size:11px; color:${isAnswered ? 'var(--success-bright)' : 'var(--warning)'}; font-weight:600;">
-                ${isAnswered ? '✓ Respondida' : 'Pendiente'}
+                ${isAnswered ? t('question_answered') : t('question_pending')}
               </span>
             </div>
             <div class="card-question">${escapeHtml(q.question)}</div>
-            ${q.recommendation ? `<div class="card-recommendation"><strong>💡 Sugerencia:</strong> ${escapeHtml(q.recommendation)}</div>` : ''}
-            <textarea placeholder="Tu decisión o aclaración técnica..." oninput="stageAnswer('${q.id}', this.value)">${escapeHtml(savedAnswer)}</textarea>
+            ${q.recommendation ? `<div class="card-recommendation"><strong>${t('question_suggestion')}</strong> ${escapeHtml(q.recommendation)}</div>` : ''}
+            <textarea placeholder="${t('question_placeholder')}" oninput="stageAnswer('${q.id}', this.value)">${escapeHtml(savedAnswer)}</textarea>
           </div>
         `;
       }).join('');
@@ -1354,7 +1821,7 @@
 
     async function submitAllAnswers() {
       if (Object.keys(stagedAnswers).length === 0) {
-        showToast("Escribe alguna respuesta antes de enviar.", "warning");
+        showToast(t('toast_empty_answers'), "warning");
         return;
       }
       try {
@@ -1366,18 +1833,18 @@
         if (res.ok) {
           stagedAnswers = {};
           fetchStatus();
-          showToast("¡Respuestas registradas exitosamente en la sesión!", "success");
+          showToast(t('toast_answers_saved'), "success");
         }
       } catch (err) {
-        showToast("Error al enviar respuestas: " + err, "error");
+        showToast(t('toast_answers_error') + err, "error");
       }
     }
 
     function renderGates(gates) {
       const container = document.getElementById('gates-list');
-      const gateEntries = Object.entries(gates);
+      const gateEntries = Object.entries(gates || {});
       if (!gateEntries.length) {
-        container.innerHTML = '<div style="color:var(--text-muted)">Sin gates declarados.</div>';
+        container.innerHTML = `<div style="color:var(--text-muted)">${t('gates_empty')}</div>`;
         return;
       }
 
@@ -1391,12 +1858,12 @@
                 <span class="gate-status-pill ${statusClass}">${statusClass}</span>
               </div>
               <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">
-                ${escapeHtml(g.notes || 'Revisión formal de arquitectura requerida.')}
+                ${escapeHtml(g.notes || t('gate_default_notes'))}
               </p>
             </div>
             <div style="display:flex; gap:8px;">
-              <button class="btn btn-primary" style="flex:1;" onclick="openGateModal('${key}', 'approve')">Aprobar Gate</button>
-              <button class="btn btn-danger" style="flex:1;" onclick="openGateModal('${key}', 'reject')">Rechazar</button>
+              <button class="btn btn-primary" style="flex:1;" onclick="openGateModal('${key}', 'approve')">${t('gate_btn_approve')}</button>
+              <button class="btn btn-danger" style="flex:1;" onclick="openGateModal('${key}', 'reject')">${t('gate_btn_reject')}</button>
             </div>
           </div>
         `;
@@ -1405,19 +1872,19 @@
 
     function openGateModal(gateKey, action) {
       const isApprove = action === 'approve';
-      const title = `${isApprove ? 'Aprobar' : 'Rechazar'} Quality Gate: ${gateKey}`;
+      const title = isApprove ? t('gate_modal_title_approve', gateKey) : t('gate_modal_title_reject', gateKey);
       const bodyHtml = `
         <p style="margin-bottom:12px; color:var(--text);">
-          ${isApprove ? 'Confirma que has revisado los entregables del Gate y autorizas el avance de fase.' : 'Especifica el motivo del rechazo para que el agente aplique remediación.'}
+          ${isApprove ? t('gate_modal_body_approve') : t('gate_modal_body_reject')}
         </p>
-        <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Notas o Justificación de Decisión:</label>
+        <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">${t('gate_modal_notes_label')}</label>
         <textarea id="gate-decision-notes" style="width:100%; height:80px; background:var(--bg); border:1px solid var(--border); color:#fff; border-radius:6px; padding:8px; font-family:var(--font-sans); font-size:13px;"></textarea>
       `;
 
       const footerHtml = `
-        <button class="btn" onclick="closeModal()">Cancelar</button>
+        <button class="btn" onclick="closeModal()">${t('btn_cancel')}</button>
         <button class="btn ${isApprove ? 'btn-primary' : 'btn-danger'}" onclick="confirmGateDecision('${gateKey}', '${action}')">
-          ${isApprove ? '✓ Confirmar Aprobación' : '✕ Confirmar Rechazo'}
+          ${isApprove ? t('gate_modal_confirm_approve') : t('gate_modal_confirm_reject')}
         </button>
       `;
 
@@ -1437,10 +1904,10 @@
         });
         if (res.ok) {
           fetchStatus();
-          showToast(`Gate ${gateKey} ${action === 'approve' ? 'aprobado' : 'rechazado'} correctamente`, "success");
+          showToast(action === 'approve' ? t('gate_toast_approved', gateKey) : t('gate_toast_rejected', gateKey), "success");
         }
       } catch (err) {
-        showToast("Error en gate action: " + err, "error");
+        showToast(t('gate_toast_error') + err, "error");
       }
     }
 
@@ -1461,16 +1928,23 @@
                 <span style="color:var(--text-muted);">${escapeHtml(c.relative)}</span>
               </div>
               <div style="color:var(--text-bright); font-weight:500;">${escapeHtml(c.message)}</div>
-              <div style="color:var(--text-muted); font-size:11px;">Autor: ${escapeHtml(c.author)}</div>
+              <div style="color:var(--text-muted); font-size:11px;">${t('idle_author')} ${escapeHtml(c.author)}</div>
             </div>
-          `).join('') : '<div style="color:var(--text-muted); font-size:12px; padding:10px;">Sin historial de commits reciente.</div>';
+          `).join('') : `<div style="color:var(--text-muted); font-size:12px; padding:10px;">${t('idle_commits_empty')}</div>`;
+
+          const isClean = project && project.git && project.git.clean;
+          const statusText = isClean ? t('git_clean_status') : t('git_dirty_status');
+          const statusIcon = isClean ? '🟢' : '🟡';
 
           idleView.innerHTML = `
             <div class="idle-banner">
               <div class="idle-icon">☕</div>
               <div class="idle-content">
-                <h4>Proyecto en Reposo (Idle State)</h4>
-                <p>📌 No hay tareas activas en este proyecto (sin bitácoras en <code>odd/tasks/</code> ni <code>tasks.md</code>).</p>
+                <h4>${t('idle_title')}</h4>
+                <p>📌 ${t('idle_notice')}</p>
+                <div style="margin-top:6px; font-size:11px; color:var(--text-muted);">
+                  <span>${statusIcon} ${statusText}</span>
+                </div>
               </div>
             </div>
 
@@ -1478,7 +1952,7 @@
               <div class="idle-panel">
                 <div class="idle-panel-title">
                   <span>🕒</span>
-                  <span>Últimos Commits Realizados</span>
+                  <span>${t('idle_commits_title')}</span>
                 </div>
                 <div style="display:flex; flex-direction:column; overflow-y:auto; max-height:260px;">
                   ${commitsHtml}
@@ -1488,11 +1962,14 @@
               <div class="idle-panel">
                 <div class="idle-panel-title">
                   <span>🚀</span>
-                  <span>Acciones Rápidas</span>
+                  <span>${t('idle_quick_title')}</span>
                 </div>
                 <div style="display:flex; flex-direction:column; gap:8px;">
                   <p style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">
-                    Inicia una nueva tarea creando una bitácora ODD o ejecutando el agente:
+                    ${t('idle_quick_hints')}
+                  </p>
+                  <p style="font-size:11px; color:var(--text-muted); margin-bottom:4px;">
+                    ${t('idle_quick_p')}
                   </p>
                   <div class="quick-action-item">
                     <span>📝</span> <code>odd/tasks/&lt;feature-name&gt;.md</code>
@@ -1504,14 +1981,14 @@
                     <span>🧪</span> <code>python -m unittest discover -s tests -v</code>
                   </div>
                   <button class="btn btn-primary" style="margin-top:8px; justify-content:center;" onclick="switchTab('artifacts')">
-                    Explorar Artefactos del Proyecto →
+                    ${t('idle_explore_btn')}
                   </button>
                 </div>
               </div>
             </div>
           `;
         }
-        if (sourceBadge) sourceBadge.textContent = 'Sin tareas activas';
+        if (sourceBadge) sourceBadge.textContent = t('kanban_no_tasks');
         document.getElementById('count-todo').textContent = '0';
         document.getElementById('count-in_progress').textContent = '0';
         document.getElementById('count-done').textContent = '0';
@@ -1520,7 +1997,7 @@
 
       if (boardView) boardView.style.display = 'grid';
       if (idleView) idleView.style.display = 'none';
-      if (sourceBadge) sourceBadge.textContent = `${tasks.length} tarea(s) cargada(s)`;
+      if (sourceBadge) sourceBadge.textContent = t('kanban_tasks_loaded', tasks.length);
 
       const todoEl = document.getElementById('col-todo');
       const inProgEl = document.getElementById('col-in_progress');
@@ -1532,31 +2009,31 @@
 
       let counts = { todo: 0, in_progress: 0, done: 0 };
 
-      tasks.forEach((t) => {
-        const status = t.status || 'todo';
+      tasks.forEach((tTask) => {
+        const status = tTask.status || 'todo';
         if (counts[status] !== undefined) counts[status]++;
 
         const card = document.createElement('div');
         card.className = `task-card ${status}`;
-        card.onclick = () => openTaskDetailsModal(t);
+        card.onclick = () => openTaskDetailsModal(tTask);
 
-        const waveHtml = t.wave ? `<div class="wave-badge">🌊 ${escapeHtml(t.wave)}</div>` : '';
-        const idHtml = t.task_id ? `<div class="task-id-badge">${escapeHtml(t.task_id)}</div>` : '';
+        const waveHtml = tTask.wave ? `<div class="wave-badge">🌊 ${escapeHtml(tTask.wave)}</div>` : '';
+        const idHtml = tTask.task_id ? `<div class="task-id-badge">${escapeHtml(tTask.task_id)}</div>` : '';
         
         let evidenceHtml = '';
-        if (t.evidence && t.evidence.cmd) {
+        if (tTask.evidence && tTask.evidence.cmd) {
           evidenceHtml = `
-            <div class="evidence-chip" title="Comando: ${escapeHtml(t.evidence.cmd)}">
+            <div class="evidence-chip" title="Comando: ${escapeHtml(tTask.evidence.cmd)}">
               <span>💻</span>
-              <span>exit ${escapeHtml(t.evidence.exit_code)}</span>
-              <span>· ${escapeHtml(t.evidence.cmd.slice(0, 24))}...</span>
+              <span>exit ${escapeHtml(tTask.evidence.exit_code)}</span>
+              <span>· ${escapeHtml(tTask.evidence.cmd.slice(0, 24))}...</span>
             </div>
           `;
-        } else if (t.status === 'done') {
-          evidenceHtml = `<div class="evidence-chip"><span>✓</span><span>Verificado</span></div>`;
+        } else if (tTask.status === 'done') {
+          evidenceHtml = `<div class="evidence-chip"><span>✓</span><span>${t('task_verified')}</span></div>`;
         }
 
-        const commitHtml = t.commit ? `<div class="commit-chip">🔖 ${escapeHtml(t.commit)}</div>` : '';
+        const commitHtml = tTask.commit ? `<div class="commit-chip">🔖 ${escapeHtml(tTask.commit)}</div>` : '';
 
         card.innerHTML = `
           <div class="card-tags">
@@ -1564,9 +2041,9 @@
             ${idHtml}
             ${commitHtml}
           </div>
-          <div style="font-weight:500;">${escapeHtml(t.text)}</div>
+          <div style="font-weight:500;">${escapeHtml(tTask.text)}</div>
           ${evidenceHtml}
-          <div class="task-meta">Fuente: ${escapeHtml(t.source || 'tasks.md')} · Clic para detalles</div>
+          <div class="task-meta">${t('task_source_label', escapeHtml(tTask.source || 'tasks.md'))}</div>
         `;
 
         if (status === 'done') doneEl.appendChild(card);
@@ -1590,13 +2067,13 @@
     function renderArtifacts(artifacts) {
       document.getElementById('artifacts-tab-badge').textContent = artifacts.length;
       const totalCountEl = document.getElementById('artifacts-total-count');
-      if (totalCountEl) totalCountEl.textContent = `${artifacts.length} archivos`;
+      if (totalCountEl) totalCountEl.textContent = `${artifacts.length} ${t('artifacts_files_suffix')}`;
 
       // Quick artifacts in Tab 2 (Mission Cockpit)
       const quickContainer = document.getElementById('cockpit-artifacts-quick');
       if (quickContainer) {
         if (!artifacts.length) {
-          quickContainer.innerHTML = '<div style="color:var(--text-muted); font-size:12px;">No se detectaron artefactos.</div>';
+          quickContainer.innerHTML = `<div style="color:var(--text-muted); font-size:12px;">${t('cockpit_quick_empty')}</div>`;
         } else {
           quickContainer.innerHTML = artifacts.slice(0, 10).map(a => `
             <div class="artifact-chip" onclick="previewArtifact('${escapeHtml(a.path)}')" title="Clic para previsualizar">
@@ -1615,7 +2092,7 @@
       const container = document.getElementById('artifacts-list-container');
       if (!container) return;
       if (!artifacts.length) {
-        container.innerHTML = '<div style="color:var(--text-muted); font-size:12px; padding:20px; text-align:center;">No se encontraron artefactos en este proyecto.</div>';
+        container.innerHTML = `<div style="color:var(--text-muted); font-size:12px; padding:20px; text-align:center;">${t('artifacts_empty_list')}</div>`;
         return;
       }
 
@@ -1640,27 +2117,33 @@
       renderArtifactsList(filtered);
     }
 
+    function resetArtifactFilter() {
+      const input = document.getElementById('artifacts-filter');
+      if (input) input.value = '';
+      renderArtifactsList(currentArtifacts);
+    }
+
     async function selectArtifactForPreview(relPath) {
       selectedArtifact = currentArtifacts.find(a => a.path === relPath) || { path: relPath, name: relPath, size_bytes: 0, category: 'Archivo' };
       renderArtifactsList(currentArtifacts);
 
       document.getElementById('preview-filename').textContent = selectedArtifact.name;
-      document.getElementById('preview-meta').textContent = `Categoría: ${selectedArtifact.category} · Tamaño: ${formatBytes(selectedArtifact.size_bytes || 0)}`;
+      document.getElementById('preview-meta').textContent = t('preview_meta_label', selectedArtifact.category, formatBytes(selectedArtifact.size_bytes || 0));
       document.getElementById('btn-modal-preview').style.display = 'inline-flex';
 
       const previewPane = document.getElementById('artifact-preview-content');
-      previewPane.innerHTML = '<div style="color:var(--text-muted); padding:30px; text-align:center;">Cargando contenido desde /api/file...</div>';
+      previewPane.innerHTML = `<div style="color:var(--text-muted); padding:30px; text-align:center;">${t('preview_loading')}</div>`;
 
       try {
         const res = await fetch(`/api/file?path=${encodeURIComponent(relPath)}`);
         if (!res.ok) {
-          previewPane.innerHTML = `<div style="color:var(--danger-bright); padding:20px;">Error al cargar archivo (HTTP ${res.status})</div>`;
+          previewPane.innerHTML = `<div style="color:var(--danger-bright); padding:20px;">${t('preview_error_http', res.status)}</div>`;
           return;
         }
         const data = await res.json();
         previewPane.textContent = data.content || '';
       } catch (err) {
-        previewPane.innerHTML = `<div style="color:var(--danger-bright); padding:20px;">Error de red: ${escapeHtml(err)}</div>`;
+        previewPane.innerHTML = `<div style="color:var(--danger-bright); padding:20px;">${t('preview_network_error', escapeHtml(err))}</div>`;
       }
     }
 
@@ -1672,47 +2155,47 @@
 
     async function previewArtifact(relPath) {
       showCustomModal(
-        `Previsualización: ${escapeHtml(relPath)}`,
-        '<div style="color:var(--text-muted); padding:30px; text-align:center;">Cargando contenido desde /api/file...</div>',
-        '<button class="btn btn-primary" onclick="closeModal()">Cerrar</button>'
+        t('preview_modal_title', escapeHtml(relPath)),
+        `<div style="color:var(--text-muted); padding:30px; text-align:center;">${t('preview_loading')}</div>`,
+        `<button class="btn btn-primary" onclick="closeModal()">${t('btn_close')}</button>`
       );
 
       try {
         const res = await fetch(`/api/file?path=${encodeURIComponent(relPath)}`);
         if (!res.ok) {
-          document.getElementById('modal-body').innerHTML = `<div style="color:var(--danger-bright); padding:20px;">Error al cargar archivo (HTTP ${res.status})</div>`;
+          document.getElementById('modal-body').innerHTML = `<div style="color:var(--danger-bright); padding:20px;">${t('preview_error_http', res.status)}</div>`;
           return;
         }
         const data = await res.json();
         const content = data.content || '';
         document.getElementById('modal-body').innerHTML = `
           <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px; font-family:var(--font-mono);">
-            Ubicación: <code>${escapeHtml(data.path)}</code> (${content.length} caracteres)
+            ${t('preview_location')} <code>${escapeHtml(data.path)}</code> (${content.length} ${t('preview_chars')})
           </div>
           <pre class="code-block" style="max-height:480px; overflow:auto; white-space:pre-wrap; word-break:break-all; font-size:12px; color:var(--text);">${escapeHtml(content)}</pre>
         `;
       } catch (err) {
-        document.getElementById('modal-body').innerHTML = `<div style="color:var(--danger-bright); padding:20px;">Error de red: ${escapeHtml(err)}</div>`;
+        document.getElementById('modal-body').innerHTML = `<div style="color:var(--danger-bright); padding:20px;">${t('preview_network_error', escapeHtml(err))}</div>`;
       }
     }
 
     function openTaskDetailsModal(task) {
-      const title = `Detalle de Tarea: ${task.task_id || 'Tarea'}`;
+      const title = t('task_modal_title', task.task_id || 'Tarea');
       let evidenceBlock = '';
       if (task.evidence) {
         evidenceBlock = `
           <div style="margin-top:14px; background:var(--surface-elevated); padding:12px; border-radius:6px; border:1px solid var(--border);">
             <div style="font-size:12px; font-weight:600; color:var(--success-bright); margin-bottom:6px;">
-              🛡️ Evidencia en Terminal (P06 Gate):
+              ${t('evidence_block_title')}
             </div>
-            <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;">Comando ejecutado:</div>
+            <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;">${t('evidence_cmd_executed')}</div>
             <div class="code-block">${escapeHtml(task.evidence.cmd)}</div>
             <div style="display:flex; gap:12px; font-size:12px; margin-top:8px;">
-              <span>Código de Salida: <strong style="color:${task.evidence.exit_code === '0' ? 'var(--success-bright)' : 'var(--danger-bright)'}">${escapeHtml(task.evidence.exit_code)}</strong></span>
-              <span>Estado: <strong>${escapeHtml(task.evidence.status || 'VERIFICADO')}</strong></span>
+              <span>${t('evidence_exit_code')} <strong style="color:${task.evidence.exit_code === '0' ? 'var(--success-bright)' : 'var(--danger-bright)'}">${escapeHtml(task.evidence.exit_code)}</strong></span>
+              <span>${t('evidence_status')} <strong>${escapeHtml(task.evidence.status || 'VERIFICADO')}</strong></span>
             </div>
             ${task.evidence.output ? `
-              <div style="font-size:11px; color:var(--text-muted); margin-top:8px; margin-bottom:4px;">Salida observada:</div>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:8px; margin-bottom:4px;">${t('evidence_output_observed')}</div>
               <div class="code-block" style="color:var(--text); max-height:120px; overflow-y:auto;">${escapeHtml(task.evidence.output)}</div>
             ` : ''}
           </div>
@@ -1720,7 +2203,7 @@
       } else {
         evidenceBlock = `
           <div style="margin-top:14px; background:var(--surface-elevated); padding:12px; border-radius:6px; border:1px solid var(--border); color:var(--text-muted); font-size:12px;">
-            ℹ️ Sin registro de comando en tabla Terminal Evidence aún.
+            ${t('evidence_none')}
           </div>
         `;
       }
@@ -1730,18 +2213,18 @@
           ${escapeHtml(task.text)}
         </div>
         <div style="display:flex; gap:10px; font-size:12px; margin-bottom:12px;">
-          <span>Estado: <strong style="text-transform:uppercase;">${escapeHtml(task.status)}</strong></span>
-          ${task.wave ? `<span>Oleada: <strong>${escapeHtml(task.wave)}</strong></span>` : ''}
-          ${task.commit ? `<span>Commit Atómico: <code>${escapeHtml(task.commit)}</code></span>` : ''}
+          <span>${t('task_modal_status')} <strong style="text-transform:uppercase;">${escapeHtml(task.status)}</strong></span>
+          ${task.wave ? `<span>${t('task_modal_wave')} <strong>${escapeHtml(task.wave)}</strong></span>` : ''}
+          ${task.commit ? `<span>${t('task_modal_commit')} <code>${escapeHtml(task.commit)}</code></span>` : ''}
         </div>
         <div style="font-size:12px; color:var(--text-muted);">
-          Archivo Origen: <code>${escapeHtml(task.source)}</code>
+          ${t('task_modal_source')} <code>${escapeHtml(task.source)}</code>
         </div>
         ${evidenceBlock}
       `;
 
       const footerHtml = `
-        <button class="btn btn-primary" onclick="closeModal()">Entendido</button>
+        <button class="btn btn-primary" onclick="closeModal()">${t('btn_understood')}</button>
       `;
 
       showCustomModal(title, bodyHtml, footerHtml);
@@ -1749,31 +2232,32 @@
 
     async function loadDiff() {
       const container = document.getElementById('diff-content');
-      const sidebar = document.getElementById('diff-file-list');
-      container.innerHTML = '<div style="color:var(--text-muted); padding:30px; text-align:center;">Analizando diff unificado de git...</div>';
+      container.innerHTML = `<div style="color:var(--text-muted); padding:30px; text-align:center;">${t('diff_loading')}</div>`;
       
       try {
         const res = await fetch('/api/diff');
         if (!res.ok) {
-          container.innerHTML = '<div style="color:var(--danger-bright); padding:20px;">Error al obtener diff</div>';
+          container.innerHTML = `<div style="color:var(--danger-bright); padding:20px;">${t('diff_error')}</div>`;
           return;
         }
         const data = await res.json();
+        currentDiffData = data;
         currentDiffStats = data.stats;
         renderDiffView(data);
       } catch (err) {
-        container.innerHTML = `<div style="color:var(--danger-bright); padding:20px;">Error de red: ${err}</div>`;
+        container.innerHTML = `<div style="color:var(--danger-bright); padding:20px;">${t('diff_error')}: ${err}</div>`;
       }
     }
 
     function renderDiffView(data) {
+      currentDiffData = data;
       const stats = data.stats || { files_changed: 0, additions: 0, deletions: 0, total_loc: 0, files: [] };
       document.getElementById('diff-files-count').textContent = stats.files_changed;
       document.getElementById('diff-additions').textContent = stats.additions;
       document.getElementById('diff-deletions').textContent = stats.deletions;
       
       const badge = document.getElementById('diff-budget-badge');
-      badge.textContent = `Slice: ${stats.total_loc} / 400 LOC`;
+      badge.textContent = t('slice_header', stats.total_loc);
       badge.className = 'stat-badge budget';
       if (stats.total_loc <= 350) badge.classList.add('add');
       else if (stats.total_loc <= 450) badge.style.color = 'var(--warning)';
@@ -1782,7 +2266,7 @@
       // Render File Sidebar
       const sidebar = document.getElementById('diff-file-list');
       if (!stats.files || !stats.files.length) {
-        sidebar.innerHTML = '<div style="color:var(--text-muted); font-size:12px; padding:10px;">Árbol limpio (sin cambios pendientes)</div>';
+        sidebar.innerHTML = `<div style="color:var(--text-muted); font-size:12px; padding:10px;">${t('diff_clean_tree')}</div>`;
       } else {
         sidebar.innerHTML = stats.files.map(f => `
           <div class="diff-file-item" onclick="jumpToDiffFile('${escapeHtml(f.file)}')">
@@ -1801,7 +2285,7 @@
       const container = document.getElementById('diff-content');
       const rawDiff = data.diff || "";
       if (!rawDiff.trim()) {
-        container.innerHTML = '<div style="color:var(--text-muted); padding:30px; text-align:center;">Working tree limpio. Sin cambios detectados frente a HEAD.</div>';
+        container.innerHTML = `<div style="color:var(--text-muted); padding:30px; text-align:center;">${t('diff_clean_content')}</div>`;
         return;
       }
 
@@ -1870,7 +2354,8 @@
       if (e.key === 'Escape') closeModal();
     });
 
-    // Auto-polling every 3 seconds
+    // Initialize Language and auto-polling
+    setLanguage(currentLang);
     fetchStatus();
     setInterval(fetchStatus, 3000);
   </script>
