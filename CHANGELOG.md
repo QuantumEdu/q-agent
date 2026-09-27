@@ -7,12 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [2.5.0] - 2026-09-26
+
 ### Added
-- **Compuerta de Revisión Adversarial Aislada (`skills/q-adversarial-review` & `prompts/P06_terminal_evidence_gate.md`)**:
-  - Incorporación de la compuerta de revisión adversarial (inspirada en Shopify Helix) para eliminar el sesgo de auto-confirmación del agente implementador.
-  - Despacho de un subagente independiente con contexto limpio para auditar el `git diff` contra el Artículo Constitucional ARQ-01 y criterios UAC antes de marcar tareas `[x]`.
-  - Protocolo de compuerta dual en Paso 6 de `SKILL.md`: Fase A (Verificación empírica de máquina) + Fase B (Revisión adversarial aislada vinculante).
-  - Registro formal de `q-adversarial-review` en `skill.json` y verificación en `tests/test_skill_integrity.py`.
+- **Deterministic Technical Contracts Audit Gate (`scripts/audit_api_contracts.js`, `tools/q-audit-validator/validate_audit.py --mode technical`, `just audit-contracts`)**:
+  - Zero-dependency deterministic audit gate evaluating technical project contracts:
+    - **Disaster Recovery (A17)**: Detection of contingency runbooks, backup scripts, healthchecks (`/health`, `/healthz`, `/ping`, or Dockerfile `HEALTHCHECK`), and rollback/resilience capabilities.
+    - **GitHub & CI Integrity (A03)**: Verification of `.gitignore`, CI workflows (`.github/workflows/`), triggers (`push`, `pull_request`), automated test/lint gates, and dependency automation configuration (`dependabot.yml` or Renovate).
+    - **Observability & Telemetry (A14)**: Verification of structured logging libraries (`winston`, `pino`, `loguru`), APM instrumentation, and request correlation / tracing middleware (`x-request-id` / `correlation_id`).
+    - **API Contracts Catalog (A06)**: Detection of OpenAPI/Swagger specifications (`openapi.yaml`, `swagger.json`) and route definitions or controller catalogs.
+  - Dual implementation: zero-dependency Node.js script (`scripts/audit_api_contracts.js`) and unified Python CLI (`tools/q-audit-validator/validate_audit.py --mode technical`) with human-readable and `--json` reporting.
+  - Fast-path recipe `just audit-contracts` added to `justfile` for immediate developer execution and CI verification.
+- **q-cockpit v2 UI Enhancements (`tools/q-cockpit`)**:
+  - **Code & Live Diff Tab**: Native live diff viewer with syntax highlighting, per-file addition/deletion stats, and contextual navigation.
+  - **Terminal Evidence Details Modal**: Deep inspection modal displaying executed commands, exit codes, raw stdout/stderr logs, and timestamps.
+  - **Dynamic Slice LOC Budget Counter**: Real-time ~400 LOC vertical slice budget counter with visual threshold indicators to prevent bloat and maintain atomic commit discipline.
+  - **Dark Mode Custom Dialogs**: Fully styled, accessible modal dialogs with seamless dark theme integration.
+- **Context-Isolated Adversarial Review Gate (`skills/q-adversarial-review`, `prompts/P06_terminal_evidence_gate.md`)**:
+  - Implementation of context-isolated adversarial review gate (P06 Phase B in `SKILL.md`) inspired by Shopify Helix to eliminate confirmation bias.
+  - Clean-context subagent dispatch auditing `git diff` against Constitutional Article ARQ-01 and UAC criteria before task completion.
+  - Double-gate validation: Phase A (Empirical machine verification with exit code 0) + Phase B (Context-isolated binding adversarial review).
+  - Formal registration of `q-adversarial-review` in `skill.json` and verification in `tests/test_skill_integrity.py`.
+
+### Changed
+- **Vertical Slices & Wave Execution Alignment**:
+  - Clean separation from external framework coupling, standardizing vertical slice delivery with atomic commits (~400 LOC).
+  - Constitutional Article ARQ-01 alignment across task log templates and orchestrator prompts for safe, concurrent wave execution.
+
+### Security
+- **Security Hardening & Dependency Governance in q-cockpit**:
+  - Path traversal hardening in `q_cockpit.py` using canonical path resolution (`Path.resolve()`) rejecting any escape outside root directory.
+  - CORS security hardening restricting cross-origin requests strictly to trusted local origins (`localhost`, `127.0.0.1`) with explicit `OPTIONS` preflight handling.
+  - Automated dependency update governance configured via GitHub Dependabot (`.github/dependabot.yml`) for `github-actions` and `npm`.
 
 ---
 

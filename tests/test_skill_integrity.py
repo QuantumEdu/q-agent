@@ -38,13 +38,13 @@ class TestSkillIntegrity(unittest.TestCase):
         frontmatter = parts[1]
         self.assertIn("name: q-agent", frontmatter)
         self.assertIn("description:", frontmatter)
-        self.assertIn("version: 2.4.0", frontmatter)
+        self.assertIn("version: 2.5.0", frontmatter)
 
     def test_version_consistency(self):
         skill_json = json.loads((ROOT_DIR / "skill.json").read_text(encoding="utf-8"))
         skill_md = (ROOT_DIR / "SKILL.md").read_text(encoding="utf-8")
         version = skill_json["version"]
-        self.assertEqual(version, "2.4.0")
+        self.assertEqual(version, "2.5.0")
         self.assertIn(f"version: {version}", skill_md)
 
     def test_audit_manifest_reference_exists(self):

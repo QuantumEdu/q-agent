@@ -1,9 +1,9 @@
 # q-agent — Master Project Orchestrator
-> **Hermetic deployment package v2.4.0 (Dual Engine, Vertical Slices & Wave Execution)** · Tool-agnostic · Greenfield · Brownfield · Audit
+> **Hermetic deployment package v2.5.0 (Dual Engine, Vertical Slices & Wave Execution)** · Tool-agnostic · Greenfield · Brownfield · Audit
 
 [![CI Pipeline](https://github.com/QuantumEdu/q-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/QuantumEdu/q-agent/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.4.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.5.0-green.svg)](CHANGELOG.md)
 
 ---
 
@@ -633,7 +633,7 @@ We welcome issues, feedback, and pull requests! Please read our [CONTRIBUTING.md
 
 ## Version, Author & License
 
-- **Version:** `v02` (2.4.0) — Hermetic Canonical Package (Dual Engine, Vertical Slices, Wave Execution, Deploy Gate, Ops Bridge, Visual Cockpit & CI Pipeline).
+- **Version:** `v02` (2.5.0) — Hermetic Canonical Package (Dual Engine, Vertical Slices, Wave Execution, Deploy Gate, Ops Bridge, Visual Cockpit & CI Pipeline).
 - **Author & Architect:** Gabriel Magallón Sánchez / QuantumEdu (Quantum).
 - **License:** [Apache License 2.0](LICENSE).
 - **Contributing:** See [CONTRIBUTING.md](CONTRIBUTING.md).

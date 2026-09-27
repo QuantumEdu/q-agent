@@ -8,13 +8,13 @@ description: >
   Enforces Article ARQ-01: Vertical Slices by default, template hygiene (.html embed),
   zero-mock terminal evidence, and minimal indirection. Tool-agnostic.
 author: Gabriel Magallón Sánchez / QuantumEdu (Quantum)
-version: 2.4.0
+version: 2.5.0
 license: Apache-2.0
 sources: [chat]
 aliases: [agente, /q-agent, iniciar agente, dev agent, orchestrator]
 ---
 
-# q-agent v2.4.0 — Master Project Orchestrator (Dual Engine, Vertical Slices & Wave Execution)
+# q-agent v2.5.0 — Master Project Orchestrator (Dual Engine, Vertical Slices & Wave Execution)
 
 > **Autor y Arquitecto Principal:** Gabriel Magallón Sánchez / QuantumEdu (Quantum)  
 > **Licencia:** Apache License 2.0  
@@ -55,7 +55,7 @@ Paso 9 / Ops ──► BUCLE DE RETROALIMENTACIÓN (P10 Ops-to-ODD con Reproduct
 Presentar y esperar respuesta del usuario (no continuar sin respuesta):
 
 ```text
-🚀 Bienvenido a q-agent v2.4.0 (Dual Engine, Vertical Slices & Wave Execution)
+🚀 Bienvenido a q-agent v2.5.0 (Dual Engine, Vertical Slices & Wave Execution)
 
 ¿Qué tipo de ciclo vamos a ejecutar hoy?
 [A] Greenfield  — Nuevo sistema desde cero (Plan A)

@@ -227,7 +227,7 @@ def validate_legacy(cwd: Path) -> int:
         )
         return 1
 
-    print("RESULT: PASSED — All legacy audit deliverables meet q-agent v2.4.0 standard.\n")
+    print("RESULT: PASSED — All legacy audit deliverables meet q-agent v2.5.0 standard.\n")
     return 0
 
 
