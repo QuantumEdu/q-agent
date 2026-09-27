@@ -23,4 +23,5 @@ RED: focused unittest runner observed 3 errors (missing context_retrieval/config
 GREEN: focused runner 3/3 passed; full runner 37/37 passed; git diff --check passed. Refactor: shared template defaults and remaining GBrain label corrected; focused checks repeated successfully.
 Structural readback: changed config/generator, instructions and new contract reviewed. Tests verify configuration and documentation contracts, not live integrations or runtime enforcement.
 Authored count before commit: 336 additions plus deletions including tracking (below 400). RDD disabled/unmanaged; independent parent verification pending.
-Next step: work-unit commit; commit identity pending.
+Work-unit commit: 4afc35a58a3faf2509bc70b6f1ad2c5cf20310eb — feat(context): make retrieval providers optional and scoped.
+Next step: parent independent verification; no push/PR/merge.
