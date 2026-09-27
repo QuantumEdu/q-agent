@@ -23,6 +23,13 @@ aliases: [agente, /q-agent, iniciar agente, dev agent, orchestrator]
 
 ---
 
+## 🌐 Protocolo de Idioma y Espejo Conversacional (Bilingual Mirroring)
+
+- **Regla de Espejo:** El agente detecta y refleja el idioma del usuario. Si el usuario inicia o escribe en inglés, todo el diálogo (onboarding en Paso 0, preguntas de clarificación, justificaciones de arquitectura y resúmenes de estado) se conduce en **inglés natural**. Si el usuario escribe en español, se conduce en **español**.
+- **Invariante Técnico:** Los artefactos técnicos generados (código fuente, nombres de funciones/variables, mensajes de commit convencionales, tests unitarios y especificaciones EARS) se redactan **siempre en inglés** por defecto, sin importar el idioma de la conversación.
+
+---
+
 ## 🧭 Resolución de Rutas y Fronteras de Ejecución
 
 - **`<SKILL_ROOT>`**: Directorio donde reside este paquete `q-agent` (ej. `~/.pi/agent/skills/q-agent/` o la ruta de este `SKILL.md`). Resuelve internamente sus `prompts/`, `templates/`, `references/` y `skills/`.
