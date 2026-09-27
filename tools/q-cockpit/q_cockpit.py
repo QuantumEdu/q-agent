@@ -13,6 +13,7 @@ Combines:
 from __future__ import annotations
 
 import argparse
+import html
 import http.server
 import json
 import os
@@ -174,9 +175,24 @@ class ProjectScanner:
                     if len(parts) == 4:
                         commits.append({"hash": parts[0], "author": parts[1], "relative": parts[2], "message": parts[3]})
             info["recent_commits"] = commits
+            info["commit_sha"] = commits[0]["hash"] if commits else "unknown"
+            info["latest_commit"] = commits[0] if commits else None
         except Exception:
             pass
         return info
+
+    @staticmethod
+    def get_project_version(root: Path) -> str:
+        for fname in ["skill.json", "package.json"]:
+            fpath = root / fname
+            if fpath.is_file():
+                try:
+                    data = json.loads(fpath.read_text(encoding="utf-8"))
+                    if "version" in data and data["version"]:
+                        return str(data["version"])
+                except Exception:
+                    pass
+        return "2.5.0"
 
     @staticmethod
     def scan_tasks(root: Path) -> List[Dict[str, Any]]:
@@ -262,38 +278,66 @@ class ProjectScanner:
 
                     tasks.append(task_entry)
 
-        # Provide defaults if none found
-        if not tasks:
-            tasks = [
-                {"text": "P01 Discovery & Audit Baseline", "status": "done", "source": "q-agent-pipeline"},
-                {"text": "P02 Architectural & Hexagonal Scaffolding", "status": "done", "source": "q-agent-pipeline"},
-                {"text": "P04 Scope & Elicitation Gate (/propose)", "status": "in_progress", "source": "q-agent-pipeline"},
-                {"text": "P05 BDD Spec Definitions (Given/When/Then)", "status": "todo", "source": "q-agent-pipeline"},
-                {"text": "P07 Atomic TDD Task Matrix", "status": "todo", "source": "q-agent-pipeline"},
-                {"text": "P08 Reproduction-First Implementation", "status": "todo", "source": "q-agent-pipeline"},
-            ]
         return tasks
 
     @staticmethod
     def scan_artifacts(root: Path) -> List[Dict[str, Any]]:
-        artifacts = []
-        targets = [
-            ("CONSTITUTION.md", "Core Governance"),
-            ("README.md", "Documentation"),
-            ("SKILL.md", "Agent Definition"),
-            ("CLAUDE.md", "Agent Instructions"),
-            ("docs/adr", "Architectural Decision Records"),
-            ("openspec", "OpenSpec Contract"),
-        ]
-        for rel_path, category in targets:
-            full = root / rel_path
-            if full.exists():
-                artifacts.append({
-                    "name": rel_path,
-                    "category": category,
-                    "is_dir": full.is_dir(),
-                    "size_bytes": full.stat().st_size if full.is_file() else sum(f.stat().st_size for f in full.glob("**/*") if f.is_file()),
-                })
+        artifacts: List[Dict[str, Any]] = []
+        seen = set()
+
+        def add_item(file_path: Path, category: str):
+            if not file_path.is_file():
+                return
+            try:
+                rel = file_path.relative_to(root).as_posix()
+            except ValueError:
+                return
+            if rel in seen:
+                return
+            seen.add(rel)
+            st = file_path.stat()
+            artifacts.append({
+                "name": rel,
+                "path": rel,
+                "category": category,
+                "size_bytes": st.st_size,
+                "last_modified": datetime.fromtimestamp(st.st_mtime, timezone.utc).isoformat(),
+                "is_dir": False,
+            })
+
+        # Core governance and project manifests
+        add_item(root / "CONSTITUTION.md", "Core Governance")
+        add_item(root / "README.md", "Documentation")
+        add_item(root / "SKILL.md", "Agent Definition")
+        add_item(root / "CHANGELOG.md", "Changelog")
+        add_item(root / "CLAUDE.md", "Agent Instructions")
+        add_item(root / "references" / "audit-manifest.yml", "Audit Manifest")
+
+        # ODD task lists (odd/tasks/*.md)
+        odd_tasks_dir = root / "odd" / "tasks"
+        if odd_tasks_dir.is_dir():
+            for md in sorted(odd_tasks_dir.glob("*.md")):
+                add_item(md, "ODD Task List")
+
+        # Audit deliverables (audit/*.md)
+        audit_dir = root / "audit"
+        if audit_dir.is_dir():
+            for md in sorted(audit_dir.glob("*.md")):
+                add_item(md, "Audit Deliverable")
+
+        # Documentation (docs/**/*.md)
+        docs_dir = root / "docs"
+        if docs_dir.is_dir():
+            for md in sorted(docs_dir.glob("**/*.md")):
+                add_item(md, "Documentation")
+
+        # OpenSpec contract
+        openspec_dir = root / "openspec"
+        if openspec_dir.is_dir():
+            for md in sorted(openspec_dir.glob("**/*.md")):
+                add_item(md, "OpenSpec Contract")
+
+        artifacts.sort(key=lambda a: (a["category"], a["path"]))
         return artifacts
 
 
@@ -359,29 +403,318 @@ class CockpitHTTPHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(content)
 
+    def _send_html(self, content: bytes) -> None:
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(content)))
+        self.end_headers()
+        self.wfile.write(content)
+
+    def _render_mermaid_page(self, diagrams: List[Dict[str, str]]) -> str:
+        diagram_cards = []
+        for idx, d in enumerate(diagrams):
+            escaped_code = html.escape(d["code"])
+            escaped_src = html.escape(d["source"])
+            diagram_cards.append(f"""
+    <div class="diagram-card">
+      <div class="diagram-header">
+        <span>Diagrama #{idx+1} · Fuente: <code>{escaped_src}</code></span>
+        <span class="badge">Mermaid.js Live</span>
+      </div>
+      <div class="diagram-body">
+        <pre class="mermaid">{escaped_code}</pre>
+        <div class="offline-fallback" style="display:none; font-family:monospace; font-size:12px; white-space:pre-wrap; color:#a5d6ff;">
+          <code>{escaped_code}</code>
+        </div>
+      </div>
+    </div>
+""")
+        cards_html = "\n".join(diagram_cards)
+
+        return f"""<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>q-cockpit · Diagramas Inferidos</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    body {{
+      background-color: #0d1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }}
+    .header-bar {{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #30363d;
+    }}
+    .header-title {{
+      font-size: 15px;
+      font-weight: 600;
+      color: #f0f6fc;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }}
+    .diagram-card {{
+      background-color: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }}
+    .diagram-header {{
+      background-color: #21262d;
+      padding: 10px 16px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #30363d;
+    }}
+    .badge {{
+      background-color: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-family: monospace;
+      font-weight: 600;
+    }}
+    .diagram-body {{
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #0b0e14;
+      overflow-x: auto;
+      min-height: 120px;
+    }}
+    pre.mermaid {{
+      margin: 0;
+      width: 100%;
+      text-align: center;
+    }}
+    code {{
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      color: #79c0ff;
+    }}
+  </style>
+</head>
+<body>
+  <div class="header-bar">
+    <div class="header-title">
+      <span>📊</span>
+      <span>Diagramas de Arquitectura (Inferidos de Documentación)</span>
+    </div>
+    <span class="badge">{len(diagrams)} detectado(s)</span>
+  </div>
+  {cards_html}
+  <script>
+    if (typeof mermaid !== 'undefined') {{
+      mermaid.initialize({{
+        startOnLoad: true,
+        theme: 'dark',
+        themeVariables: {{
+          darkMode: true,
+          background: '#0b0e14',
+          primaryColor: '#1f6feb',
+          primaryTextColor: '#f0f6fc',
+          primaryBorderColor: '#388bfd',
+          lineColor: '#58a6ff',
+          secondaryColor: '#238636',
+          tertiaryColor: '#21262d'
+        }}
+      }});
+    }} else {{
+      document.querySelectorAll('.offline-fallback').forEach(el => el.style.display = 'block');
+    }}
+  </script>
+</body>
+</html>"""
+
+    def _render_blueprint_page(self) -> str:
+        project_name = html.escape(self.project_root.name)
+        return f"""<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>q-cockpit · Blueprint de Arquitectura</title>
+  <style>
+    body {{
+      background-color: #0d1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 28px;
+    }}
+    .blueprint-card {{
+      background-color: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 24px;
+      max-width: 820px;
+      margin: 0 auto;
+    }}
+    .blueprint-header {{
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #30363d;
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+    }}
+    .header-text h2 {{
+      margin: 0 0 4px 0;
+      font-size: 18px;
+      color: #f0f6fc;
+    }}
+    .header-text p {{
+      margin: 0;
+      font-size: 12px;
+      color: #8b949e;
+    }}
+    .grid {{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin: 20px 0;
+    }}
+    .box {{
+      background-color: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 14px;
+    }}
+    .box-title {{
+      font-size: 13px;
+      font-weight: 600;
+      color: #58a6ff;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }}
+    .box-desc {{
+      font-size: 12px;
+      color: #8b949e;
+      line-height: 1.4;
+    }}
+    .hint-container {{
+      background-color: rgba(56, 189, 248, 0.08);
+      border-left: 3px solid #38bdf8;
+      border-radius: 0 6px 6px 0;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: #a5d6ff;
+      line-height: 1.5;
+      margin-top: 20px;
+    }}
+    code {{
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      color: #79c0ff;
+      background-color: rgba(110, 118, 129, 0.4);
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-size: 12px;
+    }}
+  </style>
+</head>
+<body>
+  <div class="blueprint-card">
+    <div class="blueprint-header">
+      <div style="font-size: 28px;">🏛️</div>
+      <div class="header-text">
+        <h2>Vista Arquitectónica & Blueprint</h2>
+        <p>Espacio de trabajo: <strong>{project_name}</strong></p>
+      </div>
+    </div>
+
+    <p style="font-size: 13px; color: #c9d1d9; line-height: 1.5; margin-bottom: 16px;">
+      No se ha generado aún un prototipo visual interactivo (<code>visual.html</code>) ni se detectaron diagramas Mermaid embebidos en la documentación (<code>README.md</code>, <code>odd/tasks/*.md</code>, <code>docs/**/*.md</code>).
+    </p>
+
+    <div class="grid">
+      <div class="box">
+        <div class="box-title"><span>📜</span> Gobernanza & Specs</div>
+        <div class="box-desc">Auditoría atómica, constitución del proyecto y especificaciones técnicas.</div>
+      </div>
+      <div class="box">
+        <div class="box-title"><span>⚡</span> Flujo ODD & Slices</div>
+        <div class="box-desc">Bitácoras en <code>odd/tasks/</code> con límites controlados de ~400 LOC.</div>
+      </div>
+      <div class="box">
+        <div class="box-title"><span>🛡️</span> Quality Gates & TDD</div>
+        <div class="box-desc">Verificación Reproduction-First en terminal antes de deploy.</div>
+      </div>
+    </div>
+
+    <div class="hint-container">
+      <strong>💡 Cómo visualizar diagramas automáticamente:</strong><br>
+      Agrega bloques <code>```mermaid</code> a cualquier archivo Markdown de tu proyecto (como <code>README.md</code> o bitácoras en <code>odd/tasks/</code>), o genera un prototipo <code>visual.html</code> durante la sesión de elicitación. El Cockpit lo detectará y renderizará en tiempo real.
+    </div>
+  </div>
+</body>
+</html>"""
+
     def serve_visual(self) -> None:
         if self.active_session_dir:
             vis_file = self.active_session_dir / "visual.html"
-            if vis_file.exists():
+            if vis_file.is_file():
                 content = vis_file.read_bytes()
-                self.send_response(200)
-                self.send_header("Content-Type", "text/html; charset=utf-8")
-                self.send_header("Content-Length", str(len(content)))
-                self.end_headers()
-                self.wfile.write(content)
+                self._send_html(content)
                 return
 
-        placeholder = (
-            "<!DOCTYPE html><html><body style='font-family:sans-serif;color:#888;padding:40px;text-align:center;'>"
-            "<h3>No visual prototype or diagram generated yet.</h3>"
-            "<p>When an agent generates visual.html or a Mermaid diagram, it will render here live.</p>"
-            "</body></html>"
-        ).encode("utf-8")
-        self.send_response(200)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
-        self.send_header("Content-Length", str(len(placeholder)))
-        self.end_headers()
-        self.wfile.write(placeholder)
+        root_vis = self.project_root / "visual.html"
+        if root_vis.is_file():
+            content = root_vis.read_bytes()
+            self._send_html(content)
+            return
+
+        # Scan Markdown files for Mermaid diagrams
+        diagrams: List[Dict[str, str]] = []
+        md_candidates: List[Path] = []
+        readme = self.project_root / "README.md"
+        if readme.is_file():
+            md_candidates.append(readme)
+
+        odd_tasks = self.project_root / "odd" / "tasks"
+        if odd_tasks.is_dir():
+            md_candidates.extend(sorted(odd_tasks.glob("*.md")))
+
+        docs_dir = self.project_root / "docs"
+        if docs_dir.is_dir():
+            md_candidates.extend(sorted(docs_dir.glob("**/*.md")))
+
+        mermaid_pattern = re.compile(r"```mermaid\s*\n(.*?)\n```", re.DOTALL)
+        for md_path in md_candidates:
+            try:
+                rel = md_path.relative_to(self.project_root).as_posix()
+                text = md_path.read_text(encoding="utf-8", errors="replace")
+                for match in mermaid_pattern.finditer(text):
+                    code = match.group(1).strip()
+                    if code:
+                        diagrams.append({"source": rel, "code": code})
+            except Exception:
+                continue
+
+        if diagrams:
+            html_content = self._render_mermaid_page(diagrams)
+            self._send_html(html_content.encode("utf-8"))
+            return
+
+        # Fallback architecture blueprint
+        html_content = self._render_blueprint_page()
+        self._send_html(html_content.encode("utf-8"))
 
     def serve_api_status(self) -> None:
         # Load or refresh active session state
@@ -392,49 +725,58 @@ class CockpitHTTPHandler(http.server.BaseHTTPRequestHandler):
         if self.active_session_dir and (self.active_session_dir / "state.json").exists():
             session_state = self.session_manager.read_json(self.active_session_dir / "state.json")
         else:
-            # Fallback mock session for visual preview
             session_state = {
-                "topic": "q-agent Default Workspace",
-                "doc": "docs/architecture-design.md",
-                "status": "ready",
-                "questions": [
-                    {
-                        "id": "q1",
-                        "title": "Aislamiento de Entorno",
-                        "question": "¿Deseás forzar Git Worktrees en el directorio hermano '../{repo}-worktrees/' para aislar los agentes?",
-                        "recommendation": "Recomendado: Sí, evita colisiones de checkout en tu editor principal.",
-                        "status": "unanswered",
-                    },
-                    {
-                        "id": "q2",
-                        "title": "Estrategia TDD",
-                        "question": "¿El pipeline debe rechazar cualquier implementación sin un test en ROJO confirmado?",
-                        "recommendation": "Recomendado: Sí, Reproduction-First previene alucinaciones y vibe-coding.",
-                        "status": "unanswered",
-                    },
-                ],
-                "gates": {
-                    "P03_metaorchestration": {"status": "approved", "updated_at": "2026-09-18T14:00:00Z", "notes": "Dual Engine validado"},
-                    "P04_scope_freeze": {"status": "pending", "updated_at": None, "notes": "Esperando elicitation"},
-                    "P08_deploy_gate": {"status": "pending", "updated_at": None, "notes": "Pendiente de TDD"},
-                },
+                "topic": "q-agent Workspace",
+                "status": "idle",
+                "questions": [],
+                "gates": {},
             }
 
         git_info = ProjectScanner.scan_git_info(self.project_root)
         tasks = ProjectScanner.scan_tasks(self.project_root)
         artifacts = ProjectScanner.scan_artifacts(self.project_root)
+        project_version = ProjectScanner.get_project_version(self.project_root)
+
+        # Detect active vs idle:
+        # If no active interview questions and no in-progress tasks, status = "idle"
+        unanswered_questions = [
+            q for q in session_state.get("questions", [])
+            if q.get("status") not in ("answered", "resolved")
+        ]
+        in_progress_tasks = [
+            t for t in tasks
+            if t.get("status") == "in_progress"
+        ]
+
+        if not unanswered_questions and not in_progress_tasks:
+            project_status = "idle"
+            active_phase = None
+        else:
+            project_status = "active"
+            if unanswered_questions:
+                active_phase = session_state.get("phase") or "P04"
+            else:
+                active_phase = session_state.get("phase") or "P08"
+
+        has_visual = bool(
+            (self.active_session_dir and (self.active_session_dir / "visual.html").exists())
+            or (self.project_root / "visual.html").exists()
+        )
 
         payload = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "project": {
                 "name": self.project_root.name,
                 "path": str(self.project_root),
+                "version": project_version,
+                "status": project_status,
+                "active_phase": active_phase,
                 "git": git_info,
             },
             "session": session_state,
             "tasks": tasks,
             "artifacts": artifacts,
-            "has_visual": bool(self.active_session_dir and (self.active_session_dir / "visual.html").exists()),
+            "has_visual": has_visual,
         }
 
         self.send_json(payload)

@@ -161,6 +161,114 @@ class TestCockpitSecurity(unittest.TestCase):
             self.assertIn("total_loc", data["stats"])
             self.assertIn("files_changed", data["stats"])
 
+    def test_status_api_idle_mode_and_version(self):
+        url = f"http://127.0.0.1:{self.port}/api/status"
+        with urllib.request.urlopen(url) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+            self.assertIn("project", data)
+            self.assertEqual(data["project"]["status"], "idle")
+            self.assertIsNone(data["project"]["active_phase"])
+            self.assertEqual(data["tasks"], [])
+            self.assertIn("version", data["project"])
+
+    def test_serve_visual_blueprint_fallback(self):
+        url = f"http://127.0.0.1:{self.port}/visual"
+        with urllib.request.urlopen(url) as resp:
+            self.assertEqual(resp.status, 200)
+            html_text = resp.read().decode("utf-8")
+            self.assertIn("Blueprint de Arquitectura", html_text)
+            self.assertIn("Vista Arquitectónica", html_text)
+
+    def test_serve_visual_mermaid_rendering(self):
+        readme = self.project_root / "README.md"
+        readme.write_text("# Project\n```mermaid\ngraph TD;\nA-->B;\n```\n", encoding="utf-8")
+        try:
+            url = f"http://127.0.0.1:{self.port}/visual"
+            with urllib.request.urlopen(url) as resp:
+                self.assertEqual(resp.status, 200)
+                html_text = resp.read().decode("utf-8")
+                self.assertIn("mermaid", html_text.lower())
+                self.assertIn("A--&gt;B", html_text)
+        finally:
+            if readme.exists():
+                readme.unlink()
+
+
+class TestCockpitScanner(unittest.TestCase):
+    def test_scan_tasks_empty(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_root = Path(tmp_dir)
+            tasks = q_cockpit.ProjectScanner.scan_tasks(tmp_root)
+            self.assertEqual(tasks, [], "Empty directory must return empty task list [] without fake mocks")
+
+    def test_scan_tasks_with_odd_bitacora(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_root = Path(tmp_dir)
+            odd_tasks_dir = tmp_root / "odd" / "tasks"
+            odd_tasks_dir.mkdir(parents=True)
+            task_file = odd_tasks_dir / "cockpit-test.md"
+            task_file.write_text(
+                "# Bitácora\n"
+                "- [ ] TASK-01 Initial setup\n"
+                "- [~] TASK-02 In progress feature\n"
+                "- [x] TASK-03 Completed task (Commit: abc1234)\n",
+                encoding="utf-8"
+            )
+            tasks = q_cockpit.ProjectScanner.scan_tasks(tmp_root)
+            self.assertEqual(len(tasks), 3)
+            self.assertEqual(tasks[0]["task_id"], "TASK-01")
+            self.assertEqual(tasks[0]["status"], "todo")
+            self.assertEqual(tasks[1]["task_id"], "TASK-02")
+            self.assertEqual(tasks[1]["status"], "in_progress")
+            self.assertEqual(tasks[2]["task_id"], "TASK-03")
+            self.assertEqual(tasks[2]["status"], "done")
+            self.assertEqual(tasks[2]["commit"], "abc1234")
+
+    def test_scan_artifacts(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_root = Path(tmp_dir)
+            (tmp_root / "CONSTITUTION.md").write_text("# Constitution", encoding="utf-8")
+            (tmp_root / "README.md").write_text("# Readme", encoding="utf-8")
+            (tmp_root / "SKILL.md").write_text("# Skill", encoding="utf-8")
+            (tmp_root / "CHANGELOG.md").write_text("# Changelog", encoding="utf-8")
+
+            ref_dir = tmp_root / "references"
+            ref_dir.mkdir(parents=True)
+            (ref_dir / "audit-manifest.yml").write_text("manifest: 1.0", encoding="utf-8")
+
+            odd_tasks_dir = tmp_root / "odd" / "tasks"
+            odd_tasks_dir.mkdir(parents=True)
+            (odd_tasks_dir / "feature-real.md").write_text("# Feature Real", encoding="utf-8")
+
+            audit_dir = tmp_root / "audit"
+            audit_dir.mkdir(parents=True)
+            (audit_dir / "A01-arch.md").write_text("# Audit A01", encoding="utf-8")
+
+            docs_dir = tmp_root / "docs" / "architecture"
+            docs_dir.mkdir(parents=True)
+            (docs_dir / "adr-001.md").write_text("# ADR 001", encoding="utf-8")
+
+            artifacts = q_cockpit.ProjectScanner.scan_artifacts(tmp_root)
+            paths = [a["path"] for a in artifacts]
+
+            self.assertIn("CONSTITUTION.md", paths)
+            self.assertIn("README.md", paths)
+            self.assertIn("SKILL.md", paths)
+            self.assertIn("CHANGELOG.md", paths)
+            self.assertIn("references/audit-manifest.yml", paths)
+            self.assertIn("odd/tasks/feature-real.md", paths)
+            self.assertIn("audit/A01-arch.md", paths)
+            self.assertIn("docs/architecture/adr-001.md", paths)
+
+            for art in artifacts:
+                self.assertIn("name", art)
+                self.assertIn("path", art)
+                self.assertIn("category", art)
+                self.assertIn("size_bytes", art)
+                self.assertIn("last_modified", art)
+                self.assertGreater(art["size_bytes"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -161,6 +161,231 @@
       100% { opacity: 1; }
     }
 
+    /* Status Badge */
+    .status-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 12px;
+      font-family: var(--font-mono);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .status-badge.active {
+      background-color: var(--success-subtle);
+      color: var(--success-bright);
+      border: 1px solid var(--success-border);
+    }
+    .status-badge.idle {
+      background-color: var(--surface-elevated);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    /* Idle Kanban View */
+    .idle-container {
+      background-color: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .idle-banner {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background-color: var(--surface-elevated);
+      border-radius: 8px;
+      padding: 16px 20px;
+      border: 1px solid var(--border);
+    }
+    .idle-icon {
+      font-size: 32px;
+    }
+    .idle-content h4 {
+      font-size: 15px;
+      color: var(--text-bright);
+      margin-bottom: 4px;
+    }
+    .idle-content p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .idle-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 900px) {
+      .idle-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .idle-panel {
+      background-color: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .idle-panel-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-bright);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .recent-commit-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border-muted);
+      font-size: 12px;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+    .recent-commit-item:hover {
+      background-color: var(--surface);
+    }
+    .recent-commit-item:last-child {
+      border-bottom: none;
+    }
+    .commit-header-line {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .quick-action-item {
+      padding: 8px 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Tab 4: Artifacts Explorer */
+    #tab-artifacts {
+      flex-direction: row;
+      background: var(--bg);
+    }
+    .artifacts-sidebar {
+      width: 360px;
+      border-right: 1px solid var(--border);
+      background-color: var(--surface);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .artifacts-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .artifacts-list {
+      padding: 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+    .artifact-card {
+      background-color: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .artifact-card:hover, .artifact-card.active {
+      border-color: var(--accent);
+      background-color: rgba(88, 166, 255, 0.08);
+    }
+    .artifact-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-bright);
+      font-family: var(--font-mono);
+      word-break: break-all;
+    }
+    .artifact-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .artifact-preview-pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background-color: #0b0e14;
+    }
+    .artifact-preview-header {
+      padding: 12px 20px;
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+    }
+    .artifact-preview-content {
+      flex: 1;
+      overflow: auto;
+      padding: 20px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .artifacts-quick-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .artifact-chip {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .artifact-chip:hover {
+      border-color: var(--accent);
+      color: #fff;
+    }
+
     /* Main Container */
     main {
       flex: 1;
@@ -715,11 +940,16 @@
     <div class="logo-group">
       <span class="badge-tag">q-cockpit</span>
       <span class="project-name" id="proj-title">Cargando proyecto...</span>
+      <span class="badge-tag" id="proj-version" style="color:var(--text-muted); font-size:10px;">v2.5.0</span>
+      <span id="proj-status-badge" class="status-badge idle">⚪ EN REPOSO (IDLE)</span>
     </div>
 
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('grill')">💬 Socratic Grill</button>
       <button class="tab-btn" onclick="switchTab('cockpit')">🚀 Mission Cockpit</button>
+      <button class="tab-btn" onclick="switchTab('artifacts')">
+        📁 Artefactos <span class="tab-count-badge" id="artifacts-tab-badge">0</span>
+      </button>
       <button class="tab-btn" onclick="switchTab('diff')">
         🔍 Code & Diff <span class="tab-count-badge" id="diff-tab-badge">0 LOC</span>
       </button>
@@ -731,6 +961,7 @@
       </span>
       <span>•</span>
       <span><span id="branch-dot" class="status-dot"></span> <strong id="git-branch">main</strong></span>
+      <span id="git-commit-badge" class="commit-chip" style="margin-left: 2px;">🔖 ...</span>
       <span>•</span>
       <span id="session-topic" style="color:#fff;">Topic: Inicial</span>
     </div>
@@ -765,17 +996,12 @@
     <!-- TAB 2: SWARM COCKPIT & KANBAN -->
     <div id="tab-cockpit" class="tab-panel">
       <!-- Phases Progress -->
-      <div class="phase-track">
-        <div class="phase-pill done">P01 Discovery</div>
-        <div class="phase-pill done">P02 Hexagonal</div>
-        <div class="phase-pill done">P03 Meta-Gate</div>
-        <div class="phase-pill active">P04 Scope Freeze</div>
-        <div class="phase-pill">P05 BDD Spec</div>
-        <div class="phase-pill">P06 Design</div>
-        <div class="phase-pill">P07 Tasks Matrix</div>
-        <div class="phase-pill">P08 Wave Slices</div>
-        <div class="phase-pill">P09 CAB-RP Audit</div>
-        <div class="phase-pill">P10 Ops Bridge</div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:12px; color:var(--text-muted); font-weight:600;">FLUJO DEL PIPELINE Q-AGENT</span>
+        <span id="phase-status-badge" class="badge-tag">⚪ Proyecto en Reposo</span>
+      </div>
+      <div class="phase-track" id="phase-track">
+        <!-- Rendered dynamically by JS -->
       </div>
 
       <!-- Human in the loop Gates -->
@@ -786,10 +1012,18 @@
         </div>
       </div>
 
-      <!-- Kanban Tasks -->
+      <!-- Kanban Tasks & Idle Container -->
       <div>
-        <h3 style="font-size: 14px; margin-bottom: 10px; color:#fff;">Matriz de Tareas TDD & Wave Execution</h3>
-        <div class="kanban-board">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h3 style="font-size: 14px; color:#fff;">Matriz de Tareas TDD & Wave Execution</h3>
+          <span id="kanban-source-badge" style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono);"></span>
+        </div>
+
+        <div id="kanban-idle-view" class="idle-container" style="display:none;">
+          <!-- Populated when tasks.length === 0 -->
+        </div>
+
+        <div class="kanban-board" id="kanban-active-board">
           <div class="kanban-col">
             <div class="col-header">
               <span>📋 Por Hacer (Backlog)</span>
@@ -811,6 +1045,17 @@
             </div>
             <div class="col-cards" id="col-done"></div>
           </div>
+        </div>
+      </div>
+
+      <!-- Real Artifacts Quick Panel in Mission Cockpit -->
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h3 style="font-size: 14px; color:#fff;">Artefactos Clave del Proyecto</h3>
+          <button class="btn" onclick="switchTab('artifacts')">Ver todos los artefactos →</button>
+        </div>
+        <div class="artifacts-quick-grid" id="cockpit-artifacts-quick">
+          <!-- Rendered by JS -->
         </div>
       </div>
     </div>
@@ -836,6 +1081,39 @@
         </div>
         <div class="diff-content-area" id="diff-content">
           <div style="color:var(--text-muted); padding:30px; text-align:center;">Cargando diff...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: ARTIFACTS EXPLORER -->
+    <div id="tab-artifacts" class="tab-panel">
+      <div class="artifacts-sidebar">
+        <div class="artifacts-header">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="font-size: 14px; color:#fff;">Artefactos Detectados</h3>
+            <span class="tab-count-badge" id="artifacts-total-count">0</span>
+          </div>
+          <input type="text" id="artifacts-filter" placeholder="Filtrar artefactos..." oninput="filterArtifacts(this.value)"
+                 style="background:var(--bg); border:1px solid var(--border); color:#fff; padding:6px 10px; border-radius:6px; font-size:12px;" />
+        </div>
+        <div class="artifacts-list" id="artifacts-list-container">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+      <div class="artifact-preview-pane">
+        <div class="artifact-preview-header">
+          <div>
+            <strong id="preview-filename" style="color:var(--text-bright);">Selecciona un artefacto</strong>
+            <span id="preview-meta" style="font-size:11px; color:var(--text-muted); margin-left:8px;"></span>
+          </div>
+          <button class="btn btn-primary" id="btn-modal-preview" style="display:none;" onclick="expandCurrentArtifactModal()">
+            Ampliar en Modal ↗
+          </button>
+        </div>
+        <div class="artifact-preview-content" id="artifact-preview-content">
+          <div style="color:var(--text-muted); padding:40px; text-align:center;">
+            Selecciona cualquier artefacto de la lista izquierda para previsualizarlo en vivo.
+          </div>
         </div>
       </div>
     </div>
@@ -869,7 +1147,9 @@
     let currentTab = 'grill';
     let stagedAnswers = {};
     let currentTasks = [];
+    let currentArtifacts = [];
     let currentDiffStats = null;
+    let selectedArtifact = null;
 
     function switchTab(tab) {
       currentTab = tab;
@@ -882,10 +1162,58 @@
       } else if (tab === 'cockpit') {
         document.querySelector('.tabs button:nth-child(2)').classList.add('active');
         document.getElementById('tab-cockpit').classList.add('active');
-      } else if (tab === 'diff') {
+      } else if (tab === 'artifacts') {
         document.querySelector('.tabs button:nth-child(3)').classList.add('active');
+        document.getElementById('tab-artifacts').classList.add('active');
+      } else if (tab === 'diff') {
+        document.querySelector('.tabs button:nth-child(4)').classList.add('active');
         document.getElementById('tab-diff').classList.add('active');
         loadDiff();
+      }
+    }
+
+    const PIPELINE_PHASES = [
+      { id: "P01", label: "P01 Discovery" },
+      { id: "P02", label: "P02 Hexagonal" },
+      { id: "P03", label: "P03 Meta-Gate" },
+      { id: "P04", label: "P04 Scope Freeze" },
+      { id: "P05", label: "P05 BDD Spec" },
+      { id: "P06", label: "P06 Design" },
+      { id: "P07", label: "P07 Tasks Matrix" },
+      { id: "P08", label: "P08 Wave Slices" },
+      { id: "P09", label: "P09 CAB-RP Audit" },
+      { id: "P10", label: "P10 Ops Bridge" },
+    ];
+
+    function renderPipeline(project) {
+      const track = document.getElementById('phase-track');
+      const badge = document.getElementById('phase-status-badge');
+      if (!track || !badge) return;
+      const activePhase = project.active_phase;
+      const isIdle = project.status === 'idle' || !activePhase;
+
+      if (isIdle) {
+        badge.textContent = '⚪ Proyecto en Reposo';
+        badge.className = 'badge-tag';
+        track.innerHTML = PIPELINE_PHASES.map(p => `
+          <div class="phase-pill" title="${p.label} (En reposo)">${p.label}</div>
+        `).join('');
+      } else {
+        badge.textContent = `🟢 En Ejecución: ${activePhase}`;
+        badge.className = 'badge-tag';
+        badge.style.color = 'var(--accent)';
+        
+        let foundActive = false;
+        track.innerHTML = PIPELINE_PHASES.map(p => {
+          let cls = 'phase-pill';
+          if (p.id === activePhase) {
+            cls += ' active';
+            foundActive = true;
+          } else if (!foundActive) {
+            cls += ' done';
+          }
+          return `<div class="${cls}" title="${p.label}">${p.label}</div>`;
+        }).join('');
       }
     }
 
@@ -909,8 +1237,32 @@
     function renderDashboard(data) {
       // Navbar & Meta
       document.getElementById('proj-title').textContent = data.project.name;
-      document.getElementById('git-branch').textContent = data.project.git.branch;
+      document.getElementById('proj-version').textContent = `v${data.project.version || '2.5.0'}`;
       
+      const statusBadge = document.getElementById('proj-status-badge');
+      if (data.project.status === 'active') {
+        statusBadge.className = 'status-badge active';
+        statusBadge.textContent = '🟢 ACTIVO';
+      } else {
+        statusBadge.className = 'status-badge idle';
+        statusBadge.textContent = '⚪ EN REPOSO (IDLE)';
+      }
+
+      document.getElementById('git-branch').textContent = data.project.git.branch;
+      const latestCommit = (data.project.git.recent_commits && data.project.git.recent_commits[0])
+        ? data.project.git.recent_commits[0].hash
+        : (data.project.git.commit_sha || '');
+      const commitBadge = document.getElementById('git-commit-badge');
+      if (latestCommit && latestCommit !== 'unknown') {
+        commitBadge.textContent = `🔖 ${latestCommit}`;
+        commitBadge.style.display = 'inline-block';
+        if (data.project.git.recent_commits && data.project.git.recent_commits[0]) {
+          commitBadge.title = `${data.project.git.recent_commits[0].message} (${data.project.git.recent_commits[0].relative})`;
+        }
+      } else {
+        commitBadge.style.display = 'none';
+      }
+
       const dot = document.getElementById('branch-dot');
       if (data.project.git.clean) {
         dot.className = 'status-dot';
@@ -924,15 +1276,32 @@
       const sliceLoc = data.project.git.slice_loc || 0;
       updateSliceBudget(sliceLoc);
 
+      // Visual Status
+      const visStatus = document.getElementById('visual-status');
+      if (data.has_visual) {
+        visStatus.textContent = 'visual.html';
+        visStatus.style.color = 'var(--success-bright)';
+      } else {
+        visStatus.textContent = 'Mermaid / Architecture';
+        visStatus.style.color = 'var(--accent)';
+      }
+
       // Tab 1: Grill Questions
       renderQuestions(data.session.questions || []);
+
+      // Tab 2: Dynamic Pipeline
+      renderPipeline(data.project);
 
       // Tab 2: Gates
       renderGates(data.session.gates || {});
 
-      // Tab 2: Kanban Tasks
+      // Tab 2: Kanban Tasks or Idle State
       currentTasks = data.tasks || [];
-      renderKanban(currentTasks);
+      renderKanban(currentTasks, data.project);
+
+      // Tab 4: Artifacts & Cockpit Quick Panel
+      currentArtifacts = data.artifacts || [];
+      renderArtifacts(currentArtifacts);
     }
 
     function updateSliceBudget(loc) {
@@ -1075,7 +1444,84 @@
       }
     }
 
-    function renderKanban(tasks) {
+    function renderKanban(tasks, project) {
+      const idleView = document.getElementById('kanban-idle-view');
+      const boardView = document.getElementById('kanban-active-board');
+      const sourceBadge = document.getElementById('kanban-source-badge');
+
+      if (!tasks || tasks.length === 0) {
+        if (boardView) boardView.style.display = 'none';
+        if (idleView) {
+          idleView.style.display = 'flex';
+          const commits = (project && project.git && project.git.recent_commits) || [];
+          const commitsHtml = commits.length ? commits.map(c => `
+            <div class="recent-commit-item">
+              <div class="commit-header-line">
+                <span class="commit-chip">🔖 ${escapeHtml(c.hash)}</span>
+                <span style="color:var(--text-muted);">${escapeHtml(c.relative)}</span>
+              </div>
+              <div style="color:var(--text-bright); font-weight:500;">${escapeHtml(c.message)}</div>
+              <div style="color:var(--text-muted); font-size:11px;">Autor: ${escapeHtml(c.author)}</div>
+            </div>
+          `).join('') : '<div style="color:var(--text-muted); font-size:12px; padding:10px;">Sin historial de commits reciente.</div>';
+
+          idleView.innerHTML = `
+            <div class="idle-banner">
+              <div class="idle-icon">☕</div>
+              <div class="idle-content">
+                <h4>Proyecto en Reposo (Idle State)</h4>
+                <p>📌 No hay tareas activas en este proyecto (sin bitácoras en <code>odd/tasks/</code> ni <code>tasks.md</code>).</p>
+              </div>
+            </div>
+
+            <div class="idle-grid">
+              <div class="idle-panel">
+                <div class="idle-panel-title">
+                  <span>🕒</span>
+                  <span>Últimos Commits Realizados</span>
+                </div>
+                <div style="display:flex; flex-direction:column; overflow-y:auto; max-height:260px;">
+                  ${commitsHtml}
+                </div>
+              </div>
+
+              <div class="idle-panel">
+                <div class="idle-panel-title">
+                  <span>🚀</span>
+                  <span>Acciones Rápidas</span>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                  <p style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">
+                    Inicia una nueva tarea creando una bitácora ODD o ejecutando el agente:
+                  </p>
+                  <div class="quick-action-item">
+                    <span>📝</span> <code>odd/tasks/&lt;feature-name&gt;.md</code>
+                  </div>
+                  <div class="quick-action-item">
+                    <span>💬</span> <code>python tools/q-cockpit/q_cockpit.py new --topic "Mi Feature"</code>
+                  </div>
+                  <div class="quick-action-item">
+                    <span>🧪</span> <code>python -m unittest discover -s tests -v</code>
+                  </div>
+                  <button class="btn btn-primary" style="margin-top:8px; justify-content:center;" onclick="switchTab('artifacts')">
+                    Explorar Artefactos del Proyecto →
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        if (sourceBadge) sourceBadge.textContent = 'Sin tareas activas';
+        document.getElementById('count-todo').textContent = '0';
+        document.getElementById('count-in_progress').textContent = '0';
+        document.getElementById('count-done').textContent = '0';
+        return;
+      }
+
+      if (boardView) boardView.style.display = 'grid';
+      if (idleView) idleView.style.display = 'none';
+      if (sourceBadge) sourceBadge.textContent = `${tasks.length} tarea(s) cargada(s)`;
+
       const todoEl = document.getElementById('col-todo');
       const inProgEl = document.getElementById('col-in_progress');
       const doneEl = document.getElementById('col-done');
@@ -1086,7 +1532,7 @@
 
       let counts = { todo: 0, in_progress: 0, done: 0 };
 
-      tasks.forEach((t, index) => {
+      tasks.forEach((t) => {
         const status = t.status || 'todo';
         if (counts[status] !== undefined) counts[status]++;
 
@@ -1131,6 +1577,123 @@
       document.getElementById('count-todo').textContent = counts.todo;
       document.getElementById('count-in_progress').textContent = counts.in_progress;
       document.getElementById('count-done').textContent = counts.done;
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes || bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    function renderArtifacts(artifacts) {
+      document.getElementById('artifacts-tab-badge').textContent = artifacts.length;
+      const totalCountEl = document.getElementById('artifacts-total-count');
+      if (totalCountEl) totalCountEl.textContent = `${artifacts.length} archivos`;
+
+      // Quick artifacts in Tab 2 (Mission Cockpit)
+      const quickContainer = document.getElementById('cockpit-artifacts-quick');
+      if (quickContainer) {
+        if (!artifacts.length) {
+          quickContainer.innerHTML = '<div style="color:var(--text-muted); font-size:12px;">No se detectaron artefactos.</div>';
+        } else {
+          quickContainer.innerHTML = artifacts.slice(0, 10).map(a => `
+            <div class="artifact-chip" onclick="previewArtifact('${escapeHtml(a.path)}')" title="Clic para previsualizar">
+              <span>📄</span>
+              <span>${escapeHtml(a.name)}</span>
+              <span style="color:var(--text-muted); font-size:10px;">(${formatBytes(a.size_bytes)})</span>
+            </div>
+          `).join('');
+        }
+      }
+
+      renderArtifactsList(artifacts);
+    }
+
+    function renderArtifactsList(artifacts) {
+      const container = document.getElementById('artifacts-list-container');
+      if (!container) return;
+      if (!artifacts.length) {
+        container.innerHTML = '<div style="color:var(--text-muted); font-size:12px; padding:20px; text-align:center;">No se encontraron artefactos en este proyecto.</div>';
+        return;
+      }
+
+      container.innerHTML = artifacts.map(a => `
+        <div class="artifact-card ${selectedArtifact && selectedArtifact.path === a.path ? 'active' : ''}"
+             onclick="selectArtifactForPreview('${escapeHtml(a.path)}')">
+          <div class="artifact-name">${escapeHtml(a.name)}</div>
+          <div class="artifact-meta">
+            <span class="badge-tag" style="font-size:10px; padding:1px 6px;">${escapeHtml(a.category)}</span>
+            <span>${formatBytes(a.size_bytes)}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterArtifacts(term) {
+      const query = (term || '').toLowerCase().trim();
+      const filtered = currentArtifacts.filter(a =>
+        a.name.toLowerCase().includes(query) ||
+        a.category.toLowerCase().includes(query)
+      );
+      renderArtifactsList(filtered);
+    }
+
+    async function selectArtifactForPreview(relPath) {
+      selectedArtifact = currentArtifacts.find(a => a.path === relPath) || { path: relPath, name: relPath, size_bytes: 0, category: 'Archivo' };
+      renderArtifactsList(currentArtifacts);
+
+      document.getElementById('preview-filename').textContent = selectedArtifact.name;
+      document.getElementById('preview-meta').textContent = `Categoría: ${selectedArtifact.category} · Tamaño: ${formatBytes(selectedArtifact.size_bytes || 0)}`;
+      document.getElementById('btn-modal-preview').style.display = 'inline-flex';
+
+      const previewPane = document.getElementById('artifact-preview-content');
+      previewPane.innerHTML = '<div style="color:var(--text-muted); padding:30px; text-align:center;">Cargando contenido desde /api/file...</div>';
+
+      try {
+        const res = await fetch(`/api/file?path=${encodeURIComponent(relPath)}`);
+        if (!res.ok) {
+          previewPane.innerHTML = `<div style="color:var(--danger-bright); padding:20px;">Error al cargar archivo (HTTP ${res.status})</div>`;
+          return;
+        }
+        const data = await res.json();
+        previewPane.textContent = data.content || '';
+      } catch (err) {
+        previewPane.innerHTML = `<div style="color:var(--danger-bright); padding:20px;">Error de red: ${escapeHtml(err)}</div>`;
+      }
+    }
+
+    function expandCurrentArtifactModal() {
+      if (selectedArtifact) {
+        previewArtifact(selectedArtifact.path);
+      }
+    }
+
+    async function previewArtifact(relPath) {
+      showCustomModal(
+        `Previsualización: ${escapeHtml(relPath)}`,
+        '<div style="color:var(--text-muted); padding:30px; text-align:center;">Cargando contenido desde /api/file...</div>',
+        '<button class="btn btn-primary" onclick="closeModal()">Cerrar</button>'
+      );
+
+      try {
+        const res = await fetch(`/api/file?path=${encodeURIComponent(relPath)}`);
+        if (!res.ok) {
+          document.getElementById('modal-body').innerHTML = `<div style="color:var(--danger-bright); padding:20px;">Error al cargar archivo (HTTP ${res.status})</div>`;
+          return;
+        }
+        const data = await res.json();
+        const content = data.content || '';
+        document.getElementById('modal-body').innerHTML = `
+          <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px; font-family:var(--font-mono);">
+            Ubicación: <code>${escapeHtml(data.path)}</code> (${content.length} caracteres)
+          </div>
+          <pre class="code-block" style="max-height:480px; overflow:auto; white-space:pre-wrap; word-break:break-all; font-size:12px; color:var(--text);">${escapeHtml(content)}</pre>
+        `;
+      } catch (err) {
+        document.getElementById('modal-body').innerHTML = `<div style="color:var(--danger-bright); padding:20px;">Error de red: ${escapeHtml(err)}</div>`;
+      }
     }
 
     function openTaskDetailsModal(task) {
