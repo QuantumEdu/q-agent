@@ -53,6 +53,14 @@ Multi-agent dialectical deliberation engine. Interrogates, stress-tests, and sha
 
 ---
 
+## Authority and pacing
+Load [Human-Scoped Execution Authority](../../references/execution-authority.md).
+Investigate accessible facts only within authorized read/research scope; do not
+probe credentials or turn investigation into installation or artifact writes.
+Reuse settled answers. The human may explicitly delegate bounded design choices;
+record those constraints and settle only those choices. Unresolved product
+decisions still require one focused question and STOP, including autonomous mode.
+
 ## 2. Deliberation Workflow
 
 ### Phase 1: Chart the Decision Tree
@@ -71,9 +79,9 @@ For each open question on the frontier:
 2. The Synthesizer evaluates tradeoffs, eliminates hype or unsubstantiated claims, and formulates the recommended path (`➡️`) along with mandatory mitigations.
 
 ### Phase 4: Interactive Round Presentation
-1. Format all frontier questions of the current round using [`assets/templates/debate-round-template.md`](./assets/templates/debate-round-template.md).
-2. Present the numbered questions with the synthesized recommendation to the user.
-3. **STOP and wait** for the user's answers. Never continue or assume responses.
+1. For unresolved non-delegated decisions, use [`assets/templates/debate-round-template.md`](./assets/templates/debate-round-template.md).
+2. Present one focused question with its material tradeoff; do not reopen answered decisions.
+3. **STOP and wait** for that answer. Explicitly delegated decisions proceed within their bounds; never infer delegation from interaction mode.
 
 ### Phase 5: Tree Reshaping & ADR Crystallization
 1. Incorporate the user's answers to close settled nodes on the tree.
@@ -87,10 +95,10 @@ For each open question on the frontier:
 
 ## 3. Rules & Invariants
 
-- **Facts vs Decisions**: Finding facts is the agent team's job. Deciding tradeoffs is the user's prerogative.
+- **Facts vs Decisions**: Gather authorized facts; settle tradeoffs only when specifically delegated, otherwise ask the human.
 - **No Unexamined Assumptions**: If a dependency or constraint is unverified, assign the Adversary to challenge it before proceeding.
-- **Round Grouping**: Always batch all currently unblocked frontier questions into a single round to minimize turn overhead.
-- **Progressive Persistence**: Create `docs/adr/` and `CONTEXT.md` lazily only when genuine architectural commitments are made.
+- **Question pacing**: One unresolved decision at a time, then STOP. Do not repeat onboarding or permissions for already authorized fact gathering.
+- **Progressive Persistence**: Create `docs/adr/` and `CONTEXT.md` only for genuine commitments and within authorized artifact-write scope.
 
 ---
 

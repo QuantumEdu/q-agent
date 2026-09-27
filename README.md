@@ -115,7 +115,7 @@ q-agent-v02/
 
 ## The 3 Plans
 
-q-agent operates under one of three plans, selected at the start of every cycle:
+q-agent reuses the selected plan and established scope; it asks only when the plan is unresolved:
 
 | Plan | Use case | Pipeline |
 |------|----------|---------|
@@ -155,7 +155,7 @@ P01 Discovery ──► Atomic Waves ───┼── Wave 3: DevOps, Quality 
 
 1. **`supervised` (Default / Recommended):**
    - Autonomous execution on mechanical phases (P06, P07, P08).
-   - Mandatory human-in-the-loop stopping gates at critical architectural points:
+   - Human checks for unresolved architecture/scope or missing operation authority:
      - **Gate P03 (Evolution/ADR):** Validates design tradeoffs before writing specs.
      - **Gate P04 (Scope/Proposal):** User approves IN/OUT scope and caliber classification.
      - **Gate P09 (Compliance/Release):** User approves branch merge into `main`.
@@ -163,7 +163,7 @@ P01 Discovery ──► Atomic Waves ───┼── Wave 3: DevOps, Quality 
    - The agent acts purely as an architectural mentor, guiding phase by phase without modifying code autonomously.
    - *Prompt:* `"Quiero ejecutar el flujo SDD manualmente paso a paso. No implementes nada por tu cuenta. Actúa únicamente como mi Mentor Arquitectónico: indícame en cada turno qué prompt o fase sigue, explícame el objetivo conceptual y entrégame la plantilla con las variables que debo completar. Yo tendré el volante."`
 3. **`autonomous` (CI/CD & Headless):**
-   - End-to-end execution without prompts, ideal for unattended pipelines.
+   - Covered tasks and explicitly delegated decisions proceed without repeated prompts; unresolved choices and separate deploy/merge authority still require human input.
 
 ### 💡 Ready-to-Use Operational Prompts Catalog
 
@@ -243,7 +243,7 @@ flowchart TD
         S2 --> S3{"Paso 3: Gate de Runtime"}:::gate
     end
 
-    S3 -->|"Confirmación del Usuario"| Auto["MODO AUTÓNOMO (Pasos 4 a 7)"]
+    S3 -->|"Autoridad humana vigente"| Auto["MODO AUTÓNOMO (Pasos 4 a 7)"]
 
     subgraph Auto["MODO AUTÓNOMO (Pasos 4 a 7)"]
         S4["Paso 4: Setup Infraestructura (Repo, CLAUDE.md, CONSTITUTION, Issues)"]:::auto --> S5["Paso 5: SDD Pipeline"]:::auto
@@ -304,8 +304,20 @@ Loads `references/plans.md` to configure the exact pipeline for the selected pla
 
 ---
 
+### Execution authority and retrieval activation
+[Human-Scoped Execution Authority](references/execution-authority.md) defines
+initial human evidence, bounded delegated decisions, expiry and revocation.
+Public research within authorized investigation scope needs no repeated consent;
+general reference libraries differ from private project memory. A concrete
+missing fact can trigger minimal retrieval automatically, but never activate a
+disabled provider. Remote operations and deploy/merge need separate authority.
+See the typed activation example in
+[Selective Context Retrieval](references/context-retrieval.md).
+These are configuration/instruction contracts, not a permission loader or live
+provider implementation. No provider is activated by this change.
+
 ### Step 1 — Initial Context (Guided)
-The agent asks questions one at a time:
+Reuse supplied project facts and decisions. Ask one question only for missing information:
 
 **All plans:**
 1. Project / system name
@@ -335,7 +347,7 @@ Multi-agent dialectical debate. Deploys 3 sub-roles internally:
 - **Adversary** — stress-tests risks, edge cases, failure modes
 - **Synthesizer** — arbitrates and produces the recommended decision + ADR
 
-Output: architectural brief with evaluated alternatives. Presented to user for confirmation.
+Output: architectural brief with alternatives. Reuse settled or explicitly delegated decisions; ask only unresolved product choices.
 
 #### 2b. `q-gbrain-assistant` — Historical Knowledge Query (optional, all plans)
 Follow [Selective Context Retrieval](references/context-retrieval.md):
@@ -351,7 +363,8 @@ token enforcement or executing adapters.
 #### 2c. `q-grill-me` — Deep Elicitation (Plan A only)
 A relentless socratic interview to sharpen the plan scope. Surfaces hidden assumptions and trade-offs before any code is written.
 
-All Step 2 outputs are synthesized into an internal `PROJECT_CONTEXT.md` (not delivered to user — used as context for all subsequent steps).
+Keep a compact project index with locators. Load only the excerpts relevant to
+the current phase; do not inject all Step 2 outputs into every subsequent step.
 
 ---
 
@@ -361,7 +374,8 @@ The agent decides and presents:
 - Recommended executor runtime (Codex CLI / Antigravity CLI / OpenCode / Pi)
 - Rationale for the decision
 
-User confirms → **autonomous mode begins**.
+Existing scoped human authority → continue covered work. Autonomous mode changes
+pacing, not permissions; unresolved decisions and deploy/merge authority still block.
 
 #### Model Tier Routing Matrix
 q-agent separates execution by cognitive capability rather than proprietary vendor lock-in:
@@ -378,7 +392,11 @@ q-agent separates execution by cognitive capability rather than proprietary vend
 
 ---
 
-### Step 4 — Infrastructure Setup (Autonomous)
+### Step 4 — Infrastructure Setup (Within Explicit Operation Scope)
+
+Investigation does not authorize installation, repository creation, copying files
+or authenticated GitHub writes. Run only the setup operations the human authorized;
+skip unrelated setup and continue independent local work.
 
 Delegates heavy sub-tasks via `q-delegate-context` (FirstMate pattern) to keep the orchestrator main thread clean.
 
@@ -548,7 +566,7 @@ Surgical CI/CD pipeline repair. Operates only on `git diff` files. Never weakens
 
 ### `q-session-wrap`
 **Step 7c — All plans**
-Ordered session closure. Persists operational memory so the next session starts with full context.
+Ordered session closure. Persists recovery locators and progress; the next task loads only relevant context.
 - Local summary: Goal / Instructions / Discoveries / Accomplished / Next Steps / Relevant Files
 - External persistence: opt-in, scoped and authorized; absence does not block closure
 - SQLite backup: separately opt-in; database existence is not authorization

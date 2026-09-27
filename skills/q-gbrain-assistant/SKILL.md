@@ -19,6 +19,9 @@ Provide an optional specialized gateway to **GBrain**. Load
 [Selective Context Retrieval](../../references/context-retrieval.md) first.
 No GBrain installation is required for q-agent. Confirm configured, available
 and authorized state, project/source scope and aggregate budget before a query.
+Necessary reads run automatically within existing authority, not a new prompt
+for every lookup. Distinguish general-reference tutorials from private-project
+history and apply the appropriate scoped source rules.
 A concrete question goes directly to selective retrieval; show the catalog only
 for an explicit help request. Do not query Engram or SkillVault through this skill.
 The commands below are examples, not a verified adapter: inspect the installed

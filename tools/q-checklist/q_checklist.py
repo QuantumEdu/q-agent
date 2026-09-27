@@ -191,6 +191,7 @@ Se requiere establecer las bases arquitectónicas de {project_name} para garanti
     template = json.loads(template_path.read_text(encoding="utf-8"))
     configuration = json.loads(q_agent_json)
     configuration["context_retrieval"] = template["context_retrieval"]
+    configuration["execution_authority"] = template["execution_authority"]
     (project_root / ".q-agent.json").write_text(
         json.dumps(configuration, indent=2) + "\n", encoding="utf-8"
     )

@@ -137,7 +137,7 @@ Para evitar la saturación de la ventana de contexto (*Lost in the Middle*) y op
 | **C2. Atomic Wave Dispatch** | `prompts/P01b_audit_item.md` & `P01c_strategic_item.md` | Archivos atómicos `A01.md`–`A17.md` y `E01.md`–`E05.md` en olas paralelas | `audit/A{ID}-{slug}.md` y `audit/E{ID}-{slug}.md` |
 | **C3. Compuerta Mecánica (Gate)** | `tools/q-audit-validator/validate_audit.py` | `audit/AUDIT_GAPS.json` + Validación Exit 0 | `python3 tools/q-audit-validator/validate_audit.py --mode manifest --level [0\|1\|2]` |
 | **C4. Agregación Determinista** | `tools/q-audit-aggregator/generate_report.py` | `AUDIT_REPORT.md`, `PLAN_DE_MEJORA.md`, `REMEDIATION_ISSUES.md`, `PROPUESTA_EVOLUTIVA.md` | `python3 tools/q-audit-aggregator/generate_report.py --level [0\|1\|2]` |
-| **C5. Cierre** | `skills/q-session-wrap` | Registro en Engram/SkillVault + Reporte en Chat | Chat del orquestador |
+| **C5. Cierre** | `skills/q-session-wrap` | Local summary + optional authorized stores + chat report | Chat del orquestador |
 
 ### ⛔ Regla Dura de la Compuerta Mecánica (Fase C3):
 - Si `validate_audit.py` retorna código de salida `1` (`RESULT: REJECTED — Audit items are incomplete`):
@@ -172,6 +172,12 @@ Activado mediante `/ops-bridge` o el prompt `prompts/P10_ops_to_odd.md`.
 
 ## Modos de Interacción del Orquestador
 
+Load [Human-Scoped Execution Authority](execution-authority.md).
+Interaction mode changes pacing, never operation authority. Reuse current human
+answers and bounded delegated decisions; stop for unresolved product choices.
+Public research within the approved investigation scope and necessary authorized
+provider reads proceed without a new consent prompt for each lookup.
+
 Configurables en `.q-agent.json` o seleccionables en el Paso 0:
 
 1. **`supervised` (Supervisado por Compuertas — MODO POR DEFECTO):**
@@ -179,10 +185,10 @@ Configurables en `.q-agent.json` o seleccionables en el Paso 0:
      - **Gate P03:** Selección del Motor y validación de Constitución.
      - **Gate P04:** Validación del alcance y Criterios de Aceptación UAC con el usuario.
      - **Gate P07/P09:** Validación de cierre e integración a ramas principales.
-   - En cada compuerta, formula una sola pregunta concisa y espera respuesta.
+   - At each gate, reuse existing scope/decision evidence. Ask one question and STOP only when a decision or authority is missing.
 
 2. **`interactive` (Mentor Didáctico / Pair Programming):**
-   - El agente se detiene en cada paso (P01 al P07), explicando el fundamento conceptual (*Concepts > Code*) y solicitando confirmación para avanzar.
+   - Explain each step as requested; teaching checkpoints do not reopen settled decisions. Continue covered operations, ask only unresolved choices.
 
 3. **`autonomous` (Desatendido / CI Pipeline):**
-   - El agente ejecuta todas las fases de forma autónoma respetando los candados de seguridad y el Terminal Evidence Gate.
+   - Execute only authorized phases and bounded delegated decisions. Stop for unresolved product choices or missing/expired/revoked authority; deploy and merge retain separate human gates.

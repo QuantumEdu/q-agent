@@ -38,6 +38,13 @@ aliases: [agente, /q-agent, iniciar agente, dev agent, orchestrator]
 
 ---
 
+## Execution authority
+Load [Human-Scoped Execution Authority](references/execution-authority.md)
+before selecting a plan or operating tools. Reuse established project, scope and
+answers; ask only missing decisions. Public research within authorized
+investigation scope needs no repeated prompt. Private providers and remote
+operations require their own evidence; autonomy does not create that authority.
+
 ## 🏛️ Estructura de Control del Ciclo (Pasos 0 a 9)
 
 ```text
@@ -50,8 +57,8 @@ Paso 9 / Ops ──► BUCLE DE RETROALIMENTACIÓN (P10 Ops-to-ODD con Reproduct
 
 **Compuertas de Interrupción Humana Válidas:**
 1. Gate de selección de Plan y Requisitos en Pasos 0–1.
-2. Confirmación de Decisión de Motor y Arquitectura en Paso 3.
-3. Validación de Alcance de Historias de Usuario BMAD / UAC en Paso 4.
+2. Unresolved engine/architecture decisions in Step 3, excluding already settled or explicitly delegated choices.
+3. Missing human scope/UAC authority in Step 4; reuse current accepted scope.
 4. Gate de Autorización Humana de Despliegue en Paso 8 (Firma requerida antes de producción).
 4. Cualquier disyuntiva de producto con tradeoffs simétricos reales.
 
@@ -59,7 +66,8 @@ Paso 9 / Ops ──► BUCLE DE RETROALIMENTACIÓN (P10 Ops-to-ODD con Reproduct
 
 ## STEP 0 — Selección de Plan y Onboarding
 
-Presentar y esperar respuesta del usuario (no continuar sin respuesta):
+Reuse an explicitly selected plan or a plan decision the human delegated.
+Only when the plan remains unresolved, ask and STOP using this onboarding prompt:
 
 ```text
 🚀 Bienvenido a q-agent v2.5.2 (Dual Engine, Vertical Slices & Wave Execution)
@@ -77,9 +85,11 @@ Responde A, B, F o C para comenzar.
 
 ## STEP 1 — Contexto Inicial e Intención (1 Pregunta por Turno)
 
-**Verificación Previa Silenciosa:** Comprobar si `gh` está autenticado (`gh auth status`).
+Do not probe GitHub authentication during onboarding. Check an authenticated
+session only for an explicitly authorized GitHub operation and selected session.
 
-**Preguntas Base (Una por turno):**
+**Missing information only (one focused question, then STOP):**
+Reuse answers already supplied; do not replay this checklist for every phase.
 1. ¿Nombre del proyecto o módulo?
 2. ¿Qué problema central resuelve y para quién? (2–3 líneas)
 3. ¿Restricciones conocidas? (Stack, base de datos, integraciones)
@@ -93,15 +103,20 @@ Responde A, B, F o C para comenzar.
 ## STEP 2 — Deliberación, Elicitación y Memorias
 
 ### 2a. Deliberación de Alternativas (`skills/q-deliberate`)
-Invocar `skills/q-deliberate` con el contexto acumulado para contrastar enfoques arquitectónicos antes de codificar.
-Presentar el brief de arquitectura: Decisión, Racional, Mitigaciones y registrar en `ADR.md`.
+Invoke `skills/q-deliberate` only for a real unresolved architectural uncertainty;
+do not replay deliberation for an already accepted design or mechanical task.
+Present the brief with rationale and mitigations. Settle only decisions explicitly
+delegated by the human; ask for unresolved product choices. Write ADRs only within
+authorized artifact scope.
 
 ### 2b. Consulta de Memorias Persistentes (Opcional)
 Load [Selective Context Retrieval](references/context-retrieval.md).
 Do not ask a memory-consultation question for every task. Query only a concrete
 missing fact in the active project. External providers are optional and disabled
-by default; local project evidence is the baseline. Similar-project research
-requires explicit scope approval. GBrain uses its specialized skill; other
+by default; local project evidence is the baseline. Necessary authorized queries
+run automatically without repeated prompts. Public research, general-reference
+libraries and private-project history have distinct scopes. Cross-project private
+research requires explicit scope approval. GBrain uses its specialized skill; other
 providers require independently configured, available, authorized tools.
 
 ### 2c. Elicitación Socrática Profunda (`skills/q-grill-me` — Plan A)
@@ -137,7 +152,8 @@ Ambos motores deben verificar la presencia de `CONSTITUTION.md` en la raíz del 
 5. **Ciberseguridad Mandatoria:** 100% SQL parametrizado, escape contextual anti-XSS activado, cero secrets.
 6. **Anti-Mocking:** Verificación terminal empírica con salida real.
 
-Emitir declaración de gate al usuario y esperar confirmación.
+Emit the gate status. Reuse existing human confirmation or bounded delegation;
+ask and STOP only for unresolved decisions or missing authority.
 
 ---
 

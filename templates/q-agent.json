@@ -12,6 +12,13 @@
       "P09_compliance"
     ]
   },
+  "execution_authority": {
+    "evidence": null,
+    "operations": [],
+    "delegated_decisions": [],
+    "expires_at": null,
+    "revoked": false
+  },
   "workspace": {
     "isolation": "worktree",
     "worktree_pattern": "../{repo}-worktrees/{branch}",
@@ -50,6 +57,8 @@
         "enabled": false,
         "availability": "unknown",
         "authorization": "none",
+        "authorization_evidence": null,
+        "scope_class": "private-project",
         "capabilities": [],
         "project_scope": null
       },
@@ -57,6 +66,8 @@
         "enabled": false,
         "availability": "unknown",
         "authorization": "none",
+        "authorization_evidence": null,
+        "scope_class": "private-project",
         "capabilities": [],
         "project_scope": null
       },
@@ -64,6 +75,8 @@
         "enabled": false,
         "availability": "unknown",
         "authorization": "none",
+        "authorization_evidence": null,
+        "scope_class": "private-project",
         "capabilities": [],
         "project_scope": null
       }

@@ -15,6 +15,13 @@ fecha: "{{YYYY-MM-DD}}"
 
 ---
 
+## Authority precondition
+Load [Human-Scoped Execution Authority](../references/execution-authority.md)
+and [Selective Context Retrieval](../references/context-retrieval.md).
+Engine detection is local inspection, not installation or remote bootstrap.
+Do not inspect ambient GitHub/cloud credentials or authenticated sessions.
+Reuse established scope and decisions; a displayed gate is not a new grant.
+
 ## 1. Protocolo de Detección Automática del Entorno
 
 El agente evaluará de forma determinista la disponibilidad de herramientas en el entorno mediante los siguientes pasos:
@@ -28,8 +35,8 @@ gentle-ai --version 2>/dev/null || echo "GENTLE_AI_NOT_FOUND"
 - **Si el comando no existe o falla:** Activar **MOTOR B (q-agent Standalone ODD)**.
 
 ### Paso 1.2: Sondeo de Capacidades Complementarias
-- **Inspección de CodeGraph:** Verificar si el MCP `codegraph_explore` o la CLI `codegraph` están disponibles. Si `.codegraph/` existe o puede inicializarse, priorizarlo para navegación de código. Si no, operar con `ripgrep` y `fd`.
-- **Inspección de Memoria Persistente:** Si herramientas `mem_*` (Engram) están activas, vincular el proyecto con `mem_current_project` y guardar el estado. Si no, usar archivos Markdown locales como única fuente de verdad.
+- **CodeGraph:** Inspect available local intelligence tools within read scope. Index initialization writes require authorized scope; absent tools do not authorize installation. Otherwise use direct local search.
+- **Memory:** Tool presence does not activate a provider. Use only configured, available, authorized retrieval for a concrete gap; persist locally first. External writes are separate opt-in operations.
 
 ---
 
@@ -37,7 +44,7 @@ gentle-ai --version 2>/dev/null || echo "GENTLE_AI_NOT_FOUND"
 
 ### 🟢 MOTOR A: Gentle-AI Integrated ODD (Modo Ecosistema)
 Se activa cuando el host cuenta con las herramientas de gentle-ai.
-- **Ruta de Bitácora:** `odd/tasks/{{FEATURE_NAME}}.md` y espejo en memoria Engram `odd/{{FEATURE_NAME}}/tasks`.
+- **Ruta de Bitácora:** `odd/tasks/{{FEATURE_NAME}}.md`; optional authorized Engram mirror `odd/{{FEATURE_NAME}}/tasks`.
 - **Revisión de Calidad:** Sujeta al switch de usuario `gentle-ai review mode` (off por defecto; nunca activar sin permiso del usuario).
 - **Herramienta de Exploración:** MCP `codegraph_explore` preferente.
 - **Regla de Ejecución:** Tareas de ~400 líneas, avance orgánico, verificación terminal obligatoria.
@@ -65,7 +72,9 @@ Independientemente del motor seleccionado:
 
 ## 4. Declaración de Gate (Salida Obligatoria al Usuario)
 
-El agente debe emitir un mensaje de confirmación de 2 a 3 líneas antes de proceder a la creación de la bitácora (P04):
+Emit a brief gate status. Existing human authority or explicit bounded decision
+delegation is reused; ask one focused question and STOP only if required scope or
+decision is unresolved. P04 artifact writes need implementation/artifact authority:
 
 ```text
 🏛️ [GATE DE METAORQUESTACIÓN CONFIRMADO]
