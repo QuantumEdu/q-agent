@@ -192,7 +192,7 @@ class ProjectScanner:
                         return str(data["version"])
                 except Exception:
                     pass
-        return "2.5.0"
+        return "2.5.1"
 
     @staticmethod
     def scan_tasks(root: Path) -> List[Dict[str, Any]]:

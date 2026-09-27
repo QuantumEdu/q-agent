@@ -940,7 +940,7 @@
     <div class="logo-group">
       <span class="badge-tag">q-cockpit</span>
       <span class="project-name" id="proj-title">Cargando proyecto...</span>
-      <span class="badge-tag" id="proj-version" style="color:var(--text-muted); font-size:10px;">v2.5.0</span>
+      <span class="badge-tag" id="proj-version" style="color:var(--text-muted); font-size:10px;">v2.5.1</span>
       <span id="proj-status-badge" class="status-badge idle">⚪ EN REPOSO (IDLE)</span>
     </div>
 
@@ -1139,7 +1139,7 @@
   <div class="toast-container" id="toast-container"></div>
 
   <footer>
-    <span>q-cockpit v2.5.0 · Zero-Node Native Python Runtime · Heurística ~400 LOC</span>
+    <span>q-cockpit v2.5.1 · Zero-Node Native Python Runtime · Heurística ~400 LOC</span>
     <span id="last-sync">Sincronizando...</span>
   </footer>
 
@@ -1237,7 +1237,7 @@
     function renderDashboard(data) {
       // Navbar & Meta
       document.getElementById('proj-title').textContent = data.project.name;
-      document.getElementById('proj-version').textContent = `v${data.project.version || '2.5.0'}`;
+      document.getElementById('proj-version').textContent = `v${data.project.version || '2.5.1'}`;
       
       const statusBadge = document.getElementById('proj-status-badge');
       if (data.project.status === 'active') {

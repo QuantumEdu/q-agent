@@ -125,7 +125,7 @@ def build_remediation_plan(cwd: Path, defect_results: list[dict], verdict: str) 
     lines = [
         f"# 🛠️ Plan de Mejora Accionable y Remediación Técnica — {cwd.name}",
         f"",
-        f"> **Framework:** q-agent v2.5.0 — Generación Determinista de Remediación (CAB-RP)  ",
+        f"> **Framework:** q-agent v2.5.1 — Generación Determinista de Remediación (CAB-RP)  ",
         f"> **Fecha:** {now}  ",
         f"> **Veredicto General:** `{verdict}`  ",
         f"> **Objetivo:** Hoja de ruta priorizada para subsanar los defectos y deudas identificados en la auditoría.  ",
@@ -201,7 +201,7 @@ def build_strategic_proposal(cwd: Path, strategic_results: list[dict]) -> str:
     lines = [
         f"# 🚀 Propuesta Estratégica y Hoja de Ruta Evolutiva — {cwd.name}",
         f"",
-        f"> **Framework:** q-agent v2.5.0 — Auditoría de Valor, Innovación y Benchmarking (MAB-PC)  ",
+        f"> **Framework:** q-agent v2.5.1 — Auditoría de Valor, Innovación y Benchmarking (MAB-PC)  ",
         f"> **Fecha:** {now}  ",
         f"> **Objetivo:** Propuesta de evolución arquitectónica, agilidad, GUI/UX, capacidades de dominio y benchmark competitivo.  ",
         f"",
@@ -312,7 +312,7 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
     lines = [
         f"# AUDIT REPORT — {cwd.name}",
         f"",
-        f"> **Framework:** q-agent v2.5.0 — Plan C Atomic Dispatch  ",
+        f"> **Framework:** q-agent v2.5.1 — Plan C Atomic Dispatch  ",
         f"> **Date:** {now}  ",
         f"> **Audit Level:** {level}  ",
         f"> **Defect Items Audited:** {len(defect_results)}  ",

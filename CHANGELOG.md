@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.1] - 2026-09-26
+
+### Added
+- **Cockpit Authenticity Upgrades (`tools/q-cockpit`)**:
+  - **Elimination of Fake Mock Fallback Tasks**: Elimination of fake mock fallback tasks (`q-agent-pipeline`); authentic empty list returned when repository is idle.
+  - **Dynamic Pipeline Phase Pills**: Dynamic pipeline phase pills replacing static HTML mocks (`⚪ Proyecto en Reposo` indicator when idle).
+  - **Authentic Idle State in Kanban Board**: Displays repository's recent Git commits (hash, author, message, relative date), working tree cleanliness, and quick action hints.
+  - **Real Project Artifacts Explorer**: Dedicated drawer & tab scanning and rendering real project documents (`CONSTITUTION.md`, `README.md`, `SKILL.md`, `CHANGELOG.md`, `odd/tasks/*.md`, `audit/*.md`, `references/audit-manifest.yml`) with click-to-preview modal.
+  - **Inferred Visual Diagrams in Socratic Grill**: Automatic discovery of embedded Mermaid diagrams in project Markdown files rendered live with Mermaid.js in dark theme, or structural architecture blueprint when no diagram is present.
+  - **Enriched Header**: Version badge (`v2.5.1`), latest Git commit SHA, branch with status dot, and operational state indicator (`⚪ EN REPOSO (IDLE)` vs `🟢 ACTIVO`).
+
+---
+
 ## [2.5.0] - 2026-09-26
 
 ### Added
