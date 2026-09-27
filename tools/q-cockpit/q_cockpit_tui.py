@@ -173,7 +173,7 @@ class CockpitTUI:
     def render_header(self, width: int) -> List[str]:
         """Render top navbar and global status line."""
         name = self.data.get("project_name", "q-agent")
-        ver = f"v{self.data.get('version', '2.5.2')}"
+        ver = f"v{self.data.get('version', '2.5.3')}"
         branch = self.data["git"].get("branch", "unknown")
         status = self.data.get("status", "idle").upper()
         slice_loc = self.data["git"].get("slice_loc", 0)

@@ -7,17 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [2.5.3] - 2026-09-27
+
 ### Added
-- **Human-Scoped Execution Authority (`references/execution-authority.md`)**:
-  - Formal operation taxonomy (`local-read`, `public-research`, `local-write`, `private-read`, `external-write`, `remote-execute`, `deploy`, `merge`).
-  - Elimination of redundant onboarding prompts: established project context and human decisions are reused across phases rather than replayed.
-  - Prohibition of unconditional credential probing (`gh auth status` removed from general onboarding).
 - **Selective & Optional Context Retrieval (`references/context-retrieval.md` & `templates/q-agent.json`)**:
-  - Local-first baseline: external memory providers (`gbrain`, `engram`, `skillvault`) are strictly optional and disabled by default (`enabled: false`).
+  - Local-first baseline architecture; external memory providers (`gbrain`, `engram`, `skillvault`) are strictly optional and disabled by default (`enabled: false`).
   - Aggregate retrieval budget ceilings (max 3 candidate results, max 6,000 chars, ~1,500 token estimate).
   - Strict scope boundaries distinguishing public web research, general-reference libraries, and private-project memory.
-- **Context Retrieval Test Suite (`tests/test_context_retrieval.py`)**:
-  - 7 unit tests asserting zero-provider baseline defaults, `q_checklist.py` template parity, typed activation contracts, and absence of intrusive probing.
+- **Human-Scoped Execution Authority (`references/execution-authority.md`)**:
+  - Formal operation taxonomy (`local-read`, `public-research`, `local-write`, `private-read`, `external-write`, `remote-execute`, `deploy`, `merge`).
+  - Elimination of redundant onboarding loops: established project context and human decisions are reused across phases rather than replayed.
+  - Prohibition of intrusive credential probing (`gh auth status` removed from general onboarding).
+- **SkillVault Explorer in q-cockpit (`tools/q-cockpit/ui/index.html`)**:
+  - Web UI tab with real-time search, markdown preview modal, copy-to-clipboard button, and disabled alert banner governed by `.q-agent.json`.
+- **Zero-Dependency Native Python Terminal TUI (`tools/q-cockpit/q_cockpit_tui.py`)**:
+  - Pure standard library Python terminal interface with 4 interactive views (Dashboard, Tasks Kanban, Git Commits & Diff, SkillVault) and `just cockpit-tui` recipe.
+- **Context Retrieval & TUI Test Suites**:
+  - 45 unit tests passing across skill integrity, context retrieval guardrails, scanner security, and tools execution.
 
 ---
 
