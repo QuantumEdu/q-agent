@@ -106,7 +106,7 @@ q-agent-v02/
     ├── q-grill-me/                   # Elicitación profunda y socrática (Plan A)
     ├── q-deliberate/                 # Debate dialéctico y cristalización de ADRs
     ├── q-delegate-context/           # Aislamiento en sub-contexto (FirstMate)
-    ├── q-gbrain-assistant/           # Consulta de memoria histórica (Engram/GBrain)
+    ├── q-gbrain-assistant/           # Optional scoped GBrain queries
     ├── q-ci-fixer/                   # Reparación quirúrgica de CI/linters (SwarmForge)
     └── q-session-wrap/               # Cierre ordenado y persistencia de sesión
 ```
@@ -288,7 +288,7 @@ flowchart TD
         S6 --> S7["Paso 7: Cierre y Entrega"]:::auto
         subgraph Closure["Protocolo de Cierre"]
             S7A["7a: P09 CAB-RP Compliance Audit"] --> S7B["7b: Issue Retrospectiva"]
-            S7B --> S7C["7c: q-session-wrap (Engram, SkillVault, SQLite)"]:::skill
+            S7B --> S7C["7c: q-session-wrap (local first, optional providers)"]:::skill
             S7C --> S7D["7d: Reporte Ejecutivo en Chat"]
         end
     end
@@ -338,12 +338,15 @@ Multi-agent dialectical debate. Deploys 3 sub-roles internally:
 Output: architectural brief with evaluated alternatives. Presented to user for confirmation.
 
 #### 2b. `q-gbrain-assistant` — Historical Knowledge Query (optional, all plans)
-Queries 3 knowledge sources in parallel via MCP:
-- **Engram** — previous architectural decisions, similar past projects
-- **GBrain** — accumulated knowledge on stacks and patterns
-- **SkillVault** (`QuantumEdu/kbs`) — skills and prompts used in similar contexts
-
-Results synthesized into a `## Historical context` block in `PROJECT_CONTEXT.md`.
+Follow [Selective Context Retrieval](references/context-retrieval.md):
+local project files are the baseline; no external memory product is required.
+Query only a concrete missing fact, scoped to the active project and an aggregate
+result budget. GBrain is optional; Engram and SkillVault are optional configuration
+slots, not a shipped universal bridge. Disabled providers cannot be enabled by
+legacy integration flags. Availability and authorization are separate checks.
+Retain only relevant excerpts with provenance; do not carry a growing historical
+context block through every phase. These are host-agent instructions, not runtime
+token enforcement or executing adapters.
 
 #### 2c. `q-grill-me` — Deep Elicitation (Plan A only)
 A relentless socratic interview to sharpen the plan scope. Surfaces hidden assumptions and trade-offs before any code is written.
@@ -385,7 +388,7 @@ Delegates heavy sub-tasks via `q-delegate-context` (FirstMate pattern) to keep t
 3. Create private GitHub repository (`gh repo create <name> --private`)
 4. Create `CLAUDE.md` at repo root (from `references/claude-md-template.md`, compatible with Claude Code, Antigravity, and Codex)
 5. Initialize `CONSTITUTION.md` at repo root (from `templates/CONSTITUTION.md`) with stack, domain rules, and initial ADR table
-6. Verify subsystems (SkillVault, Telemetry, Engram)
+6. Verify only configured and authorized subsystems; external memory is optional
 7. Create initial Issues: `[SETUP]`, `[ADR-001]` (registered in Constitution), `[SCOPE] MVP`
 
 **Plan B:**
@@ -493,9 +496,9 @@ Created in the project repo with label `type:retrospective`:
 - Recommended next action
 
 #### 7c. `q-session-wrap` — Session persistence
-- Saves session memory to **Engram** (`mem_session_summary`)
-- Catalogs artifacts in **SkillVault** (if available)
-- Creates atomic SQLite snapshot (`VACUUM INTO`)
+- Saves recovery state locally first
+- Writes to external stores only when configured, available and authorized
+- SQLite backup is separately opt-in with authorized source and destination
 
 #### 7d. Final report
 Compact summary delivered in chat:
@@ -531,7 +534,7 @@ Keeps the orchestrator main thread clean by delegating heavy sub-tasks to isolat
 
 ### `q-gbrain-assistant`
 **Step 2b — All plans (optional)**
-Structured gateway to GBrain (Personal + Multi-Agent Knowledge Graph). Queries Engram, GBrain, and SkillVault in parallel to surface historical decisions, patterns, and lessons learned.
+Structured gateway to GBrain (Personal + Multi-Agent Knowledge Graph). Queries GBrain only when relevant, configured, available and authorized; no mandatory external store or parallel fan-out.
 - Hybrid query (RRF + semantic expansion)
 - Key intents: context briefing, historical decision retrieval, knowledge registration, gap analysis, health check
 
@@ -546,9 +549,9 @@ Surgical CI/CD pipeline repair. Operates only on `git diff` files. Never weakens
 ### `q-session-wrap`
 **Step 7c — All plans**
 Ordered session closure. Persists operational memory so the next session starts with full context.
-- Engram: `mem_session_summary` with Goal / Instructions / Discoveries / Accomplished / Next Steps / Relevant Files
-- SkillVault (graceful fallback): session entry + artifacts
-- SQLite: `VACUUM INTO` atomic snapshot
+- Local summary: Goal / Instructions / Discoveries / Accomplished / Next Steps / Relevant Files
+- External persistence: opt-in, scoped and authorized; absence does not block closure
+- SQLite backup: separately opt-in; database existence is not authorization
 
 ---
 

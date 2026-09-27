@@ -5,6 +5,7 @@ Zero external dependencies. Generates CONSTITUTION.md, ADR-0001, and .q-agent.js
 """
 
 import sys
+import json
 import os
 from pathlib import Path
 from datetime import datetime
@@ -185,7 +186,14 @@ Se requiere establecer las bases arquitectónicas de {project_name} para garanti
   }}
 }}
 """
-    (project_root / ".q-agent.json").write_text(q_agent_json, encoding="utf-8")
+    # Keep retrieval defaults aligned with the distributed template.
+    template_path = Path(__file__).resolve().parents[2] / "templates" / "q-agent.json"
+    template = json.loads(template_path.read_text(encoding="utf-8"))
+    configuration = json.loads(q_agent_json)
+    configuration["context_retrieval"] = template["context_retrieval"]
+    (project_root / ".q-agent.json").write_text(
+        json.dumps(configuration, indent=2) + "\n", encoding="utf-8"
+    )
 
 
 def main():

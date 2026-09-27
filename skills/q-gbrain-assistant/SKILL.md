@@ -15,7 +15,15 @@ metadata:
 
 ## Goal
 
-Provide a structured, interactive gateway to **GBrain** (Personal & Multi-Agent Knowledge Graph + Memory Substrate). When invoked, it immediately surfaces high-value prompt templates, structured intent categories, and deterministic CLI commands for interacting with the brain.
+Provide an optional specialized gateway to **GBrain**. Load
+[Selective Context Retrieval](../../references/context-retrieval.md) first.
+No GBrain installation is required for q-agent. Confirm configured, available
+and authorized state, project/source scope and aggregate budget before a query.
+A concrete question goes directly to selective retrieval; show the catalog only
+for an explicit help request. Do not query Engram or SkillVault through this skill.
+The commands below are examples, not a verified adapter: inspect the installed
+tool's documentation before use, and never execute writes or maintenance from
+a read request.
 
 ## When to Use (Triggers)
 
@@ -27,7 +35,7 @@ Provide a structured, interactive gateway to **GBrain** (Personal & Multi-Agent 
 
 ## 🧠 Interactive Prompt & Workflow Hub
 
-When triggered, present the user with this structured intent catalog:
+Only when the user explicitly requests help/templates, present the relevant catalog section:
 
 ### 1. 🔍 Consulta & Síntesis Contextual
 *Búsqueda híbrida (RRF + expansión semántica) con redacción de respuestas y análisis de brechas.*

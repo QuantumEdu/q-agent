@@ -97,8 +97,12 @@ Invocar `skills/q-deliberate` con el contexto acumulado para contrastar enfoques
 Presentar el brief de arquitectura: Decisión, Racional, Mitigaciones y registrar en `ADR.md`.
 
 ### 2b. Consulta de Memorias Persistentes (Opcional)
-Preguntar: `¿Consultar memorias históricas (Engram / GBrain) sobre proyectos similares? [S/n]`
-Si SÍ: Invocar `skills/q-gbrain-assistant` o `mem_search` para recuperar aprendizajes y evitar errores pasados.
+Load [Selective Context Retrieval](references/context-retrieval.md).
+Do not ask a memory-consultation question for every task. Query only a concrete
+missing fact in the active project. External providers are optional and disabled
+by default; local project evidence is the baseline. Similar-project research
+requires explicit scope approval. GBrain uses its specialized skill; other
+providers require independently configured, available, authorized tools.
 
 ### 2c. Elicitación Socrática Profunda (`skills/q-grill-me` — Plan A)
 Invocar `skills/q-grill-me` para desafiar supuestos no validados del usuario antes de definir especificaciones.
@@ -116,7 +120,7 @@ gentle-ai --version 2>/dev/null || echo "GENTLE_AI_NOT_FOUND"
 
 ### 🟢 MOTOR A: Gentle-AI Integrated ODD
 - Activado si `gentle-ai` está instalado.
-- Bitácora en: `odd/tasks/{{FEATURE_NAME}}.md` (espejo en Engram `odd/{{FEATURE_NAME}}/tasks`).
+- Bitácora en: `odd/tasks/{{FEATURE_NAME}}.md` (local first; optional authorized Engram mirror `odd/{{FEATURE_NAME}}/tasks`).
 - Herramientas: MCP `codegraph_explore`, revisiones formales sujetas a `gentle-ai review mode`.
 
 ### 🔵 MOTOR B: q-agent Standalone ODD
@@ -195,7 +199,7 @@ Emitir declaración de gate al usuario y esperar confirmación.
 4. **Auditoría Pre-Release o Plan C (Atomic Dispatch Obligatorio):**
    - Si se ejecuta Plan C o un corte formal de release, es **ESTRICTAMENTE MANDATORIO** ejecutar el **PROTOCOLO PLAN C (Atomic Dispatch)** detallado a continuación.
    - ⛔ **PROHIBIDO** emitir reportes monolíticos manuales en chat o saltarse la compuerta de validación en disco.
-5. **Cierre de Sesión:** Invocar `skills/q-session-wrap/` para persistir estado en Engram y memorias.
+5. **Cierre de Sesión:** Invocar `skills/q-session-wrap/` for local-first progress persistence and optional authorized external writes.
 6. **Reporte Final al Usuario:** Resumen conciso de hechos observados, criterios UAC cumplidos y enlaces de archivos entregados.
 
 ---
@@ -265,7 +269,7 @@ Este script en Python ensambla deterministamente sin consumir tokens del LLM:
 1. Presentar en el chat el resumen ejecutivo estructurado **únicamente a partir de los datos consolidados por `generate_report.py`**.
 2. Mostrar tabla de Gaps detectados con severidades.
 3. Proporcionar enlaces a los archivos en `audit/`.
-4. Invocar `skills/q-session-wrap` para persistir la auditoría en Engram/SkillVault.
+4. Invocar `skills/q-session-wrap` for local-first audit persistence; external stores remain optional.
 
 ---
 

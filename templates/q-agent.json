@@ -32,6 +32,48 @@
     "eval_level": "standard",
     "notes_eval_level": "Options: minimal (outcome + policy), standard (default: adds decision, evidence, tools, routing, retries), enterprise (adds cost + latency)"
   },
+  "context_retrieval": {
+    "mode": "on-demand",
+    "project_id": null,
+    "local_sources": [
+      "project-files"
+    ],
+    "require_project_scope": true,
+    "allow_cross_project": false,
+    "budget": {
+      "max_results": 3,
+      "max_chars": 6000,
+      "max_tokens_estimate": 1500
+    },
+    "providers": {
+      "gbrain": {
+        "enabled": false,
+        "availability": "unknown",
+        "authorization": "none",
+        "capabilities": [],
+        "project_scope": null
+      },
+      "engram": {
+        "enabled": false,
+        "availability": "unknown",
+        "authorization": "none",
+        "capabilities": [],
+        "project_scope": null
+      },
+      "skillvault": {
+        "enabled": false,
+        "availability": "unknown",
+        "authorization": "none",
+        "capabilities": [],
+        "project_scope": null
+      }
+    },
+    "persistence": {
+      "local_first": true,
+      "external_write": false,
+      "sqlite_backup": false
+    }
+  },
   "integrations": {
     "github_issues": true,
     "gbrain_mcp": false,
