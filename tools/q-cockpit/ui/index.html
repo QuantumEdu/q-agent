@@ -983,6 +983,9 @@
       <button id="tab-btn-diff" class="tab-btn" onclick="switchTab('diff')">
         🔍 <span id="tab-label-diff">Code & Diff</span> <span class="tab-count-badge" id="diff-tab-badge">0 LOC</span>
       </button>
+      <button id="tab-btn-skillvault" class="tab-btn" onclick="switchTab('skillvault')">
+        <span id="tab-label-skillvault">⚡ SkillVault</span> <span class="tab-count-badge" id="skillvault-tab-badge">0</span>
+      </button>
     </div>
 
     <div class="meta-bar">
@@ -1158,6 +1161,45 @@
         </div>
       </div>
     </div>
+
+    <!-- TAB 5: SKILLVAULT EXPLORER -->
+    <div id="tab-skillvault" class="tab-panel">
+      <div class="skillvault-container" style="display:flex; flex-direction:column; height:100%; padding:20px; overflow-y:auto; gap:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; border-bottom:1px solid var(--border); padding-bottom:14px;">
+          <div>
+            <h2 style="font-size: 16px; color:#fff;" id="skillvault-header-title">Explorador de Skills & Flujos (SkillVault)</h2>
+            <p style="font-size:12px; color:var(--text-muted); margin-top:4px;" id="skillvault-header-subtitle">
+              Descubrimiento y reutilización de capacidades modulares sin polución de contexto.
+            </p>
+          </div>
+          <div id="skillvault-search-box" style="display:none; min-width:300px;">
+            <input type="text" id="skillvault-search-input" placeholder="Buscar por nombre, tag o descripción..." oninput="filterSkills(this.value)"
+                   style="width:100%; background:var(--bg); border:1px solid var(--border); color:#fff; padding:8px 12px; border-radius:6px; font-size:12px;" />
+          </div>
+        </div>
+
+        <!-- Disabled Alert Container -->
+        <div id="skillvault-disabled-card" style="display:none;">
+          <div class="idle-banner" style="border-left: 4px solid var(--warning);">
+            <div class="idle-icon">⚡</div>
+            <div class="idle-content">
+              <h4 id="skillvault-disabled-title" style="color:var(--warning);">SkillVault Inactivo</h4>
+              <p id="skillvault-disabled-msg" style="margin-top:6px; line-height:1.5; font-size:13px; color:var(--text-bright);">
+                Proveedor SkillVault desactivado en .q-agent.json. Para activarlo: configura context_retrieval.providers.skillvault.enabled: true
+              </p>
+              <div style="margin-top:12px; font-family:var(--font-mono); font-size:11px; background:var(--bg); padding:10px 14px; border-radius:6px; border:1px solid var(--border); color:#a5d6ff;">
+                <code>"context_retrieval": { "providers": { "skillvault": { "enabled": true } } }</code>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skills Grid Container -->
+        <div id="skillvault-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:14px;">
+          <!-- Skill cards populated by JS -->
+        </div>
+      </div>
+    </div>
   </main>
 
   <!-- Dark Modal Overlay -->
@@ -1192,6 +1234,12 @@
         tab_cockpit: "🚀 Mission Cockpit",
         tab_artifacts: "Artefactos",
         tab_diff: "Code & Diff",
+        tab_skillvault: "⚡ SkillVault",
+        skillvault_title: "Explorador de Skills & Flujos (SkillVault)",
+        skillvault_disabled: "Proveedor SkillVault desactivado en .q-agent.json. Para activarlo: configura context_retrieval.providers.skillvault.enabled: true",
+        skillvault_search_placeholder: "Buscar por nombre, tag o descripción...",
+        btn_copy_skill: "📋 Copiar Contenido",
+        toast_skill_copied: "¡Contenido del skill copiado al portapapeles!",
 
         // Header & Meta
         proj_loading: "Cargando proyecto...",
@@ -1329,6 +1377,12 @@
         tab_cockpit: "🚀 Mission Cockpit",
         tab_artifacts: "Artifacts",
         tab_diff: "Code & Diff",
+        tab_skillvault: "⚡ SkillVault",
+        skillvault_title: "Skills & Workflows Explorer (SkillVault)",
+        skillvault_disabled: "SkillVault provider is disabled in .q-agent.json. To enable: set context_retrieval.providers.skillvault.enabled: true",
+        skillvault_search_placeholder: "Search by name, tag, or description...",
+        btn_copy_skill: "📋 Copy Content",
+        toast_skill_copied: "Skill content copied to clipboard!",
 
         // Header & Meta
         proj_loading: "Loading project...",
@@ -1581,6 +1635,15 @@
       const diffBtnGate = document.getElementById('diff-btn-gate');
       if (diffBtnGate) diffBtnGate.textContent = t('diff_gate_btn');
 
+      const tabSkillvault = document.getElementById('tab-label-skillvault');
+      if (tabSkillvault) tabSkillvault.textContent = t('tab_skillvault');
+      const skillvaultTitle = document.getElementById('skillvault-header-title');
+      if (skillvaultTitle) skillvaultTitle.textContent = t('skillvault_title');
+      const skillvaultDisabledMsg = document.getElementById('skillvault-disabled-msg');
+      if (skillvaultDisabledMsg) skillvaultDisabledMsg.textContent = t('skillvault_disabled');
+      const skillvaultSearchInput = document.getElementById('skillvault-search-input');
+      if (skillvaultSearchInput) skillvaultSearchInput.placeholder = t('skillvault_search_placeholder');
+
       const modalClose = document.getElementById('modal-default-close-btn');
       if (modalClose) modalClose.textContent = t('btn_close');
       const footerInfo = document.getElementById('footer-info');
@@ -1630,6 +1693,11 @@
         if (btn) btn.classList.add('active');
         document.getElementById('tab-diff').classList.add('active');
         loadDiff();
+      } else if (tab === 'skillvault') {
+        const btn = document.getElementById('tab-btn-skillvault');
+        if (btn) btn.classList.add('active');
+        document.getElementById('tab-skillvault').classList.add('active');
+        loadSkillVault();
       }
     }
 
@@ -2349,6 +2417,146 @@
       return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
 
+    // SkillVault Functions
+    let allSkills = [];
+    let skillvaultLoaded = false;
+
+    async function loadSkillVault() {
+      try {
+        const res = await fetch('/api/skillvault');
+        if (!res.ok) return;
+        const data = await res.json();
+        renderSkillVault(data);
+      } catch (err) {
+        console.error("Failed to load skillvault:", err);
+      }
+    }
+
+    function renderSkillVault(data) {
+      skillvaultLoaded = true;
+      const disabledCard = document.getElementById('skillvault-disabled-card');
+      const searchBox = document.getElementById('skillvault-search-box');
+      const grid = document.getElementById('skillvault-grid');
+      const badge = document.getElementById('skillvault-tab-badge');
+
+      if (!data || !data.enabled || data.status === 'disabled') {
+        if (disabledCard) disabledCard.style.display = 'block';
+        if (searchBox) searchBox.style.display = 'none';
+        if (grid) grid.innerHTML = '';
+        if (badge) badge.textContent = '0';
+        allSkills = [];
+        return;
+      }
+
+      if (disabledCard) disabledCard.style.display = 'none';
+      if (searchBox) searchBox.style.display = 'block';
+
+      allSkills = data.skills || [];
+      if (badge) badge.textContent = allSkills.length;
+      renderSkillCards(allSkills);
+    }
+
+    function renderSkillCards(skills) {
+      const grid = document.getElementById('skillvault-grid');
+      if (!grid) return;
+      if (!skills || skills.length === 0) {
+        grid.innerHTML = `<div style="grid-column: 1 / -1; color:var(--text-muted); padding:40px; text-align:center;">${t('skillvault_search_placeholder')}</div>`;
+        return;
+      }
+
+      grid.innerHTML = skills.map((skill, index) => {
+        const escName = escapeHtml(skill.name);
+        const escDesc = escapeHtml(skill.description);
+        const escVer = escapeHtml(skill.version || 'v1.0.0');
+        const escPath = escapeHtml(skill.path);
+
+        return `
+          <div class="skill-card" style="background:var(--surface-elevated); border:1px solid var(--border); border-radius:8px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; gap:12px; transition:border-color 0.2s; cursor:pointer;"
+               onclick="openSkillModal(${index})"
+               onmouseenter="this.style.borderColor='var(--accent)'"
+               onmouseleave="this.style.borderColor='var(--border)'">
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:8px;">
+                <h4 style="font-size:14px; font-weight:600; color:var(--text-bright); margin:0;">${escName}</h4>
+                <span class="badge-tag" style="font-size:10px; color:var(--accent);">${escVer}</span>
+              </div>
+              <div style="font-size:12px; color:var(--text-muted); line-height:1.4; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
+                ${escDesc}
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono); margin-bottom:10px; word-break:break-all;">
+                📄 <code>${escPath}</code>
+              </div>
+              <div style="display:flex; gap:8px; justify-content:flex-end;">
+                <button class="btn" style="font-size:11px; padding:4px 10px;" onclick="copySkillContent(event, ${index})">
+                  ${t('btn_copy_skill')}
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterSkills(query) {
+      const q = (query || '').trim().toLowerCase();
+      if (!q) {
+        renderSkillCards(allSkills);
+        return;
+      }
+      const filtered = allSkills.filter(s => 
+        (s.name && s.name.toLowerCase().includes(q)) ||
+        (s.description && s.description.toLowerCase().includes(q)) ||
+        (s.path && s.path.toLowerCase().includes(q))
+      );
+      renderSkillCards(filtered);
+    }
+
+    async function copySkillContent(event, index) {
+      if (event) event.stopPropagation();
+      const skill = allSkills[index];
+      if (!skill) return;
+      const content = skill.content || skill.markdown || '';
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(content);
+        } else {
+          const textarea = document.createElement('textarea');
+          textarea.value = content;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+        }
+        showToast(t('toast_skill_copied'), 'success');
+      } catch (err) {
+        showToast('Error: ' + err, 'error');
+      }
+    }
+
+    function openSkillModal(index) {
+      const skill = allSkills[index];
+      if (!skill) return;
+      const title = `⚡ ${escapeHtml(skill.name)} (${escapeHtml(skill.version || 'v1.0.0')})`;
+      const bodyHtml = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-family:var(--font-mono); font-size:11px;">
+          <span><code>${escapeHtml(skill.path)}</code></span>
+          <button class="btn" style="padding:4px 10px; font-size:11px;" onclick="copySkillContent(event, ${index})">${t('btn_copy_skill')}</button>
+        </div>
+        <div style="font-size:13px; color:var(--text); line-height:1.5; margin-bottom:14px;">
+          ${escapeHtml(skill.description)}
+        </div>
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:14px; font-family:var(--font-mono); font-size:12px; white-space:pre-wrap; max-height:450px; overflow-y:auto; color:var(--text-bright);">
+          ${escapeHtml(skill.content || skill.markdown || '')}
+        </div>
+      `;
+      const footerHtml = `
+        <button class="btn btn-primary" onclick="closeModal()">${t('btn_close')}</button>
+      `;
+      showCustomModal(title, bodyHtml, footerHtml);
+    }
+
     // Escape key closes modal
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') closeModal();
@@ -2357,6 +2565,7 @@
     // Initialize Language and auto-polling
     setLanguage(currentLang);
     fetchStatus();
+    loadSkillVault();
     setInterval(fetchStatus, 3000);
   </script>
 </body>

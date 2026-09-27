@@ -29,6 +29,10 @@ test:
 cockpit PORT="4242":
     python3 tools/q-cockpit/q_cockpit.py serve --port {{PORT}}
 
+# Launch interactive Terminal User Interface (q-cockpit TUI)
+cockpit-tui:
+    python3 tools/q-cockpit/q_cockpit_tui.py
+
 # Run interactive pre-flight architectural decision matrix (CLI TUI)
 checklist:
     python3 tools/q-checklist/q_checklist.py

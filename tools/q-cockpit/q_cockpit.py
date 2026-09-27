@@ -340,6 +340,139 @@ class ProjectScanner:
         artifacts.sort(key=lambda a: (a["category"], a["path"]))
         return artifacts
 
+    @staticmethod
+    def parse_frontmatter(text: str) -> Dict[str, Any]:
+        """Extract key-value metadata from markdown YAML frontmatter."""
+        metadata: Dict[str, Any] = {}
+        if text.startswith("---"):
+            parts = text.split("---", 2)
+            if len(parts) >= 3:
+                fm_text = parts[1]
+                for line in fm_text.splitlines():
+                    line_str = line.strip()
+                    if not line_str or line_str.startswith("#"):
+                        continue
+                    if line.startswith("  ") and ":" in line:
+                        sub_parts = line.strip().split(":", 1)
+                        k = sub_parts[0].strip()
+                        v = sub_parts[1].strip().strip('"\'')
+                        if "metadata" in metadata and isinstance(metadata["metadata"], dict):
+                            metadata["metadata"][k] = v
+                    elif ":" in line_str:
+                        main_parts = line_str.split(":", 1)
+                        k = main_parts[0].strip()
+                        v = main_parts[1].strip().strip('"\'')
+                        if k == "metadata":
+                            metadata["metadata"] = {}
+                        else:
+                            metadata[k] = v
+        return metadata
+
+    @staticmethod
+    def scan_skillvault(root: Path) -> Dict[str, Any]:
+        """
+        Scan skills from the configured SkillVault directory if enabled.
+        Checks .q-agent.json or templates/q-agent.json.
+        """
+        cfg: Dict[str, Any] = {}
+        config_candidates = [
+            root / ".q-agent.json",
+            root / "templates" / "q-agent.json",
+        ]
+        for c in config_candidates:
+            if c.is_file():
+                try:
+                    cfg = json.loads(c.read_text(encoding="utf-8"))
+                    break
+                except Exception:
+                    continue
+
+        sv_cfg = cfg.get("context_retrieval", {}).get("providers", {}).get("skillvault", {})
+        enabled_val = sv_cfg.get("enabled")
+        configured_path = sv_cfg.get("path")
+
+        if enabled_val is not None:
+            is_enabled = bool(enabled_val)
+        elif configured_path:
+            is_enabled = True
+        else:
+            is_enabled = False
+
+        status = "active" if is_enabled else "disabled"
+        skills: List[Dict[str, Any]] = []
+
+        if is_enabled:
+            rel_dir = configured_path if configured_path else "skills"
+            skills_dir = (root / rel_dir).resolve()
+            if skills_dir.exists() and skills_dir.is_dir():
+                for item in sorted(skills_dir.iterdir()):
+                    if item.is_dir():
+                        md_file = item / "SKILL.md"
+                        json_file = item / "skill.json"
+                        if md_file.exists():
+                            text = md_file.read_text(encoding="utf-8", errors="replace")
+                            fm = ProjectScanner.parse_frontmatter(text)
+                            name = fm.get("name") or item.name
+                            desc = fm.get("description") or ""
+                            ver = fm.get("version") or (fm.get("metadata", {}).get("version") if isinstance(fm.get("metadata"), dict) else None) or "1.0.0"
+                            try:
+                                rel_p = md_file.relative_to(root).as_posix()
+                            except ValueError:
+                                rel_p = str(md_file)
+                            skills.append({
+                                "name": name,
+                                "description": desc,
+                                "version": str(ver),
+                                "path": rel_p,
+                                "content": text,
+                                "markdown": text,
+                            })
+                        elif json_file.exists():
+                            try:
+                                jdata = json.loads(json_file.read_text(encoding="utf-8"))
+                            except Exception:
+                                jdata = {}
+                            name = jdata.get("name") or item.name
+                            desc = jdata.get("description") or ""
+                            ver = str(jdata.get("version") or "1.0.0")
+                            try:
+                                rel_p = json_file.relative_to(root).as_posix()
+                            except ValueError:
+                                rel_p = str(json_file)
+                            content = f"# {name}\n\n{desc}\n\n**Version**: {ver}\n"
+                            skills.append({
+                                "name": name,
+                                "description": desc,
+                                "version": ver,
+                                "path": rel_p,
+                                "content": content,
+                                "markdown": content,
+                            })
+                    elif item.is_file() and item.name == "SKILL.md":
+                        text = item.read_text(encoding="utf-8", errors="replace")
+                        fm = ProjectScanner.parse_frontmatter(text)
+                        name = fm.get("name") or item.parent.name
+                        desc = fm.get("description") or ""
+                        ver = fm.get("version") or (fm.get("metadata", {}).get("version") if isinstance(fm.get("metadata"), dict) else None) or "1.0.0"
+                        try:
+                            rel_p = item.relative_to(root).as_posix()
+                        except ValueError:
+                            rel_p = str(item)
+                        skills.append({
+                            "name": name,
+                            "description": desc,
+                            "version": str(ver),
+                            "path": rel_p,
+                            "content": text,
+                            "markdown": text,
+                        })
+
+        return {
+            "enabled": is_enabled,
+            "status": status,
+            "skills": skills,
+        }
+
 
 class CockpitHTTPHandler(http.server.BaseHTTPRequestHandler):
     project_root: Path = Path.cwd()
@@ -367,6 +500,8 @@ class CockpitHTTPHandler(http.server.BaseHTTPRequestHandler):
             self.serve_api_diff()
         elif path == "/api/file":
             self.serve_api_file(parse_qs(parsed.query))
+        elif path == "/api/skillvault":
+            self.serve_api_skillvault()
         else:
             self.send_error(404, "Not Found")
 
@@ -1169,6 +1304,10 @@ class CockpitHTTPHandler(http.server.BaseHTTPRequestHandler):
         except Exception as e:
             self.send_error(500, str(e))
 
+    def serve_api_skillvault(self) -> None:
+        data = ProjectScanner.scan_skillvault(self.project_root)
+        self.send_json(data)
+
     def handle_grill_answer(self, body: Dict[str, Any]) -> None:
         if not self.active_session_dir:
             self.send_error(400, "No active session")
@@ -1314,7 +1453,9 @@ def run_server(port: int = DEFAULT_PORT, project_dir: Optional[Path] = None, ses
 
 def cli_main() -> None:
     parser = argparse.ArgumentParser(description="q-cockpit: Visual Elicitation & Mission Cockpit for q-agent")
-    subparsers = parser.add_subparsers(dest="command", required=True)
+    parser.add_argument("--tui", action="store_true", help="Launch interactive Terminal User Interface (q-cockpit TUI)")
+    parser.add_argument("--project", type=str, default=None, help="Target project directory")
+    subparsers = parser.add_subparsers(dest="command", required=False)
 
     # serve command
     serve_p = subparsers.add_parser("serve", help="Launch interactive web cockpit")
@@ -1322,6 +1463,11 @@ def cli_main() -> None:
     serve_p.add_argument("--port", type=int, default=DEFAULT_PORT, help="Port to bind (default: 4242)")
     serve_p.add_argument("--project", type=str, default=None, help="Target project directory")
     serve_p.add_argument("--session", type=str, default=None, help="Specific session directory")
+    serve_p.add_argument("--tui", action="store_true", help="Launch interactive Terminal User Interface (q-cockpit TUI)")
+
+    # tui command
+    tui_p = subparsers.add_parser("tui", help="Launch interactive Terminal User Interface (q-cockpit TUI)")
+    tui_p.add_argument("--project", type=str, default=None, help="Target project directory")
 
     # new session
     new_p = subparsers.add_parser("new", help="Create a new interview session")
@@ -1335,6 +1481,17 @@ def cli_main() -> None:
     wait_p.add_argument("--timeout", type=int, default=300, help="Max wait time in seconds")
 
     args = parser.parse_args()
+
+    if getattr(args, "tui", False) or args.command == "tui":
+        try:
+            import q_cockpit_tui
+        except ImportError:
+            from tools.q_cockpit import q_cockpit_tui
+        sys.exit(q_cockpit_tui.main(project_dir=getattr(args, "project", None)))
+
+    if not args.command:
+        parser.print_help()
+        sys.exit(1)
 
     if args.command == "serve":
         p_dir = Path(args.project).resolve() if args.project else None

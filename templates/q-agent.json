@@ -73,6 +73,7 @@
       },
       "skillvault": {
         "enabled": false,
+        "path": "skills/",
         "availability": "unknown",
         "authorization": "none",
         "authorization_evidence": null,

@@ -69,6 +69,27 @@ class TestToolsExecution(unittest.TestCase):
         self.assertEqual(res.returncode, 0, f"validate_audit.py --help failed: {res.stderr}")
         self.assertIn("q-audit-validator", res.stdout)
 
+    def test_q_cockpit_tui_compiles_and_clean_exit(self):
+        script = ROOT_DIR / "tools" / "q-cockpit" / "q_cockpit_tui.py"
+        self.assertTrue(script.is_file(), f"{script} must exist")
+
+        # Test compilation
+        try:
+            py_compile.compile(str(script), doraise=True)
+        except py_compile.PyCompileError as e:
+            self.fail(f"Failed to compile {script}: {e}")
+
+        # Test --help exit 0
+        help_res = subprocess.run([PYTHON_EXE, str(script), "--help"], capture_output=True, text=True, encoding="utf-8")
+        self.assertEqual(help_res.returncode, 0, f"q_cockpit_tui.py --help failed: {help_res.stderr}")
+        self.assertIn("q-cockpit TUI", help_res.stdout)
+        self.assertIn("--view", help_res.stdout)
+
+        # Test --once non-interactive exit 0
+        once_res = subprocess.run([PYTHON_EXE, str(script), "--once"], capture_output=True, text=True, encoding="utf-8")
+        self.assertEqual(once_res.returncode, 0, f"q_cockpit_tui.py --once failed: {once_res.stderr}")
+        self.assertIn("Q-COCKPIT TUI", once_res.stdout)
+
 
 class TestCockpitSecurity(unittest.TestCase):
     @classmethod
@@ -200,6 +221,72 @@ class TestCockpitSecurity(unittest.TestCase):
             if readme.exists():
                 readme.unlink()
 
+    def test_skillvault_api_disabled_state(self):
+        url = f"http://127.0.0.1:{self.port}/api/skillvault"
+        with urllib.request.urlopen(url) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+            self.assertIn("enabled", data)
+            self.assertIn("status", data)
+            self.assertIn("skills", data)
+            self.assertFalse(data["enabled"])
+            self.assertEqual(data["status"], "disabled")
+            self.assertEqual(data["skills"], [])
+
+    def test_skillvault_api_enabled_state(self):
+        # Configure .q-agent.json with skillvault enabled in temp project root
+        config_file = self.project_root / ".q-agent.json"
+        skills_dir = self.project_root / "test_skills" / "demo-skill"
+        skills_dir.mkdir(parents=True, exist_ok=True)
+        skill_md = skills_dir / "SKILL.md"
+        skill_md.write_text(
+            "---\n"
+            "name: test:demo-skill\n"
+            "description: Test skill for SkillVault\n"
+            "metadata:\n"
+            "  version: '2.1.0'\n"
+            "---\n\n"
+            "# Demo Skill\n"
+            "This is test content.\n",
+            encoding="utf-8"
+        )
+
+        config_data = {
+            "context_retrieval": {
+                "providers": {
+                    "skillvault": {
+                        "enabled": True,
+                        "path": "test_skills"
+                    }
+                }
+            }
+        }
+        config_file.write_text(json.dumps(config_data), encoding="utf-8")
+
+        try:
+            url = f"http://127.0.0.1:{self.port}/api/skillvault"
+            with urllib.request.urlopen(url) as resp:
+                self.assertEqual(resp.status, 200)
+                data = json.loads(resp.read().decode("utf-8"))
+                self.assertTrue(data["enabled"])
+                self.assertEqual(data["status"], "active")
+                self.assertEqual(len(data["skills"]), 1)
+                sk = data["skills"][0]
+                self.assertEqual(sk["name"], "test:demo-skill")
+                self.assertEqual(sk["description"], "Test skill for SkillVault")
+                self.assertEqual(sk["version"], "2.1.0")
+                self.assertIn("test_skills/demo-skill/SKILL.md", sk["path"].replace("\\", "/"))
+                self.assertIn("Demo Skill", sk["content"])
+        finally:
+            if config_file.exists():
+                config_file.unlink()
+            if skill_md.exists():
+                skill_md.unlink()
+            if skills_dir.exists():
+                skills_dir.rmdir()
+            if (self.project_root / "test_skills").exists():
+                (self.project_root / "test_skills").rmdir()
+
 
 class TestCockpitScanner(unittest.TestCase):
     def test_scan_tasks_empty(self):
@@ -274,6 +361,41 @@ class TestCockpitScanner(unittest.TestCase):
                 self.assertIn("size_bytes", art)
                 self.assertIn("last_modified", art)
                 self.assertGreater(art["size_bytes"], 0)
+
+    def test_scan_skillvault(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_root = Path(tmp_dir)
+            # Default empty / disabled
+            data_empty = q_cockpit.ProjectScanner.scan_skillvault(tmp_root)
+            self.assertFalse(data_empty["enabled"])
+            self.assertEqual(data_empty["status"], "disabled")
+            self.assertEqual(data_empty["skills"], [])
+
+            # Enabled with configured directory
+            cfg_file = tmp_root / ".q-agent.json"
+            cfg_file.write_text(json.dumps({
+                "context_retrieval": {
+                    "providers": {
+                        "skillvault": {
+                            "enabled": True,
+                            "path": "my_skills"
+                        }
+                    }
+                }
+            }), encoding="utf-8")
+
+            my_skills = tmp_root / "my_skills" / "sample-agent"
+            my_skills.mkdir(parents=True)
+            (my_skills / "SKILL.md").write_text(
+                "---\nname: sample-agent\ndescription: A sample skill\n---\n# Content\n",
+                encoding="utf-8"
+            )
+
+            data_enabled = q_cockpit.ProjectScanner.scan_skillvault(tmp_root)
+            self.assertTrue(data_enabled["enabled"])
+            self.assertEqual(data_enabled["status"], "active")
+            self.assertEqual(len(data_enabled["skills"]), 1)
+            self.assertEqual(data_enabled["skills"][0]["name"], "sample-agent")
 
 
 if __name__ == "__main__":
