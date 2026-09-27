@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.2] - 2026-09-26
+
+### Added
+- **Bilingual Language Selector in q-cockpit (`tools/q-cockpit/ui/index.html`)**: Instant UI toggle `[ES | EN]` with 113 mirrored translation keys across all tabs, modals, gates, Kanban boards, and diff view without page reload; persisted in `localStorage`.
+- **Conversational Language Mirroring Protocol (`SKILL.md`)**: Formalized bilingual rule directing the agent to automatically mirror the user's language (English for English prompts, Spanish for Spanish prompts) while keeping technical artifacts in English.
+- **Interactive Mermaid Pan & Zoom Viewport (`tools/q-cockpit/q_cockpit.py`)**: Zero-dependency interactive viewport featuring Zoom In/Out (`+`/`-`), Real Size (`1:1`), Fit Width (`↔`), Fullscreen modal (`⛶`), Drag-to-Pan, Ctrl+Wheel zoom, and elimination of Mermaid's destructive proportional shrinking.
+
+---
+
 ## [2.5.1] - 2026-09-26
 
 ### Added
