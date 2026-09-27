@@ -55,7 +55,7 @@ Paso 9 / Ops ──► BUCLE DE RETROALIMENTACIÓN (P10 Ops-to-ODD con Reproduct
 Presentar y esperar respuesta del usuario (no continuar sin respuesta):
 
 ```text
-🚀 Bienvenido a q-agent v2.0 (Dual Engine & Modern ODD)
+🚀 Bienvenido a q-agent v2.4.0 (Dual Engine & Modern ODD)
 
 ¿Qué tipo de ciclo vamos a ejecutar hoy?
 [A] Greenfield  — Nuevo sistema desde cero (Plan A)

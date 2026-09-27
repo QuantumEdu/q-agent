@@ -403,8 +403,10 @@ class CockpitHTTPHandler(http.server.BaseHTTPRequestHandler):
             return
 
         target = (self.project_root / rel_path).resolve()
-        # Security check: must stay within project root
-        if not str(target).startswith(str(self.project_root.resolve())):
+        # Security check: must stay strictly within project root
+        try:
+            target.relative_to(self.project_root.resolve())
+        except ValueError:
             self.send_error(403, "Access Denied")
             return
 
@@ -503,12 +505,27 @@ class CockpitHTTPHandler(http.server.BaseHTTPRequestHandler):
         self.active_session_dir = new_session
         self.send_json({"status": "ok", "session_dir": str(new_session)})
 
+    def _set_cors_headers(self) -> None:
+        origin = self.headers.get("Origin", "")
+        if origin:
+            parsed = urlparse(origin)
+            if parsed.hostname in ("localhost", "127.0.0.1", "::1"):
+                self.send_header("Access-Control-Allow-Origin", origin)
+                self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+                self.send_header("Access-Control-Allow-Headers", "Content-Type")
+                self.send_header("Vary", "Origin")
+
+    def do_OPTIONS(self) -> None:
+        self.send_response(204)
+        self._set_cors_headers()
+        self.end_headers()
+
     def send_json(self, data: Any, code: int = 200) -> None:
         raw = json.dumps(data, ensure_ascii=False).encode("utf-8")
         self.send_response(code)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(raw)))
-        self.send_header("Access-Control-Allow-Origin", "*")
+        self._set_cors_headers()
         self.end_headers()
         self.wfile.write(raw)
 
@@ -518,7 +535,7 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     daemon_threads = True
 
 
-def run_server(port: int = DEFAULT_PORT, project_dir: Optional[Path] = None, session_dir: Optional[Path] = None) -> None:
+def run_server(port: int = DEFAULT_PORT, project_dir: Optional[Path] = None, session_dir: Optional[Path] = None, host: str = "127.0.0.1") -> None:
     root = get_git_root(project_dir or Path.cwd())
     manager = SessionManager()
 
@@ -533,12 +550,12 @@ def run_server(port: int = DEFAULT_PORT, project_dir: Optional[Path] = None, ses
     CockpitHTTPHandler.active_session_dir = active_session
 
     print(f"\n🚀 [q-cockpit] Cockpit Web Server running at:")
-    print(f"   ➜ http://localhost:{port}")
+    print(f"   ➜ http://{host}:{port}")
     print(f"   📁 Project: {root}")
     print(f"   🏷️  Session: {active_session.name if active_session else 'Default'}")
     print(f"   💡 Zero Node.js / Pure Python 3 runtime.\n")
 
-    with ThreadedTCPServer(("0.0.0.0", port), CockpitHTTPHandler) as httpd:
+    with ThreadedTCPServer((host, port), CockpitHTTPHandler) as httpd:
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
@@ -552,6 +569,7 @@ def cli_main() -> None:
 
     # serve command
     serve_p = subparsers.add_parser("serve", help="Launch interactive web cockpit")
+    serve_p.add_argument("--host", type=str, default="127.0.0.1", help="Host interface to bind (default: 127.0.0.1)")
     serve_p.add_argument("--port", type=int, default=DEFAULT_PORT, help="Port to bind (default: 4242)")
     serve_p.add_argument("--project", type=str, default=None, help="Target project directory")
     serve_p.add_argument("--session", type=str, default=None, help="Specific session directory")
@@ -572,7 +590,7 @@ def cli_main() -> None:
     if args.command == "serve":
         p_dir = Path(args.project).resolve() if args.project else None
         s_dir = Path(args.session).resolve() if args.session else None
-        run_server(port=args.port, project_dir=p_dir, session_dir=s_dir)
+        run_server(port=args.port, project_dir=p_dir, session_dir=s_dir, host=args.host)
 
     elif args.command == "new":
         root = get_git_root(Path(args.project).resolve() if args.project else Path.cwd())

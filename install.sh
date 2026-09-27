@@ -19,7 +19,7 @@ NC='\033[0m' # No Color
 
 # Runtime definitions: [Name]|ParentDir|SkillTargetDir
 RUNTIMES=(
-    "Antigravity (AGY)|${HOME}/.gemini|${HOME}/.gemini/config/skills/q-agent"
+    "Antigravity (AGY)|${HOME}/.gemini|${HOME}/.gemini/antigravity-cli/skills/q-agent"
     "OpenAI Codex|${HOME}/.codex|${HOME}/.codex/skills/q-agent"
     "Pi (Oh My Pi)|${HOME}/.pi|${HOME}/.pi/agent/skills/q-agent"
     "Claude Code|${HOME}/.claude|${HOME}/.claude/skills/q-agent"
