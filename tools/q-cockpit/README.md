@@ -38,10 +38,10 @@
 ### 1. Launch the Web Cockpit
 ```bash
 # Launch inside any project (defaults to port 4242)
-python3 tools/q-cockpit/q_cockpit.py serve
+python3 tools/q-cockpit/q_cockpit_plus.py serve
 
 # Specify a custom port or project root
-python3 tools/q-cockpit/q_cockpit.py serve --port 5050 --project /path/to/repo
+python3 tools/q-cockpit/q_cockpit_plus.py serve --port 5050 --project /path/to/repo
 ```
 
 ### 2. Create a New Elicitation Session
@@ -64,6 +64,8 @@ This blocks until the human clicks **"Enviar Respuestas"** or decides a gate in 
 |---|---|---|
 | `GET` | `/` | Serves the interactive cockpit SPA |
 | `GET` | `/api/status` | Complete JSON snapshot of project, session, tasks, and gates |
+| `GET` | `/api/actions` | Shared action catalog for clients |
+| `GET` | `/health` | Session storage health and writeability |
 | `GET` | `/visual` | Serves `visual.html` or placeholder |
 | `GET` | `/api/diff` | Returns `git diff HEAD` of the active project |
 | `POST` | `/api/grill/answer` | Records staged answers into `events.jsonl` and updates `state.json` |
