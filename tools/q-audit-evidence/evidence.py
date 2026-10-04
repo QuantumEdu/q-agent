@@ -36,7 +36,7 @@ def build_evidence_index(
     items: Iterable[Path],
     *,
     base_commit: str | None = None,
-    validator_version: str = "q-agent-v2.5.3",
+    validator_version: str = "q-agent-v2.5.4",
 ) -> dict[str, Any]:
     root = Path(root).resolve()
     manifest = Path(manifest).resolve()

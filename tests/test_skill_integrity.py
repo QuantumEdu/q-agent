@@ -3,8 +3,8 @@ Test suite for validating q-agent skill integrity, schemas, and metadata.
 """
 
 import json
-from pathlib import Path
 import unittest
+from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
@@ -14,7 +14,7 @@ class TestSkillIntegrity(unittest.TestCase):
         skill_json_path = ROOT_DIR / "skill.json"
         self.assertTrue(skill_json_path.exists(), "skill.json must exist in project root")
 
-        with open(skill_json_path, "r", encoding="utf-8") as f:
+        with skill_json_path.open(encoding="utf-8") as f:
             data = json.load(f)
 
         required_fields = ["name", "version", "description", "author", "license", "entrypoint"]
@@ -38,13 +38,13 @@ class TestSkillIntegrity(unittest.TestCase):
         frontmatter = parts[1]
         self.assertIn("name: q-agent", frontmatter)
         self.assertIn("description:", frontmatter)
-        self.assertIn("version: 2.5.3", frontmatter)
+        self.assertIn("version: 2.5.4", frontmatter)
 
     def test_version_consistency(self):
         skill_json = json.loads((ROOT_DIR / "skill.json").read_text(encoding="utf-8"))
         skill_md = (ROOT_DIR / "SKILL.md").read_text(encoding="utf-8")
         version = skill_json["version"]
-        self.assertEqual(version, "2.5.3")
+        self.assertEqual(version, "2.5.4")
         self.assertIn(f"version: {version}", skill_md)
 
     def test_audit_manifest_reference_exists(self):
