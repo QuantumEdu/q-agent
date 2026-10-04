@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.4] - 2026-10-04
+
+### Added
+- Enhanced q-cockpit facade with structured correlation events, snapshots, health checks, and safe session recovery.
+- Lifecycle-aware audit runner with hash-addressed evidence and deterministic benchmark tooling.
+- Regression coverage for recovery, observability, cache invalidation, audit lifecycle, and provenance.
+
+### Changed
+- CI and developer recipes now expose the enhanced cockpit, audit runner, benchmark, and health workflows.
+
+---
+
 ## [2.5.3] - 2026-09-27
 
 ### Added
