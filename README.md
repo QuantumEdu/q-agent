@@ -619,6 +619,31 @@ Copy `q-agent-v02/` to your agent's skills directory. The `SKILL.md` frontmatter
 
 ---
 
+## Enhanced Operational Tooling
+
+The package includes an enhanced local cockpit facade that keeps the legacy `q_cockpit.py` API stable while isolating new operational concerns:
+
+```bash
+python3 tools/q-cockpit/q_cockpit_plus.py serve
+python3 tools/q-cockpit/q_cockpit_plus.py actions
+python3 tools/q-cockpit/q_cockpit_plus.py health
+python3 tools/q-cockpit/q_cockpit_plus.py backup --output /path/to/sessions.zip
+python3 tools/q-cockpit/q_cockpit_plus.py restore --archive /path/to/sessions.zip --destination /path/to/sessions
+```
+
+The enhanced facade provides:
+
+- Bounded repository snapshots with stale/refreshing state.
+- Shared action catalog for CLI and HTTP clients.
+- Structured session events with request correlation IDs.
+- `/health` and backup/restore recovery controls.
+- A lifecycle-aware Plan C runner that emits `audit/AUDIT_EVIDENCE.json` and `audit/AUDIT_RUN_STATE.json`.
+- A repeatable local benchmark via `python3 tools/q-benchmark/benchmark.py --json`.
+
+Use `just cockpit-plus`, `just run-audit`, `just benchmark`, or `just cockpit-health` for the corresponding workflows.
+
+---
+
 ## Activation Triggers
 
 Say any of these in a session with q-agent loaded:
