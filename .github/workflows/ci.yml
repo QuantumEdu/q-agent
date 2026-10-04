@@ -2,9 +2,12 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
+
+permissions:
+  contents: read
 
 jobs:
   validate-and-test:
@@ -17,19 +20,26 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Verify Python syntax (py_compile)
         run: |
           python -m py_compile tools/q-cockpit/q_cockpit.py
+          python -m py_compile tools/q-cockpit/q_cockpit_plus.py
+          python -m py_compile tools/q-cockpit/cockpit_services.py
+          python -m py_compile tools/q-cockpit/recovery.py
           python -m py_compile tools/q-checklist/q_checklist.py
           python -m py_compile tools/q-audit-validator/validate_audit.py
           python -m py_compile tools/q-audit-aggregator/generate_report.py
+          python -m py_compile tools/q-audit-runner/run_audit.py
+          python -m py_compile tools/q-audit-evidence/evidence.py
+          python -m py_compile tools/q-audit-lifecycle/audit_lifecycle.py
+          python -m py_compile tools/q-benchmark/benchmark.py
           python -m py_compile tests/*.py
 
       - name: Run unit & regression test suite
@@ -43,6 +53,14 @@ jobs:
       - name: Verify CLI Tools --help smoke execution
         run: |
           python tools/q-cockpit/q_cockpit.py --help
+          python tools/q-cockpit/q_cockpit_plus.py --help
           python tools/q-checklist/q_checklist.py --help
           python tools/q-audit-validator/validate_audit.py --help
           python tools/q-audit-aggregator/generate_report.py --help
+          python tools/q-audit-runner/run_audit.py --help
+          python tools/q-benchmark/benchmark.py --help
+
+      - name: Run local benchmark smoke check
+        run: >
+          python tools/q-benchmark/benchmark.py --project . --iterations 1
+          --json

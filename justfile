@@ -25,13 +25,33 @@ uninstall:
 test:
     python3 -m unittest discover -s tests
 
-# Launch visual elicitation & mission cockpit (q-cockpit web UI)
+# Launch visual elicitation & mission cockpit (enhanced q-cockpit web UI)
 cockpit PORT="4242":
+    python3 tools/q-cockpit/q_cockpit_plus.py serve --port {{PORT}}
+
+# Launch the legacy-compatible cockpit entrypoint
+cockpit-legacy PORT="4242":
     python3 tools/q-cockpit/q_cockpit.py serve --port {{PORT}}
+
+# Launch enhanced cockpit with snapshots, structured events, and recovery commands
+cockpit-plus PORT="4242":
+    python3 tools/q-cockpit/q_cockpit_plus.py serve --port {{PORT}}
+
+# Run the shared action catalog
+cockpit-actions:
+    python3 tools/q-cockpit/q_cockpit_plus.py actions
 
 # Launch interactive Terminal User Interface (q-cockpit TUI)
 cockpit-tui:
     python3 tools/q-cockpit/q_cockpit_tui.py
+
+# Run deterministic local performance benchmark
+benchmark ITERATIONS="3":
+    python3 tools/q-benchmark/benchmark.py --project . --iterations {{ITERATIONS}} --json
+
+# Run lifecycle-aware Plan C audit and evidence index
+run-audit LEVEL="2":
+    python3 tools/q-audit-runner/run_audit.py --cwd . --level {{LEVEL}}
 
 # Run interactive pre-flight architectural decision matrix (CLI TUI)
 checklist:
@@ -40,3 +60,7 @@ checklist:
 # Run deterministic technical contracts audit gate (Disaster Recovery, CI, Observability, API)
 audit-contracts CWD=".":
     python3 tools/q-audit-validator/validate_audit.py --mode technical --cwd {{CWD}}
+
+# Check cockpit session health
+cockpit-health:
+    python3 tools/q-cockpit/q_cockpit_plus.py health
