@@ -110,6 +110,13 @@ class TestSkillIntegrity(unittest.TestCase):
         skill_json = json.loads((ROOT_DIR / "skill.json").read_text(encoding="utf-8"))
         self.assertIn("q-adversarial-review", skill_json.get("skills", []))
 
+    def test_install_script_runtimes_include_copilot(self):
+        install_sh_path = ROOT_DIR / "install.sh"
+        self.assertTrue(install_sh_path.exists(), "install.sh must exist in project root")
+        content = install_sh_path.read_text(encoding="utf-8")
+        self.assertIn("GitHub Copilot", content)
+        self.assertIn("${HOME}/.copilot/skills/q-agent", content)
+
 
 if __name__ == "__main__":
     unittest.main()

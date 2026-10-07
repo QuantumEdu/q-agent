@@ -25,6 +25,7 @@ Every decision is **traceable as a GitHub Issue** in the project repository. Eve
 | **Antigravity CLI** | Load skill, then say "start agent" |
 | **Claude Code** | SKILL.md is auto-detected via frontmatter |
 | **OpenCode** | Load skill directory |
+| **GitHub Copilot** | Load skill directory (`~/.copilot/skills/q-agent`) |
 
 ### Universal Installation & Linking
 Link `q-agent` into all active AI runtimes on your machine with a single command (symlinks ensure `git pull` updates all agents instantly):
@@ -72,7 +73,7 @@ Current agentic coding frameworks fail in production due to structural design fl
 q-agent-v02/
 ├── SKILL.md                          # Orquestador canónico (Pasos 0 a 7 + Catálogo de Prompts)
 ├── README.md                         # Documentación del paquete
-├── install.sh                        # Universal runtime linker (AGY, Codex, Pi, Claude, OpenCode)
+├── install.sh                        # Universal runtime linker (AGY, Codex, Pi, Claude, OpenCode, Copilot)
 ├── justfile                          # Automation runner recipes (install, check, test, cockpit)
 ├── tutorial.html                     # Guía interactiva visual completa
 ├── implement-future-but-not-in-this-project.md # Blueprint del agente curricular q-academic
@@ -630,7 +631,7 @@ Activate: say **"start agent"** or **"/q-agent"** in any Pi session.
 cp -r q-agent-v02 ~/.gemini/antigravity-cli/skills/q-agent
 ```
 
-### Claude Code / Cursor / OpenCode
+### Claude Code / Cursor / OpenCode / GitHub Copilot
 Copy `q-agent-v02/` to your agent's skills directory. The `SKILL.md` frontmatter (`name`, `aliases`) is auto-detected.
 
 ---

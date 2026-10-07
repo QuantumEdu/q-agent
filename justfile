@@ -5,7 +5,7 @@
 default:
     @just --list
 
-# Link q-agent into all detected AI runtimes (AGY, Codex, Pi, Claude Code, OpenCode)
+# Link q-agent into all detected AI runtimes (AGY, Codex, Pi, Claude Code, OpenCode, GitHub Copilot)
 install:
     @./install.sh
 
