@@ -17,10 +17,22 @@ Compilar toda la evidencia observable acumulada durante el ciclo ODD y generar e
 
 ---
 
+### PRE-FLIGHT: COMPUERTA DETERMINISTA DE MERGE (`tools/q-merge-gate/`)
+Antes de compilar `REVIEW.md`, ejecutar la herramienta determinista de análisis de riesgo de diff:
+```bash
+python3 tools/q-merge-gate/q_merge_gate.py --base main --head HEAD
+```
+- **Exit 0 (`PROCEED`):** Diff limpio dentro de límites seguros de slice.
+- **Exit 7 (`HUMAN_APPROVAL_REQUIRED`):** El diff modifica lógica financiera/cobros, autenticación/seguridad, o supera 500 LOC. Requiere aprobación humana explícita documentada.
+- **Exit 8 (`HUMAN_ACTION_REQUIRED`):** El diff modifica esquemas de base de datos o migraciones DDL. Requiere revisión previa de runbook/operador antes de merge.
+
+---
+
 ### REGLA DE ORO: EL AGENTE NO DESPLIEGA
-1. El agente recopila y verifica los 6 puntos de evidencia.
+1. El agente recopila y verifica los puntos de evidencia y el resultado de `q-merge-gate`.
 2. Si algún test o linter falló, el veredicto es automáticamente `NO_DEPLOY` y se detiene el flujo.
-3. Si todo está limpio, emite `READY_FOR_HUMAN_SIGNATURE` y espera la confirmación explícita del usuario en el chat.
+3. Si el merge gate retorna Exit 7 u 8, el agente destaca el motivo exacto en la bandeja de decisión.
+4. Si todo está limpio, emite `READY_FOR_HUMAN_SIGNATURE` y espera la confirmación explícita del usuario en el chat.
 
 ---
 

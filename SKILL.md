@@ -8,13 +8,13 @@ description: >
   Enforces Article ARQ-01: Vertical Slices by default, template hygiene (.html embed),
   zero-mock terminal evidence, and minimal indirection. Tool-agnostic.
 author: Gabriel Magallón Sánchez / QuantumEdu (Quantum)
-version: 2.5.4
+version: 2.6.0
 license: Apache-2.0
 sources: [chat]
 aliases: [agente, /q-agent, iniciar agente, dev agent, orchestrator]
 ---
 
-# q-agent v2.5.4 — Master Project Orchestrator (Dual Engine, Vertical Slices & Wave Execution)
+# q-agent v2.6.0 — Master Project Orchestrator (Dual Engine, Vertical Slices & Wave Execution)
 
 > **Autor y Arquitecto Principal:** Gabriel Magallón Sánchez / QuantumEdu (Quantum)  
 > **Licencia:** Apache License 2.0  
@@ -177,6 +177,11 @@ ask and STOP only for unresolved decisions or missing authority.
 > **Ejecutar `prompts/P05_vertical_slice_apply.md`.**
 
 - Construir slice por slice (Storage ──► Handler ──► Template .html).
+- **Aislamiento por Git Worktrees (Opcional/Recomendado para Waves):**  
+  Para evitar colisiones en disco cuando subagentes trabajan en paralelo, inicializar un worktree dedicado:
+  ```bash
+  python3 tools/q-worktree/q_worktree.py create --task TASK-XX
+  ```
 - **Mínima Indirección:** El handler consulta directamente la capa de almacenamiento del slice; prohibido crear interfaces o DTOs redundantes sin valor.
 - **Higiene:** Crear vistas en archivos `.html` higiénicos empaquetados. Prohibida la concatenación de HTML en cadenas de texto en archivos backend.
 - **Seguridad:** 100% queries preparadas con placeholders.
@@ -184,7 +189,7 @@ ask and STOP only for unresolved decisions or missing authority.
 
 ---
 
-## STEP 6 — Dual Verification Gate (Terminal Evidence + Adversarial Review)
+## STEP 6 — Dual Verification Gate (Terminal Evidence + Adversarial Review con Review Remembers)
 
 > **Ejecutar `prompts/P06_terminal_evidence_gate.md`.**
 
@@ -194,6 +199,7 @@ ask and STOP only for unresolved decisions or missing authority.
    - Pruebas de humo HTTP (`curl -I http://localhost:PORT/endpoint`).
 2. **Fase B — Compuerta Adversarial Aislada (`skills/q-adversarial-review`):**
    - Despachar un subagente independiente (`invoke_subagent`) con contexto limpio para auditar el `git diff` contra el **Artículo ARQ-01** (mínima indirección, higiene de plantillas, SQL parametrizado, cero mocks).
+   - **Protocolo Review Remembers:** En re-revisiones tras corrección, verificar el estado de los IDs de hallazgos previos (`R-01`, `R-02`, etc.) evaluando su matriz (`[FIXED]`, `[NOT_FIXED]`, `[NO_LONGER_APPLIES]`).
    - Requerir veredicto `APPROVED` antes de autorizar el cierre.
 3. **Registro Obligatorio:** Escribir en la tabla `Terminal Evidence Gate` de la bitácora:
    ```markdown
@@ -293,9 +299,17 @@ Este script en Python ensambla deterministamente sin consumir tokens del LLM:
 
 > **Ejecutar `prompts/P08_deploy_gate.md`.**
 
-1. **Compilación de Evidencia:** El agente compila la salida de P06 (tests exitosos), P07 (linters limpios), P09 (CAB-RP 2.0 sin gaps P0) e invariantes ARQ-01 en el artefacto versionado `REVIEW.md`.
-2. ⛔ **REGLA DE BLOQUEO (EL AGENTE NO DESPLIEGA):** El agente tiene estrictamente prohibido ejecutar comandos de despliegue a producción o merges definitivos sin la firma humana explícita.
-3. **Pausa Obligatoria:** El agente emite el reporte resumido de `REVIEW.md` en el chat, solicita la firma humana y **detiene la ejecución** esperando confirmación.
+1. **Pre-Flight Determinista de Merge Gate (`tools/q-merge-gate`):**  
+   Antes de generar el informe final, evaluar el blast radius y dominios restringidos del diff:
+   ```bash
+   python3 tools/q-merge-gate/q_merge_gate.py --base main --head HEAD
+   ```
+   - **Exit 0 (`PROCEED`):** Merge seguro dentro de umbrales ordinarios.
+   - **Exit 7 (`HUMAN_APPROVAL_REQUIRED`):** El diff modifica lógica financiera/billing, autenticación/permisos, o excede 500 LOC. Requiere aprobación humana explícita.
+   - **Exit 8 (`HUMAN_ACTION_REQUIRED`):** El diff modifica esquemas de base de datos o migraciones DDL. Requiere revisión previa de operador/runbook.
+2. **Compilación de Evidencia:** El agente compila la salida de P06 (tests exitosos), P07 (linters limpios), P09 (CAB-RP 2.0 sin gaps P0), el veredicto de `q-merge-gate` e invariantes ARQ-01 en el artefacto versionado `REVIEW.md`.
+3. ⛔ **REGLA DE BLOQUEO (EL AGENTE NO DESPLIEGA):** El agente tiene estrictamente prohibido ejecutar comandos de despliegue a producción o merges definitivos sin la firma humana explícita.
+4. **Pausa Obligatoria:** El agente emite el reporte resumido de `REVIEW.md` en el chat, solicita la firma humana y **detiene la ejecución** esperando confirmación.
 
 ---
 

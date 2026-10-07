@@ -1,23 +1,24 @@
 ---
 name: q:adversarial-review
-description: "Trigger: /q-adversarial-review, /adversarial-review, revisión adversarial, auditor adversarial, gate adversarial, revisar diff limpio. Audita de manera independiente e implacable el código recién implementado en un slice vertical o tarea atómica antes de dar por buena la compuerta P06, ejecutándose en un subagente con contexto aislado (sin sesgo de auto-confirmación ni memoria previa), evaluando el git diff contra el Artículo ARQ-01, CONSTITUTION.md y los criterios UAC."
+description: "Trigger: /q-adversarial-review, /adversarial-review, revisión adversarial, auditor adversarial, gate adversarial, revisar diff limpio. Audita de manera independiente e implacable el código recién implementado en un slice vertical o tarea atómica antes de dar por buena la compuerta P06, ejecutándose en un subagente con contexto aislado (sin sesgo de auto-confirmación ni memoria previa), evaluando el git diff contra el Artículo ARQ-01, CONSTITUTION.md y los criterios UAC con memoria de hallazgos persistentes (Review Remembers)."
 license: Apache-2.0
 metadata:
   author: QuantumEdu
-  version: "1.0.0"
-  date: "2026-09-25"
+  version: "2.0.0"
+  date: "2026-10-07"
 ---
 
-# q:adversarial-review v1.0 (Compuerta de Revisión Adversarial Aislada)
+# q:adversarial-review v2.0 (Compuerta de Revisión Adversarial con Review Remembers)
 
 ## Goal
-Eliminar el **sesgo de auto-confirmación** en el desarrollo asistido por IA mediante una compuerta adversarial rigurosa. Un subagente con **contexto limpio** (cero memoria del proceso de escritura) audita exclusivamente el `git diff` recién generado contra el **Artículo Constitucional ARQ-01**, las directrices de `CONSTITUTION.md` / `BLUEPRINT.md` y los criterios de aceptación (`UAC`) de la tarea, emitiendo un veredicto binario vinculante (`APPROVED` o `REJECTED`).
+Eliminar el **sesgo de auto-confirmación** en el desarrollo asistido por IA mediante una compuerta adversarial rigurosa. Un subagente con **contexto limpio** (cero memoria del proceso de escritura) audita exclusivamente el `git diff` recién generado contra el **Artículo Constitucional ARQ-01**, las directrices de `CONSTITUTION.md` / `BLUEPRINT.md` y los criterios de aceptación (`UAC`) de la tarea, emitiendo un veredicto binario vinculante (`APPROVED` o `REJECTED`) con trazabilidad estricta de hallazgos en rondas sucesivas (**Review Remembers**).
 
 ---
 
 ## When to Use
 - **En Paso 6 (Compuerta Dual):** Inmediatamente después de verificar que el código compila y pasa tests de máquina en P06, y **antes** de marcar cualquier checkbox `[x]` en la bitácora activa (`q-tasks/*.md` u `odd/tasks/*.md`).
 - **En Cierre de Slice Vertical:** Al concluir un slice de ~400 LOC para certificar que no se introdujo deuda técnica, capas pasamanos o antipatrones.
+- **En Re-Revisión tras Rebote:** Cuando un slice fue corregido y vuelve a revisión, evaluando qué hallazgos previos fueron realmente resueltos.
 - **Bajo Demanda:** Cuando el usuario solicita `/adversarial-review` o revisar el trabajo reciente con ojos críticos e imparciales.
 
 ---
@@ -29,14 +30,24 @@ Eliminar el **sesgo de auto-confirmación** en el desarrollo asistido por IA med
    - El `git diff` del slice o tarea.
    - La tarea activa y sus criterios `UAC`.
    - `CONSTITUTION.md` y `BLUEPRINT.md` (o reglas de arquitectura del proyecto).
+   - El reporte previo de revisión (si existe una ronda anterior).
 
 2. **Rol de Auditor Implacable (Zero Empathy / Zero Assumption):**  
    El auditor no sabe cuánto esfuerzo costó escribir el código ni le importan las intenciones. Evalúa **únicamente hechos observables en el diff**. Si una función no tiene tests, si un endpoint concatena HTML, o si se creó una interfaz pasamanos sin justificación, el veredicto es `REJECTED`.
 
-3. **Veredicto Vinculante y Remediation Loop:**  
-   - Si el veredicto es `REJECTED`, el agente escritor **TIENE PROHIBIDO** marcar la tarea como completada (`[x]`).
+3. **Protocolo "Review Remembers" (Memoria de Hallazgos con IDs Estables):**  
+   - En una primera revisión, cada objeción recibe un ID persistente: `R-01`, `R-02`, etc.
+   - En rondas subsiguientes de re-revisión, el auditor **evalúa primero el estado de los IDs previos** antes de buscar nuevos defectos:
+     * `[FIXED]`: Resuelto con evidencia verificable en `file:line`.
+     * `[NOT_FIXED]`: No resuelto; mantiene el veredicto en `REJECTED`.
+     * `[NO_LONGER_APPLIES]`: La arquitectura o código cambió y la objeción ya no aplica.
+   - Si el nuevo diff introduce fallos adicionales, se agregan nuevos IDs (`R-03`, `R-04`).
+   - El slice **SOLO** puede alcanzar `APPROVED` cuando el 100% de los `R-ids` previos están en `[FIXED]` o `[NO_LONGER_APPLIES]` y no existen nuevos blockers.
+
+4. **Veredicto Vinculante y Bloqueo de Tarea:**  
+   - Si el veredicto es `REJECTED`, el agente escritor **TIENE ESTRICTAMENTE PROHIBIDO** marcar la tarea como completada (`[x]`).
    - El agente escritor debe aplicar las correcciones mínimas requeridas.
-   - El slice vuelve a pasar por P06 de máquina y luego nuevamente por la revisión adversarial hasta obtener `APPROVED`.
+   - El slice vuelve a pasar por P06 de máquina y luego nuevamente por la revisión adversarial con memoria hasta obtener `APPROVED`.
 
 ---
 
@@ -57,7 +68,7 @@ El auditor adversarial escanea el `git diff` bajo 5 ejes estrictos:
 ## Protocolo de Despacho e Invocación
 
 ### Paso 1: Extracción del Contexto Acotado (Agente Orquestador)
-El orquestador extrae el diff y prepara el paquete de auditoría:
+El orquestador extrae el diff y carga el reporte adversarial anterior (si existe):
 ```bash
 git diff HEAD~1..HEAD  # o git diff origin/main..HEAD
 ```
@@ -69,18 +80,19 @@ invoke_subagent(
   role="Adversarial Architecture Reviewer",
   prompt="Actúa como Auditor Adversarial implacable bajo el Artículo ARQ-01.
           Audita el siguiente diff contra CONSTITUTION.md y los UAC de TASK-XX.
+          Reporte previo (si existe): <PREVIOUS_REPORT>
           Diff: <DIFF_CONTENT>
-          Emite veredicto: APPROVED o REJECTED con lista de hallazgos exactos (archivo, línea, causa)."
+          Emite veredicto: APPROVED o REJECTED con tabla Review Remembers (R-IDs) y hallazgos exactos."
 )
 ```
 
 ### Paso 3: Evaluación del Veredicto
 - **Si `APPROVED`:** El orquestador registra la aprobación en la bitácora activa y procede al cierre de la tarea.
-- **Si `REJECTED`:** El orquestador reasigna el trabajo al escritor con la lista de hallazgos para subsanar los blockers.
+- **Si `REJECTED`:** El orquestador reasigna el trabajo al escritor con la lista de hallazgos `R-XX` para subsanar los blockers.
 
 ---
 
-## Formato Estándar del Veredicto Adversarial
+## Formato Estándar del Veredicto Adversarial (con Review Remembers)
 
 Todo reporte emitido por `q:adversarial-review` debe seguir esta estructura:
 
@@ -88,13 +100,20 @@ Todo reporte emitido por `q:adversarial-review` debe seguir esta estructura:
 ### 🛡️ Adversarial Review Verdict: [APPROVED | REJECTED]
 
 - **Slice / Tarea:** TASK-XX (<Nombre de la tarea>)
+- **Ronda:** 2 (Re-Revisión)
 - **Archivos auditados:** N archivos modificados (+X, -Y)
 
-#### Hallazgos:
-- [P0/Blocker] `path/to/file.ext:L45`: Violación de Higiene de Plantillas — HTML concatenado en función Go.
-- [P1/Warning] `path/to/repo.go:L112`: Query SQL sin log de contexto en fallo de conexión.
+#### 📋 Review Remembers (Auditoría de Hallazgos Previos):
+| ID | Archivo y Línea | Hallazgo Original | Estado | Evidencia |
+| :--- | :--- | :--- | :--- | :--- |
+| **R-01** | `internal/view/user.go:L45` | HTML concatenado en backend | `[FIXED]` | Movido a `templates/user.html` (L12) |
+| **R-02** | `internal/repo/db.go:L88` | Query SQL con interpolación de strings | `[NOT_FIXED]` | Persiste `fmt.Sprintf` en L92 |
 
-#### Acción Requerida:
-1. Mover el fragmento HTML a `templates/component.html`.
-2. Re-ejecutar P06 de máquina y solicitar nueva revisión adversarial.
+#### 🚨 Nuevos Hallazgos (Regresiones):
+- [P0/Blocker] **R-03** `internal/handler/auth.go:L34`: Error de login silenciado con `_ = err`.
+
+#### 🎯 Acción Requerida:
+1. Subsanar **R-02** usando placeholders `?` o `$1` en la query SQL.
+2. Subsanar **R-03** propagando el error con contexto HTTP 401.
+3. Re-ejecutar P06 de máquina y solicitar nueva revisión adversarial.
 ```

@@ -5,7 +5,21 @@ All notable changes to **q-agent** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.6.0] - 2026-10-07
+
+### Added
+- **Subagent Git Worktree Isolation (`tools/q-worktree/q_worktree.py`)**:
+  - Zero-dependency CLI tool inspired by Super-Board (`super-board`) providing ephemeral, isolated worktrees under `.q-worktrees/task-<ID>`.
+  - Enables concurrent subagents and ODD wave workers to operate on isolated branches (`wave/<task>`) without dirtying or colliding on the developer's main working tree.
+  - Supports `create`, `list`, `remove`, and `merge` commands with full `--json` machine-readable output.
+- **Review Remembers Protocol in Adversarial Review (`skills/q-adversarial-review/SKILL.md`)**:
+  - Evolved `q:adversarial-review` with persistent finding IDs (`R-01`, `R-02`...) across iterative review passes.
+  - Structured status matrix (`[FIXED]`, `[NOT_FIXED]`, `[NO_LONGER_APPLIES]`) with line-level proof on re-reviews, preventing circular debate and regression loops.
+- **Deterministic Merge Policy Gate (`tools/q-merge-gate/q_merge_gate.py` & `prompts/P08_deploy_gate.md`)**:
+  - Pre-flight automated blast-radius analyzer for Step 8 (Deploy Gate), inspired by Super-Board's merge policy.
+  - Semantic exit codes: Exit 0 (`PROCEED`), Exit 7 (`HUMAN_APPROVAL_REQUIRED` for billing/money, auth/jwt/security, or LOC > 500), and Exit 8 (`HUMAN_ACTION_REQUIRED` for DB schemas/migrations).
+- **Formal Attributions Update (`ATTRIBUTION.md`)**:
+  - Documented design influence, architectural credit, and cross-pollination from **Shopify Helix** and **Super-Board (EricTechPro)**.
 
 ---
 

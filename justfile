@@ -64,3 +64,11 @@ audit-contracts CWD=".":
 # Check cockpit session health
 cockpit-health:
     python3 tools/q-cockpit/q_cockpit_plus.py health
+
+# Run deterministic merge policy gate against base branch
+merge-gate BASE="main" MAX_LOC="500":
+    python3 tools/q-merge-gate/q_merge_gate.py --base {{BASE}} --max-loc {{MAX_LOC}}
+
+# List active subagent git worktrees
+worktrees:
+    python3 tools/q-worktree/q_worktree.py list

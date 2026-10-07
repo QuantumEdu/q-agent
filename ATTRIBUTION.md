@@ -1,4 +1,4 @@
-# Manifiesto de Atribución, Reconocimiento y Autoría: q-agent v2.0
+# Manifiesto de Atribución, Reconocimiento y Autoría: q-agent v2.6.0
 > **Firma Oficial:** Gabriel Magallón Sánchez / QuantumEdu (Quantum)  
 > **Licencia:** Apache License 2.0 | **Año:** 2026
 
@@ -9,24 +9,28 @@
 El proyecto **`q-agent`** ha sido concebido, diseñado y orquestado por **Gabriel Magallón Sánchez (QuantumEdu)** para establecer un estándar riguroso, determinista y libre de alucinaciones en el desarrollo asistido por Inteligencia Artificial (*Concepts > Code*).
 
 ### Módulos y Skills Propias Originales de Quantum:
-1. **`q-agent` (Master Project Orchestrator v2.0):**
+1. **`q-agent` (Master Project Orchestrator v2.6.0):**
    - Arquitectura de **Motor Dual** (Gentle-AI Integrated ODD vs q-agent Standalone) con detección determinista en runtime.
-   - Pipeline estructurado de 7 pasos: Pasos 0–3 guiados socráticos (una pregunta por turno) y Pasos 4–7 autónomos.
+   - Pipeline estructurado de 9 pasos: Pasos 0–3 guiados socráticos (una pregunta por turno), Pasos 4–7 de ejecución por rebanadas verticales y oleadas, Paso 8 Deploy Gate y Paso 9 Ops bridge.
 2. **Gobernanza Constitucional y Artículo ARQ-01:**
    - Ley suprema de diseño de software: Vertical Slices por defecto, umbral de dominio rico (>15 reglas de negocio), persistencia pragmática (SQLite WAL con timeout), higiene estricta de plantillas `.html` empaquetadas y 100% de consultas SQL parametrizadas.
-3. **Terminal Evidence Gate (Compuerta de Evidencia en Terminal):**
-   - Protocolo inquebrantable contra falsas completitudes (anti-mocks y anti-fakes) que exige la captura de comandos de terminal, código de salida `0` y pruebas observables antes de dar cualquier tarea por concluida.
+3. **Terminal Evidence Gate & Adversarial Review:**
+   - Protocolo inquebrantable contra falsas completitudes (anti-mocks y anti-fakes) en dos fases: Fase A (Evidencia en terminal, exit code 0) y Fase B (Revisión adversarial aislada con matriz de memoria Review Remembers).
 4. **Suite de Skills Especializadas de Quantum:**
    - **`q-deliberate`:** Motor de deliberación dialéctica tripartita (*Proponent*, *Adversary*, *Synthesizer*) para evaluar disyuntivas arquitectónicas complejas.
    - **`q-grill-me`:** Elicitación socrática profunda para desafiar supuestos no validados en fases de diseño.
    - **`q-delegate-context`:** Patrón FirstMate para aislamiento y compresión de lecturas multifichero sin saturar la ventana de contexto del LLM.
+   - **`q-adversarial-review`:** Auditor implacable con contexto limpio y protocolo Review Remembers.
    - **`q-gbrain-assistant`:** Interfaz unificada de memoria persistente a largo plazo con GBrain y Engram.
    - **`q-audit-readonly`:** Protocolo de auditoría forense con inmutabilidad absoluta en disco (`git status -s` idéntico de principio a fin).
    - **`q-ci-fixer`:** Reparación quirúrgica de errores de linters locales acotada a un límite estricto de 2 pasadas (*Bounded Turns*).
    - **`q-session-wrap`:** Consolidación de sesión, telemetría y snapshots de estado.
-5. **Herramientas de Auditoría Determinista:**
+5. **Herramientas de Ejecución y Gobernanza Determinista:**
+   - `tools/q-worktree`: Gestor de aislamiento de subagentes en worktrees dedicados de Git (`.q-worktrees/`).
+   - `tools/q-merge-gate`: Compuerta determinista de políticas de merge con análisis de blast radius (Exit 0, 7, 8).
    - `tools/q-audit-validator`: Validador sintáctico y estructural de reportes de auditoría.
    - `tools/q-audit-aggregator`: Agregador algorítmico determinista de brechas EARS y planes de remediación.
+   - `tools/q-cockpit`: Cabina visual de control (TUI terminal + dashboard web en puerto 4242).
 
 ---
 
@@ -50,8 +54,16 @@ El proyecto **`q-agent`** ha sido concebido, diseñado y orquestado por **Gabrie
    - **Autor / Referente:** Matt Pocock.
    - **Contribución:** Pautas para la elicitación clara y simplificación de contratos en el desarrollo asistido por agentes.
 6. **Aislamiento de Workspace mediante Git Worktrees:**
-   - **Autor / Referente:** Comunidad Git / Linux Kernel.
-   - **Contribución:** El patrón de carpetas hermanas aisladas (`../{repo}-worktrees/`) para garantizar que el agente nunca altere el árbol de trabajo activo del IDE del desarrollador.
+   - **Autor / Referente:** Comunidad Git / Linux Kernel & EricTechPro (`super-board`).
+   - **Contribución:** El patrón de aislamiento estricto de subagentes y oleadas (`.q-worktrees/task-<ID>`) gestionado por `tools/q-worktree`, garantizando que múltiples agentes concurrentes nunca colisionen en el working tree activo del desarrollador.
+7. **Adversarial Review Gate & Micro-Checkpoints:**
+   - **Autor / Referente:** Equipo de Ingeniería de Shopify (Shopify Helix - *Helix: The internal tool powering our Shopify app's native migration*).
+   - **Contribución:** El principio de validación adversarial con contexto limpio (Gate 3 de Helix) integrado en `skills/q-adversarial-review`, eliminando el sesgo de auto-confirmación del agente implementador.
+8. **Memoria de Revisiones (Review Remembers) y Compuerta Determinista de Fusión (Merge Policy Gate):**
+   - **Autor / Referente:** EricTechPro (`super-board` - *Autonomous GitHub Project Pipeline*).
+   - **Contribución:**
+     - El protocolo **"Review Remembers"**: persistencia de IDs de hallazgos (`R-01`, `R-02`...) y evaluación matricial (`fixed / notFixed / noLongerApplies`) en re-revisiones para prevenir debates circulares.
+     - La compuerta determinista de política de merge (`tools/q-merge-gate`), inspirada en la arquitectura de `super-board-merge-gate.sh`, con códigos de salida semánticos (Exit 0 para avance estándar, Exit 7 para aprobación humana obligatoria por tocar dinero/auth o exceder LOC, y Exit 8 para migraciones y esquemas DDL).
 
 ---
 

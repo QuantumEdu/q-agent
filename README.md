@@ -1,9 +1,9 @@
 # q-agent — Master Project Orchestrator
-> **Hermetic deployment package v2.5.4 (Dual Engine, Vertical Slices & Wave Execution)** · Tool-agnostic · Greenfield · Brownfield · Audit
+> **Hermetic deployment package v2.6.0 (Dual Engine, Vertical Slices & Wave Execution)** · Tool-agnostic · Greenfield · Brownfield · Audit
 
 [![CI Pipeline](https://github.com/QuantumEdu/q-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/QuantumEdu/q-agent/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.5.4-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.6.0-green.svg)](CHANGELOG.md)
 
 ---
 
@@ -222,6 +222,22 @@ Configurable in `.q-agent.json` via `observability.eval_level` according to proj
 - **`minimal`**: Measures `final outcome` (tests pass) and `policy compliance` (domain isolation). Ideal for micro-fixes and prototypes.
 - **`standard` (Default)**: Tracks 7 dimensions: `decision`, `evidence`, `tools`, `routing`, `retries`, `policy compliance`, and `final outcome`.
 - **`enterprise`**: Activates all 9 dimensions, adding granular `cost` (token consumption) and `latency` (wall-clock seconds per phase) for enterprise SLAs and audits.
+
+### 8. Subagent Git Worktree Isolation (`tools/q-worktree/`)
+- Zero-dependency tool (`python3 tools/q-worktree/q_worktree.py`) that creates ephemeral, isolated worktrees under `.q-worktrees/task-<ID>` for subagents and ODD waves.
+- Ensures concurrent agent workers execute on independent branches (`wave/<task>`) without dirtying or colliding on the developer's main working tree.
+- Commands: `create`, `list`, `remove`, `merge` with optional `--json` machine-readable output.
+
+### 9. Context-Isolated Adversarial Review with Review Remembers (`skills/q-adversarial-review/`)
+- Dispatches a subagent with clean context (zero prompt history) to eliminate self-confirmation bias.
+- **Review Remembers Protocol:** Assigns stable IDs (`R-01`, `R-02`...) to architectural findings. In re-review passes, systematically evaluates a status matrix: `[FIXED]`, `[NOT_FIXED]`, `[NO_LONGER_APPLIES]` before allowing slice completion.
+
+### 10. Deterministic Merge Policy Gate (`tools/q-merge-gate/`)
+- Pre-flight automated gate (`python3 tools/q-merge-gate/q_merge_gate.py`) evaluated in Step 8 before human release signature.
+- Analyzes diff blast radius and restricted domains:
+  - **Exit 0 (`PROCEED`):** Standard slice within safe thresholds.
+  - **Exit 7 (`HUMAN_APPROVAL_REQUIRED`):** Touches financial/billing logic, auth/security, or exceeds 500 LOC.
+  - **Exit 8 (`HUMAN_ACTION_REQUIRED`):** Modifies database schemas or DDL migrations, requiring operator verification.
 
 ---
 

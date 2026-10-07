@@ -1,7 +1,7 @@
 {
   "name": "q-agent",
-  "version": "2.5.4",
-  "description": "Master project orchestrator featuring Dual Engine (Gentle-AI Integrated ODD vs Standalone), Article ARQ-01 Vertical Slices, BMAD User Stories, Terminal Evidence Gate, Deploy Gate, Ops Bridge, and Zero-Node Visual Cockpit.",
+  "version": "2.6.0",
+  "description": "Master project orchestrator featuring Dual Engine, Article ARQ-01 Vertical Slices, Terminal Evidence Gate, Isolated Adversarial Review with Review Remembers, Subagent Git Worktrees, Deterministic Merge Policy Gate, Deploy Gate, and Zero-Node Visual Cockpit.",
   "author": "Gabriel Magallón Sánchez / QuantumEdu (Quantum)",
   "license": "Apache-2.0",
   "homepage": "https://github.com/QuantumEdu/q-agent",
