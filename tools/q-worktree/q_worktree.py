@@ -80,7 +80,7 @@ def cmd_create(args):
         "path": str(target_path)
     }
 
-    if args.json:
+    if getattr(args, "json", False):
         print(json.dumps(result, indent=2))
     else:
         print(f"✅ Worktree created for task '{args.task}':")
@@ -124,7 +124,7 @@ def cmd_list(args):
         if ".q-worktrees" in wt.get("path", "")
     ]
 
-    if args.json:
+    if getattr(args, "json", False):
         print(json.dumps(q_worktrees, indent=2))
     else:
         print(f"Active q-agent worktrees ({len(q_worktrees)}):")
@@ -144,7 +144,8 @@ def cmd_remove(args):
         sys.stderr.write("Error: not inside a git repository.\n")
         return 1
 
-    worktrees_dir = Path(args.worktree_dir) if args.worktree_dir else repo_root / ".q-worktrees"
+    wt_dir_arg = getattr(args, "worktree_dir", None)
+    worktrees_dir = Path(wt_dir_arg) if wt_dir_arg else repo_root / ".q-worktrees"
     target_path = worktrees_dir / f"task-{args.task}"
 
     if not target_path.exists():
@@ -152,7 +153,7 @@ def cmd_remove(args):
         return 1
 
     git_args = ["worktree", "remove", str(target_path)]
-    if args.force:
+    if getattr(args, "force", False):
         git_args.append("--force")
 
     code, out, err = run_git(git_args, cwd=repo_root)
@@ -169,7 +170,7 @@ def cmd_remove(args):
         "path": str(target_path)
     }
 
-    if args.json:
+    if getattr(args, "json", False):
         print(json.dumps(result, indent=2))
     else:
         print(f"🗑️ Worktree removed for task '{args.task}' ({target_path})")
@@ -183,10 +184,11 @@ def cmd_merge(args):
         sys.stderr.write("Error: not inside a git repository.\n")
         return 1
 
-    worktrees_dir = Path(args.worktree_dir) if args.worktree_dir else repo_root / ".q-worktrees"
+    wt_dir_arg = getattr(args, "worktree_dir", None)
+    worktrees_dir = Path(wt_dir_arg) if wt_dir_arg else repo_root / ".q-worktrees"
     target_path = worktrees_dir / f"task-{args.task}"
     branch_name = f"wave/{args.task}"
-    target_branch = args.target or "main"
+    target_branch = getattr(args, "target", None) or "main"
 
     if not target_path.exists():
         sys.stderr.write(f"Worktree not found: {target_path}\n")
@@ -211,8 +213,8 @@ def cmd_merge(args):
     run_git(["worktree", "remove", str(target_path)], cwd=repo_root)
     run_git(["worktree", "prune"], cwd=repo_root)
 
-    # Delete branch if requested
-    if args.delete_branch:
+    # Delete branch if requested (default to True for clean pruning)
+    if getattr(args, "delete_branch", True):
         run_git(["branch", "-d", branch_name], cwd=repo_root)
 
     result = {
@@ -222,7 +224,7 @@ def cmd_merge(args):
         "target": target_branch
     }
 
-    if args.json:
+    if getattr(args, "json", False):
         print(json.dumps(result, indent=2))
     else:
         print(f"🔀 Task '{args.task}' merged into '{target_branch}' and worktree pruned.")

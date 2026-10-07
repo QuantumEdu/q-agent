@@ -5,6 +5,23 @@ All notable changes to **q-agent** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.1] - 2026-10-07
+
+### Added
+- **End-to-End Support Ticket System Test & Demo (`tests/test_e2e_ticket_system.py`, `examples/support-tickets/demo.py`)**:
+  - Full lifecycle validation (OPEN -> IN_PROGRESS -> RESOLVED -> CLOSED) with priority-based SLA calculation (Critical: 2h, High: 8h, Medium: 24h, Low: 72h).
+  - Integrated zero-mock SQLite persistence with complete simulation of the q-agent v2.6.0 governance pipeline.
+
+### Changed
+- **Defensive API Hardening in `tools/q-worktree/q_worktree.py`**:
+  - Implemented safe attribute fallback `getattr(args, "delete_branch", True)` in `cmd_merge` and safe defaults for `json`, `force`, and `target` to ensure bulletproof programmatic invocation by subagents.
+- **Contract Resilience in `tools/q-merge-gate/q_merge_gate.py`**:
+  - Added `total_loc_changed` as explicit alias for `total_loc` in `analyze_diff` report dictionary.
+- **Strategic Structure & Flow in `README.md`**:
+  - Reorganized package documentation following an outcome-first, progressive disclosure flow: Core Philosophy -> Execution Flow (Steps 0–9) -> Universal Runtime Linking -> Real-World Battle-Tested Slices -> Tooling Catalog & Quality Gates.
+
+---
+
 ## [2.6.0] - 2026-10-07
 
 ### Added

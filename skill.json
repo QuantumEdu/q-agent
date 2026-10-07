@@ -1,6 +1,6 @@
 {
   "name": "q-agent",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "description": "Master project orchestrator featuring Dual Engine, Article ARQ-01 Vertical Slices, Terminal Evidence Gate, Isolated Adversarial Review with Review Remembers, Subagent Git Worktrees, Deterministic Merge Policy Gate, Deploy Gate, and Zero-Node Visual Cockpit.",
   "author": "Gabriel Magallón Sánchez / QuantumEdu (Quantum)",
   "license": "Apache-2.0",

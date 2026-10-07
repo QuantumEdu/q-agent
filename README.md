@@ -1,248 +1,54 @@
 # q-agent — Master Project Orchestrator
-> **Hermetic deployment package v2.6.0 (Dual Engine, Vertical Slices & Wave Execution)** · Tool-agnostic · Greenfield · Brownfield · Audit
+> **Hermetic deployment package v2.6.1 (Dual Engine, Vertical Slices & Wave Execution)** · Tool-agnostic · Greenfield · Brownfield · Fast-Track · Audit
 
 [![CI Pipeline](https://github.com/QuantumEdu/q-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/QuantumEdu/q-agent/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.6.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.6.1-green.svg)](CHANGELOG.md)
 
 ---
 
-## What is q-agent?
+## 1. Fundamentos & Visión Arquitectónica
 
-`q-agent` is a master orchestrator for full software development cycles. It is NOT a code generator — it is a **conductor**: it guides the user through the right questions, makes architectural decisions using specialized skills, and delegates technical execution to the correct runtime.
+### ¿Qué es q-agent?
+`q-agent` es un **director de orquesta** para el ciclo de vida completo de ingeniería de software asistida por IA. No es un generador de código que escupe archivos sin control (*vibe coding*): es un **árbitro arquitectónico** que guía el contexto mediante preguntas socráticas, delimita fronteras de dominio inmutables, hace cumplir el **Artículo Constitucional ARQ-01** (Vertical Slices) y delega la ejecución a herramientas deterministas y compuertas de calidad no negociables.
 
-Every decision is **traceable as a GitHub Issue** in the project repository. Every step produces a documented artifact committed to Git.
+Toda decisión queda registrada en Git y es trazable como un GitHub Issue. Cada entrega técnica genera evidencia observable en terminal con **cero mocks**.
 
-### Path Resolution & Execution Boundary
-- **`<SKILL_ROOT>`**: Directory where `q-agent` is installed (e.g. `~/.pi/agent/skills/q-agent/`). All internal orchestrator assets (`prompts/`, `templates/`, `references/`, `skills/`) are always resolved relative to `<SKILL_ROOT>`.
-- **`<PROJECT_ROOT>`**: Active target workspace repository (`cwd`). All project source code, Git branches, and generated artifacts (`CONSTITUTION.md`, `CLAUDE.md`, `openspec/`, `docs/adr/`) are created inside `<PROJECT_ROOT>`.
+### Por qué SDD Determinista: El Análisis "Amarillas"
+Los frameworks contemporáneos de agentes autónomos fallan en producción debido a tres vicios estructurales:
+1. **Regresiones por Vibe Coding:** Modificar código sin restricciones arquitectónicas rompe invariantes de dominio y genera deuda técnica invisible.
+2. **Big Design Up Front (BDUF) y Context Rot (Spec-Kit):** Volcar especificaciones gigantescas en una sola sesión satura la ventana de contexto. Para la fase 5, los LLMs sufren degradación de atención (*Lost in the Middle*), alucinando y olvidando instrucciones clave ([Spec-Kit Issues #3507, #3752](https://github.com/github/spec-kit/issues/3507)).
+3. **Sobrecarga de Enjambres No Acotados (BMAD / ChatDev):** Los enjambres conversacionales multi-agente disparan el consumo de tokens entre 3x y 5x, añaden latencia crítica y compounding hallucinations al carecer de compuertas verificables en terminal.
 
-### Compatible Runtimes & Registries
-| Runtime / Registry | How to activate |
-|--------------------|----------------|
-| **skills.sh** | `npx skills add QuantumEdu/q-agent` |
-| **Pi** | `pi chat --skill q-agent` or say "start agent" |
-| **Antigravity CLI** | Load skill, then say "start agent" |
-| **Claude Code** | SKILL.md is auto-detected via frontmatter |
-| **OpenCode** | Load skill directory |
-| **GitHub Copilot** | Load skill directory (`~/.copilot/skills/q-agent`) |
+`q-agent` resuelve estos fallos mediante **Orquestación Monolítica de Nivel 1 con Bounded Workers de Nivel 2 y Compuertas Deterministas**:
 
-### Universal Installation & Linking
-Link `q-agent` into all active AI runtimes on your machine with a single command (symlinks ensure `git pull` updates all agents instantly):
+### Matriz Comparativa de Capacidades
 
-```bash
-# Using just (recommended)
-just install
-
-# Or using the installer script directly
-./install.sh
-
-# Verify active links
-just check  # or ./install.sh --check
-```
-
----
-
-## Why Deterministic SDD? (The "Amarillas" Analysis)
-
-Current agentic coding frameworks fail in production due to structural design flaws:
-1. **Vibe Coding Regressions:** Editing code without architectural constraints causes unmaintainable drift and breaks existing domain rules.
-2. **Big Design Up Front (BDUF) & Context Rot (Spec-Kit):** Emitting massive Markdown specifications in a single session saturates the context window. By Phase 5, LLMs suffer attention degradation ("Lost in the Middle"), ignoring instructions and generating hallucinations ([Spec-Kit Issues #3507, #3752](https://github.com/github/spec-kit/issues/3507)).
-3. **Multi-Agent Swarm Overhead (BMAD / ChatDev):** Unconstrained conversational agent swarms introduce 3x–5x token burn, high latency, and compounding hallucinations without verifiable quality gates.
-
-`q-agent` solves these failure modes through **Single-Agent Orchestration with Deterministic Quality Gates**:
-
-### Comprehensive Architectural Matrix
-
-| Capability | GitHub Spec-Kit | OpenSpec | BMAD Method | Superpowers | **q-agent** |
+| Capacidad | GitHub Spec-Kit | OpenSpec | BMAD Method | Superpowers | **q-agent v2.6.1** |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Execution Architecture** | Waterfall BDUF (High *Context Rot* risk) | Modular, but lacks deterministic gates | Multi-agent conversational swarm (3x–5x token burn) | Fixed prompt chain, weak Brownfield support | **Single Tier-1 Orchestrator + Tier-2 local workers** |
-| **Workspace Isolation** | Local working tree (high collision risk) | Manual checkout | Harness-dependent | Manual checkout | **Mandatory Git Worktrees (`../{repo}-worktrees/`)** |
-| **Implementation Guarantee** | Prompt-based trust (`/speckit-converge`) | Subjective diff review | Inter-agent consensus | Direct execution | **Reproduction-First TDD (RED failure mandatory before GREEN)** |
-| **Context Window Hygiene** | Dumps full Markdown specs | Injects full specification files | High chatter token burn | Rigid template injection | **AST Skeleton Compression (Prunes >70% tokens)** |
-| **Human-in-the-Loop** | Agent takes full control | Agent takes full control | Opaque bot dialogues | Agent takes full control | **Supervised Gates (P03, P04, P09) + Mentor Mode** |
-| **Observability / LLMOps** | None native | None native | None native | Basic logs | **Flight Recorder + 9-Dimension Evaluation Matrix** |
-| **Caliber Routing** | One-size-fits-all ceremony | Manual branching | Swarm roles | Static scripts | **Calibrated Fast-Track (≤3 files) vs Full SDD vs Plan C** |
+| **Arquitectura de Ejecución** | Cascada BDUF (Riesgo alto de *Context Rot*) | Modular, sin compuertas deterministas | Enjambre conversacional (3x–5x costo tokens) | Prompt chain estático, soporte débil Brownfield | **Director Tier-1 + Workers Tier-2 acotados** |
+| **Aislamiento de Espacio** | Árbol de trabajo local (colisión de ramas) | Checkout manual | Dependiente del harness | Checkout manual | **Git Worktrees Mandatorios (`.q-worktrees/task-<ID>`)** |
+| **Garantía de Código** | Confianza basada en prompt (`/converge`) | Diff review subjetivo | Consenso inter-agente | Ejecución directa | **TDD Reproduction-First (RED obligatorio antes de GREEN)** |
+| **Higiene de Contexto** | Vuelca specs Markdown completas | Inyecta archivos de spec completos | Alto consumo conversacional | Inyección rígida de templates | **Poda AST (Ahorro >70% tokens en repos grandes)** |
+| **Human-in-the-Loop** | Agente toma control total | Agente toma control total | Diálogos opacos entre bots | Agente toma control total | **Compuertas Supervisadas (P03, P04, P08 Gate) + Modo Mentor** |
+| **Gobernanza de Fusión** | Merge ciego por pull request | Revisión manual | Voto de agentes | Merge local directo | **Deterministic Merge Policy Gate (`q-merge-gate` Exit 0, 7, 8)** |
+| **Revisión Continua** | Difusa en cada turno | No persistente | Discusión en bucle | No disponible | **Review Remembers Protocol (`skills/q-adversarial-review`)** |
+| **Enrutamiento por Calibre** | Talla única burocrática | Branching manual | Roles de enjambre | Scripts estáticos | **Fast-Track (≤3 archivos) vs Full SDD vs Plan C Forense** |
 
+### El Artículo Constitucional ARQ-01: Vertical Slices
+1. **Vertical Slices por Defecto:** Cada feature o fix se entrega como una rebanada vertical completa (Dominio, Persistencia, Casos de Uso/Servicio, Presentación y Tests) en ≤400–500 líneas de código modificadas.
+2. **Indirección Mínima:** Prohibido crear capas o interfaces cosméticas sin al menos 2 implementaciones concretas o un límite de infraestructura genuino.
+3. **Evidencia Terminal con Cero Mocks:** No se aceptan mocks en el dominio central. Todo resultado debe certificarse con comandos ejecutados contra bases de datos reales (ej. SQLite WAL) y suites de tests unitarios/e2e.
 
----
-
-## Package Directory Structure
-
-```text
-q-agent-v02/
-├── SKILL.md                          # Orquestador canónico (Pasos 0 a 7 + Catálogo de Prompts)
-├── README.md                         # Documentación del paquete
-├── install.sh                        # Universal runtime linker (AGY, Codex, Pi, Claude, OpenCode, Copilot)
-├── justfile                          # Automation runner recipes (install, check, test, cockpit)
-├── tutorial.html                     # Guía interactiva visual completa
-├── implement-future-but-not-in-this-project.md # Blueprint del agente curricular q-academic
-├── references/                       # Referencias operativas internas
-│   ├── plans.md                      # Mapeo por plan (A/B/C) con OpenSpec e Interaction Modes
-│   ├── claude-md-template.md         # Plantilla CLAUDE.md para repos nuevos
-│   ├── issue-labels.md               # Taxonomía de etiquetas GitHub Issues
-│   ├── flight-recorder.md            # Protocolo de observabilidad y log de vuelo
-│   └── context-budgeting.md          # Protocolo de poda de contexto y esqueletos AST
-├── prompts/                          # Prompts ejecutables del SDD Pipeline
-│   ├── P01_auditoria_mab_pc.md       # Discovery & Audit (MAB-PC)
-│   ├── P02_context_engineering.md    # Viabilidad técnica y Hexagonal Ligera
-│   ├── P03_evolucion_blueprint.md    # Reconciliación V1 vs V2
-│   ├── P04_propose.md                # Gate de Scope (/propose) + Fast-Track
-│   ├── P04b_constitution_sync.md     # Sincronización continua de Drift y ADRs
-│   ├── P05_spec.md                   # Especificación BDD con Given/When/Then
-│   ├── P06_design.md                 # Diseño técnico y contratos de interfaces
-│   ├── P07_tasks.md                  # Desglose de tareas TDD atómicas + Tags Kiro
-│   ├── P08_apply_verify.md           # Implementación TDD, Reproduction-First y rollback
-│   └── P09_compliance_audit.md       # CAB-RP unificado (inmutabilidad, CodeGraph, anti-mock)
-├── templates/                        # Artefactos canónicos (estándar MAYÚSCULAS)
-│   ├── ADR.md                        # Architecture Decision Record
-│   ├── BLUEPRINT.md                  # Mapa arquitectónico del sistema
-│   ├── CONSTITUTION.md               # Reglas no negociables y tabla de ADRs
-│   ├── PROPOSAL.md                   # Estructura del /propose (IN/OUT scope)
-│   └── q-agent.json                  # Plantilla de configuración declarativa
-├── tools/                            # Herramientas secundarias de apoyo
-│   ├── q-checklist/                  # Matriz de decisiones rápidas de pre-vuelo (CLI TUI)
-│   └── q-cockpit/                    # Cockpit visual interactivo (Grill UI + Observabilidad SwarmForge)
-└── skills/                           # Skills auxiliares (planas, prefijo q-)
-    ├── q-grill-me/                   # Elicitación profunda y socrática (Plan A)
-    ├── q-deliberate/                 # Debate dialéctico y cristalización de ADRs
-    ├── q-delegate-context/           # Aislamiento en sub-contexto (FirstMate)
-    ├── q-gbrain-assistant/           # Optional scoped GBrain queries
-    ├── q-ci-fixer/                   # Reparación quirúrgica de CI/linters (SwarmForge)
-    └── q-session-wrap/               # Cierre ordenado y persistencia de sesión
-```
+### Autoridad de Ejecución & Recuperación Selectiva de Contexto
+El contrato de [Autoridad de Ejecución Acotada por Humanos](references/execution-authority.md) delimita el alcance de permisos: la investigación pública no autoriza escrituras ni mutaciones en repositorios privados; las operaciones remotas y el despliegue/merge requieren autoridad humana independiente.
+La memoria del proyecto opera de forma local-first; la consulta a repositorios de conocimiento histórico se rige por [Recuperación Selectiva de Contexto](references/context-retrieval.md), garantizando presupuestos estrictos de caracteres y tokens sin inyecciones innecesarias en cada fase.
 
 ---
 
-## The 3 Plans
+## 2. Flujo Integral de Ejecución (End-to-End Flow)
 
-q-agent reuses the selected plan and established scope; it asks only when the plan is unresolved:
-
-| Plan | Use case | Pipeline |
-|------|----------|---------|
-| **A — Greenfield** | New system from scratch | P0 → P2 → P4 → P5 → P6 → P7 → P8 (sync P1.5) |
-| **B — Brownfield** | Feature or evolution on existing code | P1 → P2 → P3 → P4 → P5 → P6 → P7 → P8 (sync P1.5) |
-| **C — Audit** | Review, audit and diagnose existing code | P01 → Atomic Wave Dispatch (`audit-manifest.yml`) → `validate_audit.py` (Exit 0) → `generate_report.py` |
-
-### Plan C — Atomic Dispatch & Parallel Audit Waves (CAB-RP 2.0 & MAB-PC)
-
-Under Plan C, `q-agent` strictly enforces: *"Completeness is a filesystem property, not an LLM output property."* To prevent LLM context degradation (*Lost in the Middle*) and superficial reports, audits are partitioned into **4 Thematic Parallel Waves** across a 17-point forensic catalog plus strategic evolution:
-
-```text
-                                  ┌── Wave 1: Security & Secrets (A02, A09, A10, A11)
-                                  ├── Wave 2: Architecture & Contracts (A01, A06, A13, A16)
-P01 Discovery ──► Atomic Waves ───┼── Wave 3: DevOps, Quality & Runtime (A03, A04, A05, A12, A14, A17)
- (BLUEPRINT)      (Subagents)     ├── Wave 4: Frontend, Design & A11y (A07, A08, A15)
-                                  └── Wave 5: Strategic Evolution (E01–E05, MAB-PC)
-                                           │
-                                           ▼
-             Mechanical Gate ◄─── Individual audit/*.md files
-          (validate_audit.py Exit 0)
-                   │
-                   ▼ (Exit 0 Guaranteed)
-          Deterministic Aggregator ──► AUDIT_REPORT.md + PLAN_DE_MEJORA.md + REMEDIATION_ISSUES.md
-            (generate_report.py)
-```
-
-- **Maturity Levels:** Level 0 (MVP: 5 core items `A01`–`A05`), Level 1 (Growth: 13 items cumulative `A01`–`A13` + `E01`–`E05`), Level 2 (Maturity: 17 items complete `A01`–`A17`).
-- **Context Isolation:** Subagents inspect only their assigned `scope_patterns`, generating discrete `audit/A{ID}-{slug}.md` files with observed evidence and EARS remediations.
-- **Zero-Token Final Reporting:** The final reports (`AUDIT_REPORT.md`, `PLAN_DE_MEJORA.md`, `REMEDIATION_ISSUES.md`) are generated deterministically by Python, eliminating halluncinated conclusions.
-
----
-
-## Operating Modes & Interaction Governance
-
-`q-agent` supports 3 operational interaction modes configurable via `.q-agent.json` (`runtime.interaction_mode`) or via the prompt:
-
-1. **`supervised` (Default / Recommended):**
-   - Autonomous execution on mechanical phases (P06, P07, P08).
-   - Human checks for unresolved architecture/scope or missing operation authority:
-     - **Gate P03 (Evolution/ADR):** Validates design tradeoffs before writing specs.
-     - **Gate P04 (Scope/Proposal):** User approves IN/OUT scope and caliber classification.
-     - **Gate P09 (Compliance/Release):** User approves branch merge into `main`.
-2. **`interactive` / Mentor Mode (User at the Wheel):**
-   - The agent acts purely as an architectural mentor, guiding phase by phase without modifying code autonomously.
-   - *Prompt:* `"Quiero ejecutar el flujo SDD manualmente paso a paso. No implementes nada por tu cuenta. Actúa únicamente como mi Mentor Arquitectónico: indícame en cada turno qué prompt o fase sigue, explícame el objetivo conceptual y entrégame la plantilla con las variables que debo completar. Yo tendré el volante."`
-3. **`autonomous` (CI/CD & Headless):**
-   - Covered tasks and explicitly delegated decisions proceed without repeated prompts; unresolved choices and separate deploy/merge authority still require human input.
-
-### 💡 Ready-to-Use Operational Prompts Catalog
-
-#### 🎓 Mentor Mode (User at the Wheel):
-> *"Quiero ejecutar el flujo SDD manualmente paso a paso. No implementes nada por tu cuenta. Actúa únicamente como mi Mentor Arquitectónico: indícame en cada turno qué prompt o fase sigue, explícame el objetivo conceptual y entrégame la plantilla con las variables que debo completar. Yo tendré el volante."*
-
-#### 1. Greenfield (Plan A — New System from Scratch):
-> *"Inicia un proyecto Greenfield con q-agent para construir un sistema de [nombre_sistema, ej: MeetSync registro de reuniones y acuerdos] con arquitectura hexagonal y SQLite. Guíame en los pasos iniciales y genera la Constitución y primer ADR."*
-
-#### 2. Brownfield (Plan B — Feature on Existing Codebase):
-> *"Ejecuta Plan B Brownfield en este repositorio para añadir el feature de [descripción_feature, ej: Dashboard de cumplimiento con exportación a Markdown]. Realiza el descubrimiento previo P01, actualiza a BLUEPRINT_V2 y coordina el cambio SDD."*
-
-#### 3. Fast-Track (Plan B Nivel 1 — Surgical Patch / Micro-Fix):
-> *"Aplica un cambio Fast-Track para solucionar el bug de [descripción_bug, ej: timeout por concurrencia en SQLite]. Ejecuta la fase roja obligatoria, verifica el fallo del test reproductor y aplica el fix quirúrgico en ≤3 archivos sin tocar el dominio."*
-
-#### 4. Audit / Plan C (Read-Only Compliance & Gap Analysis):
-> *"Ejecuta una auditoría Plan C en este repositorio bajo el protocolo MAB-PC y CAB-RP. Invariante estricto: no modifiques ningún archivo de código fuente. Inspecciona arquitectura, seguridad y persistencia, y genera la lista de issues EARS de remediación."*
-
-
----
-
-## Advanced Determinism & Isolation Protocols
-
-### 1. Workspace Isolation (Git Worktrees)
-- Prevents the agent from altering dirty workspaces or switching active branches in the developer's IDE.
-- Created at `../{repo}-worktrees/{branch}`.
-- Worktrees are cleanly removed upon PR merge (`git worktree remove`).
-
-### 2. Reproduction-First TDD (SWE-agent Pattern)
-- Strict red-phase invariant: Editing `src/` is strictly forbidden until an automated test in `tests/` reproduces the failure (exit code $\neq 0$).
-- Recorded as `[REPRODUCTION] [RED_FAIL]` and verified as `[REPRODUCTION] [GREEN_PASS]` in `.q-agent/flight_recorder.log`.
-- Deterministic rollback: 3 consecutive test failures trigger atomic reset (`git checkout -- .`) and `[ROLLBACK] [EXECUTED]`.
-
-### 3. Context Budgeting & AST Skeletons
-- In projects with >10k LOC, the agent prunes function bodies, extracting only AST skeletons (interfaces, class definitions, method signatures).
-- Conserves ~80% of tokens while preserving 100% of architectural context.
-- Documented in `references/context-budgeting.md`.
-
-### 4. Kiro-Style Task Gating
-- Tasks in `openspec/changes/{{CHANGE_ID}}/tasks.md` support dual scoping:
-  - `- [ ] [CORE] [TDD] ...` (Executed mandatory in `/apply`).
-  - `- [ ] [OPTIONAL:DISABLED] ...` (Ignored by the agent unless toggled by the user to `[OPTIONAL:ENABLED]`).
-
-### 5. Pre-Flight Decision Matrix (`tools/q-checklist/`)
-- A zero-dependency interactive CLI (`python tools/q-checklist/q_checklist.py`) to choose architecture, database, transport, testing, and isolation in under 2 minutes.
-- Auto-generates `CONSTITUTION.md`, `docs/adr/0001-stack-decisions.md`, and `.q-agent.json`.
-
-### 6. BMAD Squad Path Lens in P04 (Product Management)
-- Enriches Nivel 2 proposals in `P04_propose.md` with a structured **Product Manager** perspective:
-  - User Personas and real business friction points.
-  - Formal Agile User Stories: `Como [rol], quiero [capacidad], para [beneficio tangible]`.
-  - User Acceptance Criteria (UAC) and business value hypotheses before touching technical specs.
-
-### 7. LLMOps Evaluation Matrix (9 Dimensions)
-Configurable in `.q-agent.json` via `observability.eval_level` according to project scale:
-- **`minimal`**: Measures `final outcome` (tests pass) and `policy compliance` (domain isolation). Ideal for micro-fixes and prototypes.
-- **`standard` (Default)**: Tracks 7 dimensions: `decision`, `evidence`, `tools`, `routing`, `retries`, `policy compliance`, and `final outcome`.
-- **`enterprise`**: Activates all 9 dimensions, adding granular `cost` (token consumption) and `latency` (wall-clock seconds per phase) for enterprise SLAs and audits.
-
-### 8. Subagent Git Worktree Isolation (`tools/q-worktree/`)
-- Zero-dependency tool (`python3 tools/q-worktree/q_worktree.py`) that creates ephemeral, isolated worktrees under `.q-worktrees/task-<ID>` for subagents and ODD waves.
-- Ensures concurrent agent workers execute on independent branches (`wave/<task>`) without dirtying or colliding on the developer's main working tree.
-- Commands: `create`, `list`, `remove`, `merge` with optional `--json` machine-readable output.
-
-### 9. Context-Isolated Adversarial Review with Review Remembers (`skills/q-adversarial-review/`)
-- Dispatches a subagent with clean context (zero prompt history) to eliminate self-confirmation bias.
-- **Review Remembers Protocol:** Assigns stable IDs (`R-01`, `R-02`...) to architectural findings. In re-review passes, systematically evaluates a status matrix: `[FIXED]`, `[NOT_FIXED]`, `[NO_LONGER_APPLIES]` before allowing slice completion.
-
-### 10. Deterministic Merge Policy Gate (`tools/q-merge-gate/`)
-- Pre-flight automated gate (`python3 tools/q-merge-gate/q_merge_gate.py`) evaluated in Step 8 before human release signature.
-- Analyzes diff blast radius and restricted domains:
-  - **Exit 0 (`PROCEED`):** Standard slice within safe thresholds.
-  - **Exit 7 (`HUMAN_APPROVAL_REQUIRED`):** Touches financial/billing logic, auth/security, or exceeds 500 LOC.
-  - **Exit 8 (`HUMAN_ACTION_REQUIRED`):** Modifies database schemas or DDL migrations, requiring operator verification.
-
----
-
-## Architectural Flow Diagram
+El ciclo de vida en `q-agent` sigue una progresión estricta desde la concepción hasta el despliegue:
 
 ```mermaid
 flowchart TD
@@ -251,453 +57,236 @@ flowchart TD
     classDef gate fill:#2d1b1b,stroke:#f78166,stroke-width:2px,color:#e6edf3;
     classDef skill fill:#1f1b2d,stroke:#bc8cff,stroke-width:1px,color:#e6edf3;
 
-    subgraph Guided["MODO GUIADO (Pasos 0 a 3)"]
-        S0["Paso 0: Selección de Plan (A, B o C)"]:::guided --> S1["Paso 1: Contexto Inicial (1 pregunta a la vez)"]:::guided
-        S1 --> S2["Paso 2: Investigación y Elicitación"]:::guided
-        S2 -.-> S2a["q-deliberate (Debate y ADRs)"]:::skill
-        S2 -.-> S2b["q-gbrain-assistant (Memoria Histórica)"]:::skill
-        S2 -.-> S2c["q-grill-me (Elicitación Plan A)"]:::skill
-        S2 --> S3{"Paso 3: Gate de Runtime"}:::gate
+    subgraph Guided["FASE I: DESCUBRIMIENTO SOCRÁTICO (Pasos 0 a 3)"]
+        S0["Paso 0: Selección de Plan (A, B, C o F)"]:::guided --> S1["Paso 1: Contexto Inicial (1 pregunta a la vez)"]:::guided
+        S1 --> S2["Paso 2: Investigación & Elicitación"]:::guided
+        S2 -.-> S2a["q-deliberate (Debate dialéctico y ADRs)"]:::skill
+        S2 -.-> S2b["q-grill-me (Elicitación profunda de requisitos)"]:::skill
+        S2 --> S3{"Paso 3: Gate de Meta-Orquestación"}:::gate
     end
 
-    S3 -->|"Autoridad humana vigente"| Auto["MODO AUTÓNOMO (Pasos 4 a 7)"]
+    subgraph DualEngine["FASE II: DUAL ENGINE & RUTA DE TRABAJO"]
+        S3 -->|"Motor Dual Integrado"| S4a["Gentle-AI ODD (Harness estándar)"]:::auto
+        S3 -->|"Motor Canónico"| S4b["q-agent Standalone (Pipeline SDD nativo)"]:::auto
+    end
 
-    subgraph Auto["MODO AUTÓNOMO (Pasos 4 a 7)"]
-        S4["Paso 4: Setup Infraestructura (Repo, CLAUDE.md, CONSTITUTION, Issues)"]:::auto --> S5["Paso 5: SDD Pipeline"]:::auto
+    subgraph WaveExec["FASE III: EJECUCIÓN POR OLEADAS & WORKTREES (Pasos 4 a 7)"]
+        S4a & S4b --> WT["Aislamiento en Git Worktrees (.q-worktrees/task-ID)"]:::auto
+        WT --> TDD["Reproduction-First TDD (RED obligatorio -> GREEN)"]:::auto
+        TDD --> HYG["Higiene de Linters (q-ci-fixer, máx 2 pasadas)"]:::skill
+    end
 
-        subgraph Pipelines["Pipelines por Plan"]
-            direction TB
-            subgraph PlanA["Plan A: Greenfield"]
-                PA_P0["P0: templates/CONSTITUTION.md"] --> PA_P2["P2: Context Engineering"]
-                PA_P2 --> PA_P4["P4: /propose"]
-                PA_P4 -->|"Gate 1: Aprobación Scope"| PA_P5["P5: /spec (BDD)"]
-                PA_P5 --> PA_P6["P6: /design (Contratos)"]
-                PA_P6 --> PA_P7["P7: /tasks (TDD)"]
-                PA_P7 --> PA_P8["P8: /apply + /verify"]
-            end
-
-            subgraph PlanB["Plan B: Brownfield"]
-                PB_P1["P1: MAB-PC Audit"] --> PB_P2["P2: Context Engineering"]
-                PB_P2 --> PB_P3["P3: Blueprint Evolution"]
-                PB_P3 --> PB_P4["P4: /propose"]
-                PB_P4 -->|"Fast-Track (Nivel 1)"| PB_P8["P8: Fix Atómico"]
-                PB_P4 -->|"Full SDD (Nivel 2)"| PB_P5["P5: /spec"]
-                PB_P5 --> PB_P6["P6: /design"]
-                PB_P6 --> PB_P7["P7: /tasks"]
-                PB_P7 --> PB_P8
-            end
-
-            subgraph PlanC["Plan C: Audit (Atomic Dispatch)"]
-                PC_P1["C1: MAB-PC Discovery"] --> PC_P2["C2: Atomic Dispatch (A01-A17 & E01-E05)"]
-                PC_P2 --> PC_P3{"C3: validate_audit.py"}
-                PC_P3 -->|"Exit 0"| PC_P4["C4: generate_report.py (4 entregables)"]
-            end
-        end
-
-        S5 --> S6["Paso 6: Implementación e Higiene (Planes A y B)"]:::auto
-        subgraph Hygiene["Higiene de Código (SwarmForge)"]
-            S6A["Sub-A: Código en feature/"] --> S6B{"Sub-B: Linters Locales"}
-            S6B -->|"Exit 0 (0 tokens)"| S6C["Sub-C: P04b Constitution Sync"]
-            S6B -->|"Exit != 0"| Fixer["q-ci-fixer (Máx 2 pasadas)"]:::skill
-            Fixer --> S6C
-        end
-
-        S6 --> S7["Paso 7: Cierre y Entrega"]:::auto
-        subgraph Closure["Protocolo de Cierre"]
-            S7A["7a: P09 CAB-RP Compliance Audit"] --> S7B["7b: Issue Retrospectiva"]
-            S7B --> S7C["7c: q-session-wrap (local first, optional providers)"]:::skill
-            S7C --> S7D["7d: Reporte Ejecutivo en Chat"]
-        end
+    subgraph GovernanceGate["FASE IV: GOBERNANZA & DEPLOY GATE (Paso 8 y Cierre)"]
+        HYG --> MG{"q-merge-gate (Análisis determinista de blast-radius)"}:::gate
+        MG -->|"Exit 0: PROCEED"| MRG["Merge limpio a main & Prune de Worktree"]:::auto
+        MG -->|"Exit 7 / 8"| HUM["Compuerta Humana Requerida (Security/Money/Schema)"]:::gate
+        HUM --> MRG
+        MRG --> AR["q-adversarial-review (Review Remembers Protocol)"]:::skill
+        AR --> S8["Paso 8: Deploy Gate Formal (REVIEW.md firmado)"]:::gate
+        S8 --> S9["Paso 9 / Ops: Retroalimentación continua (P10 Ops-to-ODD)"]:::auto
     end
 ```
 
----
+### Las 4 Fases Operativas:
 
-## Step-by-step Walkthrough
+1. **Fase I: Onboarding Socrático & Descubrimiento (Pasos 0 a 3):**
+   - Una sola pregunta por turno. El agente escucha, no asume.
+   - Identifica el Plan: **Plan A** (Greenfield), **Plan B** (Brownfield), **Plan F** (Fast-Track quirúrgico ≤3 archivos) o **Plan C** (Auditoría Forense CAB-RP 2.0).
+   - Cristaliza decisiones mediante `q-deliberate` (Proponente, Adversario, Sintetizador) y redacta los primeros ADRs.
 
-### Step 0 — Plan Identification
-The agent presents the 3 plans and waits for the user's choice.
-Loads `references/plans.md` to configure the exact pipeline for the selected plan.
+2. **Fase II: Meta-Orquestación & Dual Engine (Paso 3):**
+   - Detecta si el entorno opera bajo el harness de Gentle-AI o en modo Standalone.
+   - Aplica el **Model Tier Routing**: Tiers de alto razonamiento (Tier 1: Gemini Pro, GPT-6 Astra) para arquitectura, especificaciones y contratos; Tiers locales y ultrarrápidos (Tier 2: Qwen ROCm, Gemini Flash-Lite) para reparación de linters y tests unitarios.
 
----
+3. **Fase III: Ejecución por Oleadas & Worktrees Aislados (Pasos 4 a 7):**
+   - Se crean entornos efímeros bajo `.q-worktrees/task-<ID>` mediante `q_worktree.py`. La rama de trabajo del desarrollador jamás se ensucia ni sufre colisiones.
+   - **Reproduction-First TDD:** Se escribe el test reproductor antes de tocar el código fuente (`RED_FAIL`). Al implementar la solución, se certifica el paso verde (`GREEN_PASS`).
 
-### Execution authority and retrieval activation
-[Human-Scoped Execution Authority](references/execution-authority.md) defines
-initial human evidence, bounded delegated decisions, expiry and revocation.
-Public research within authorized investigation scope needs no repeated consent;
-general reference libraries differ from private project memory. A concrete
-missing fact can trigger minimal retrieval automatically, but never activate a
-disabled provider. Remote operations and deploy/merge need separate authority.
-See the typed activation example in
-[Selective Context Retrieval](references/context-retrieval.md).
-These are configuration/instruction contracts, not a permission loader or live
-provider implementation. No provider is activated by this change.
-
-### Step 1 — Initial Context (Guided)
-Reuse supplied project facts and decisions. Ask one question only for missing information:
-
-**All plans:**
-1. Project / system name
-2. Core problem it solves (1–3 lines)
-3. Known technical constraints (stack, integrations, platform)
-
-**Plan A adds:**
-4. End user and main use case
-5. Hardest constraint (what breaks at 3am?)
-6. What is explicitly OUT of MVP scope
-
-**Plan B adds:**
-4. Repository URL or local path
-5. Specific feature or change needed
-
-**Plan C adds:**
-4. Repository URL or local path
-5. Specific audit criteria (or general review)
+4. **Fase IV: Gobernanza, Compuerta de Políticas y Cierre (Pasos 8 y 9):**
+   - **`q-merge-gate`:** Analiza el diff de la rama antes de fusionar. Si se superan 500 LOC o se tocan dominios sensibles (`money`, `auth`, `schema`), detiene la automatización y exige aprobación explícita humana.
+   - **Review Remembers Protocol (`q-adversarial-review`):** Audita el código con un agente sin sesgo previo y hace seguimiento formal de hallazgos persistentes (`R-01`, `R-02`).
+   - **Paso 8 Deploy Gate:** Firma humana obligatoria en `REVIEW.md` antes de cualquier despliegue a producción.
 
 ---
 
-### Step 2 — Research (Skills invoked)
-
-#### 2a. `q-deliberate` — Architectural Deliberation (all plans)
-Multi-agent dialectical debate. Deploys 3 sub-roles internally:
-- **Proponent** — builds the strongest case for each option
-- **Adversary** — stress-tests risks, edge cases, failure modes
-- **Synthesizer** — arbitrates and produces the recommended decision + ADR
-
-Output: architectural brief with alternatives. Reuse settled or explicitly delegated decisions; ask only unresolved product choices.
-
-#### 2b. `q-gbrain-assistant` — Historical Knowledge Query (optional, all plans)
-Follow [Selective Context Retrieval](references/context-retrieval.md):
-local project files are the baseline; no external memory product is required.
-Query only a concrete missing fact, scoped to the active project and an aggregate
-result budget. GBrain is optional; Engram and SkillVault are optional configuration
-slots, not a shipped universal bridge. Disabled providers cannot be enabled by
-legacy integration flags. Availability and authorization are separate checks.
-Retain only relevant excerpts with provenance; do not carry a growing historical
-context block through every phase. These are host-agent instructions, not runtime
-token enforcement or executing adapters.
-
-#### 2c. `q-grill-me` — Deep Elicitation (Plan A only)
-A relentless socratic interview to sharpen the plan scope. Surfaces hidden assumptions and trade-offs before any code is written.
-
-Keep a compact project index with locators. Load only the excerpts relevant to
-the current phase; do not inject all Step 2 outputs into every subsequent step.
-
----
-
-### Step 3 — Meta-Orchestration Gate (Last guided step)
-The agent decides and presents:
-- Single-agent or multi-agent execution?
-- Recommended executor runtime (Codex CLI / Antigravity CLI / OpenCode / Pi)
-- Rationale for the decision
-
-Existing scoped human authority → continue covered work. Autonomous mode changes
-pacing, not permissions; unresolved decisions and deploy/merge authority still block.
-
-#### Model Tier Routing Matrix
-q-agent separates execution by cognitive capability rather than proprietary vendor lock-in:
-
-| Tier | Capability Profile | Primary Models | Assigned Lifecycle Steps |
-|------|--------------------|----------------|--------------------------|
-| **Tier 1 (Frontier / High-Reasoning)** | Deep architectural deliberation, complex constraint adherence, spec design, and strict compliance audits. | **Gemini 3.8 Flash** / Gemini Pro<br>**GPT-6 Astra** / GPT-5.6 Sol | **Step 2:** Deliberation & Grill-Me (`q-deliberate`, `q-grill-me`)<br>**Step 5:** Spec & Design Contracts (P05, P06)<br>**Step 7:** CAB-RP Compliance Audit (P09) |
-| **Tier 2 (Fast / Local Execution)** | Deterministic coding, test suite execution, syntax/type error patching, and zero-latency linter hygiene. | **Qwen 2.5 (3B / 7B ROCm)**<br>Gemini Flash-Lite / GPT-5.6 Luna | **Step 6:** Linters & Hygiene (`q-ci-fixer`)<br>**Step 8:** Atomic TDD tasks & parches<br>**Fast-Track:** Nivel 1 atomic patches via `q-delegate-context` |
-
-*Architectural Principle:* Never run heavy compliance audits (P09) on models < 14B. Always delegate mechanical lint repairs and single-test failures to Tier 2 (local Qwen on ROCm or Flash-Lite) to eliminate latency and token waste.
-
-> **Declarative Configuration:** If `<PROJECT_ROOT>/.q-agent.json` exists, `q-agent` automatically loads the target runtime executor and model tiers without interactive prompting. See `templates/q-agent.json`.
-
-
----
-
-### Step 4 — Infrastructure Setup (Within Explicit Operation Scope)
-
-Investigation does not authorize installation, repository creation, copying files
-or authenticated GitHub writes. Run only the setup operations the human authorized;
-skip unrelated setup and continue independent local work.
-
-Delegates heavy sub-tasks via `q-delegate-context` (FirstMate pattern) to keep the orchestrator main thread clean.
-
-**Plan A:**
-1. Initialize Flight Recorder at `<PROJECT_ROOT>/.q-agent/flight_recorder.log` (records preflight checks, boundary resolutions, and milestone transitions; see `references/flight-recorder.md`)
-2. Initialize `.q-agent.json` from `templates/q-agent.json` if not already present
-3. Create private GitHub repository (`gh repo create <name> --private`)
-4. Create `CLAUDE.md` at repo root (from `references/claude-md-template.md`, compatible with Claude Code, Antigravity, and Codex)
-5. Initialize `CONSTITUTION.md` at repo root (from `templates/CONSTITUTION.md`) with stack, domain rules, and initial ADR table
-6. Verify only configured and authorized subsystems; external memory is optional
-7. Create initial Issues: `[SETUP]`, `[ADR-001]` (registered in Constitution), `[SCOPE] MVP`
-
-**Plan B:**
-1. Clone / verify access to existing repo
-2. Ensure `.q-agent/flight_recorder.log` is active for audit tracking
-3. Verify subsystems
-4. Create Issue `[FEATURE] description`
-5. Setup branches: P1 to P3 executed on `develop`, P4 bifurcates to `feature/<name>`
-
-**Plan C:**
-1. Clone / verify access to repo to audit
-2. Ensure `.q-agent/flight_recorder.log` is active for audit tracking
-3. Create Issue `[AUDIT] start`
-4. Create branch `audit/<date>-<project>`
-
-
----
-
-### Step 5 — Main Pipeline Flow (Autonomous)
-
-Executes the SDD pipeline prompts in the order defined by `references/plans.md`. Standard storage path: `openspec/changes/{{CHANGE_ID}}/`.
-
-After each prompt that produces an artifact:
-```bash
-git add <artifact>
-git commit -m "feat: <artifact description>"
-git push origin <active-branch>
-```
-
-**Fast-Track Shortcut (Nivel 1):** If P4 classifies the change as Nivel 1 (≤3 files, no Domain/DB impact), it skips P5, P6, P7 and executes directly via P8 Fast-Track.
-
-**Mandatory P4 gate (Plans A & B):** After `/propose` completes on Nivel 2, the `proposal.md` is presented to the user with full IN/OUT scope. The user must approve before continuing.
-
-#### SDD Pipeline Prompts
-
-| Prompt | File | What it produces |
-|--------|------|-----------------|
-| **P01** | `prompts/P01_auditoria_mab_pc.md` | MAB-PC audit: `BLUEPRINT.md` + `CONSTITUTION.md` |
-| **P02** | `prompts/P02_context_engineering.md` | `CONTEXT.md` — structured project context |
-| **P03** | `prompts/P03_evolucion_blueprint.md` | `BLUEPRINT_V2.md` + `DIFF_V1_VS_V2.md` |
-| **P04** | `prompts/P04_propose.md` | `openspec/changes/{{CHANGE_ID}}/proposal.md` — IN/OUT scope gate |
-| **P05** | `prompts/P05_spec.md` | `openspec/changes/{{CHANGE_ID}}/specs/{{FEATURE}}.md` — BDD |
-| **P06** | `prompts/P06_design.md` | `openspec/changes/{{CHANGE_ID}}/design.md` — architecture & contracts |
-| **P07** | `prompts/P07_tasks.md` | `openspec/changes/{{CHANGE_ID}}/tasks.md` — atomic task breakdown |
-| **P08** | `prompts/P08_apply_verify.md` | Verified TDD implementation + `verify-report.md` |
-| **P1.5 / P04b** | `prompts/P04b_constitution_sync.md` | `CONSTITUTION.md` — Continuous sync, drift audit & ADR table |
-| **P09** | `prompts/P09_compliance_audit.md` | `AUDIT_REPORT.md` — CAB-RP compliance audit |
-
----
-
-### Step 6 — Implementation with Hygiene Control (Autonomous)
-
-*(Omitido en Plan C — las auditorías diagnostican y crean Issues sin implementar código)*
-
-#### Sub-phase A — Code implementation
-Standard git workflow per feature/fix:
-1. Create Issue with label `type:feature` or `type:fix`
-2. Create branch from `develop`
-3. Implement with descriptive commits
-4. Open PR → `develop` referencing the Issue (`Closes #N`)
-5. Merge on quality pass, close Issue via PR
-
-Branch naming:
-- `main` → stable production
-- `develop` → continuous integration
-- `feature/<name>` → new features (Plans A/B)
-- `fix/<name>` → bugs
-- `audit/<date>-<name>` → audits (Plan C)
-
-#### Sub-phase B — Hygiene (SwarmForge pattern)
-Executed BEFORE committing code (or against `git diff --name-only develop...HEAD` if already committed):
-
-1. **Deterministic local check (0 tokens):** Run linters/formatters/type checks locally.
-   - Exit 0 → proceed to commit. No tokens consumed.
-2. **Surgical CI repair — only if exit ≠ 0:** Invoke `q-ci-fixer` on changed files ONLY (`git diff --name-only` uncommitted or `develop...HEAD`).
-   - Never on the full codebase. Never for cosmetic changes.
-   - **Hard cap: maximum 2 passes.** If still failing → create Issue `[CI-BLOCK]` with `priority:high` and continue.
-
-#### Sub-phase C — Constitution & ADR Sync (`P04b_constitution_sync.md`)
-Triggered when an architectural boundary is crossed, a new/replacement ADR is created, or every 7 tasks:
-1. Compares cumulative `git diff` against `CONSTITUTION.md`.
-2. Flags decisions as `[VIGENTE]`, `[NUEVO]`, `[DRIFT-DETECTADO]`, or `[OBSOLETO]`.
-3. Updates Section 3 ADR status table (records `ADR-[NNN]` as active or `REEMPLAZADO por ADR-XXX`).
-4. Invariant: ADRs are immutable — decisions are never edited in-place; a new ADR supersedes the old one.
-5. Appends changes to `## SYNC LOG` and commits.
-
----
-
-### Step 7 — Closure & Delivery (Autonomous)
-
-#### 7a. Compliance Audit (Atomic Dispatch & CAB-RP)
-Executes the **Atomic Dispatch Protocol** via `references/audit-manifest.yml`:
-- **Invariants:** Absolute disk immutability (`git status -s` identical before/after); Zero mixed mode (no touching `src/` or `internal/` during audit); CodeGraph first; Anti-mocking verification.
-- **Atomic Dispatch:** Generates atomic item files in `audit/A*.md` (A01-A17) and `audit/E*.md` (E01-E05) via specialist prompts (`P01b_audit_item.md`, `P01c_strategic_item.md`).
-- **Mechanical Validation Gate:** Executes `python3 tools/q-audit-validator/validate_audit.py --mode manifest --level [0|1|2]` (Exit code 0 mandatory before proceeding).
-- **Deterministic Aggregation:** Executes `python3 tools/q-audit-aggregator/generate_report.py` to auto-assemble `AUDIT_REPORT.md`, `PLAN_DE_MEJORA.md`, `REMEDIATION_ISSUES.md`, and `PROPUESTA_EVOLUTIVA.md` with zero token burn.
-
-#### 7b. Retrospective Issue
-Created in the project repo with label `type:retrospective`:
-- Decisions made and rationale
-- Skills invoked
-- Artifacts generated
-- Gaps detected by CAB-RP
-- Executor used
-- Recommended next action
-
-#### 7c. `q-session-wrap` — Session persistence
-- Saves recovery state locally first
-- Writes to external stores only when configured, available and authorized
-- SQLite backup is separately opt-in with authorized source and destination
-
-#### 7d. Final report
-Compact summary delivered in chat:
-- What was done
-- Key decisions
-- Open Issues
-- Retrospective Issue URL
-- Next step
-
----
-
-## Skills Reference
-
-### `q-grill-me`
-**Step 2c — Plan A only**
-A relentless structured interview to sharpen scope. Surfaces hidden assumptions and requirements before any code is written.
-- Output: refined scope and elicited non-negotiables
-
-### `q-deliberate`
-**Step 2a — All plans**
-Multi-agent dialectical debate engine. Three internal sub-roles (Proponent, Adversary, Synthesizer) stress-test architectural decisions before presenting frontier questions to the user.
-- Proponent: builds the strongest case for each option using primary sources
-- Adversary: attacks scale limits, concurrency, failure modes, maintenance burden
-- Synthesizer: arbitrates, eliminates hype, produces recommended decision + ADR
-- Output: architectural brief + ADRs in `docs/adr/`
-
-### `q-delegate-context`
-**Steps 4 & 5 — All plans**
-Keeps the orchestrator main thread clean by delegating heavy sub-tasks to isolated sub-contexts (FirstMate pattern). Selects executor, model, and effort automatically or explicitly.
-- Budgets: read ≤180s, web research ≤600s, implementation ≤900s
-- Hard cap: 2 correction rounds per task
-- Compatible executors: native subagents, Antigravity CLI, Codex CLI
-
-### `q-gbrain-assistant`
-**Step 2b — All plans (optional)**
-Structured gateway to GBrain (Personal + Multi-Agent Knowledge Graph). Queries GBrain only when relevant, configured, available and authorized; no mandatory external store or parallel fan-out.
-- Hybrid query (RRF + semantic expansion)
-- Key intents: context briefing, historical decision retrieval, knowledge registration, gap analysis, health check
-
-### `q-ci-fixer`
-**Step 6 Sub-phase B — All plans**
-Surgical CI/CD pipeline repair. Operates only on `git diff` files. Never weakens quality rules.
-- 4-layer protocol: Format/Lint → Static Types → Business Logic Assertions → Coverage Gate
-- PROHIBITED: editing `ci.yml` to lower coverage thresholds, blanket `# noqa` / `# type: ignore` suppressors
-- Blast radius minimum: only essential lines to resolve the error
-- Hard cap: 2 passes
-
-### `q-session-wrap`
-**Step 7c — All plans**
-Ordered session closure. Persists recovery locators and progress; the next task loads only relevant context.
-- Local summary: Goal / Instructions / Discoveries / Accomplished / Next Steps / Relevant Files
-- External persistence: opt-in, scoped and authorized; absence does not block closure
-- SQLite backup: separately opt-in; database existence is not authorization
-
----
-
-## Artifact Templates
-
-| Template | File | Purpose |
-|----------|------|---------|
-| ADR | `templates/ADR.md` | Architecture Decision Record |
-| Blueprint | `templates/BLUEPRINT.md` | System architecture map |
-| Constitution | `templates/CONSTITUTION.md` | Non-negotiable rules and principles |
-| Proposal | `templates/PROPOSAL.md` | `/propose` scope gate structure |
-
----
-
-## References
-
-| File | Purpose |
-|------|---------|
-| `references/plans.md` | Exact prompt mapping per plan A/B/C with OpenSpec paths |
-| `references/claude-md-template.md` | CLAUDE.md template for new repositories |
-| `references/issue-labels.md` | Complete GitHub Issue label taxonomy |
-
----
-
-## Installation
-
-### Registry: skills.sh (Universal / 1-line install)
-```bash
-npx skills add QuantumEdu/q-agent
-```
-
-### Pi (Recommended)
-```bash
-cp -r q-agent-v02 ~/.pi/agent/skills/q-agent
-pi skills list | grep q-agent
-```
-
-Activate: say **"start agent"** or **"/q-agent"** in any Pi session.
-
-### Antigravity CLI
-```bash
-cp -r q-agent-v02 ~/.gemini/antigravity-cli/skills/q-agent
-```
-
-### Claude Code / Cursor / OpenCode / GitHub Copilot
-Copy `q-agent-v02/` to your agent's skills directory. The `SKILL.md` frontmatter (`name`, `aliases`) is auto-detected.
-
----
-
-## Enhanced Operational Tooling
-
-The package includes an enhanced local cockpit facade that keeps the legacy `q_cockpit.py` API stable while isolating new operational concerns:
+## 3. Inicio Rápido & Enlace Universal
+
+### Runtimes Compatibles y Activación
+
+| Runtime / Registry | Cómo activarlo | Ubicación del Enlace |
+|--------------------|----------------|----------------------|
+| **skills.sh** | `npx skills add QuantumEdu/q-agent` | Global |
+| **Antigravity CLI (AGY)** | Cargar skill y decir "start agent" | `~/.gemini/antigravity-cli/skills/q-agent` |
+| **OpenAI Codex** | Detección nativa de skill | `~/.codex/skills/q-agent` |
+| **Pi (Oh My Pi)** | `pi chat --skill q-agent` o decir "start agent" | `~/.pi/agent/skills/q-agent` |
+| **Claude Code** | Auto-detectado vía frontmatter en `SKILL.md` | `~/.claude/skills/q-agent` |
+| **OpenCode** | Cargar directorio de skill | `~/.config/opencode/skills/q-agent` |
+| **GitHub Copilot** | Cargar directorio de skill | `~/.copilot/skills/q-agent` |
+
+### Enlace en 1 Comando (Single Source of Truth)
+Enlaza el repositorio canónico a todos los runtimes presentes en tu máquina simultáneamente. Un simple `git pull` en este repositorio propaga las actualizaciones al instante en todos tus agentes:
 
 ```bash
-python3 tools/q-cockpit/q_cockpit_plus.py serve
-python3 tools/q-cockpit/q_cockpit_plus.py actions
-python3 tools/q-cockpit/q_cockpit_plus.py health
-python3 tools/q-cockpit/q_cockpit_plus.py backup --output /path/to/sessions.zip
-python3 tools/q-cockpit/q_cockpit_plus.py restore --archive /path/to/sessions.zip --destination /path/to/sessions
+# Vía just (Recomendado)
+just install
+
+# O ejecutando el script directamente
+./install.sh
+
+# Verificar el estado y salud de los enlaces
+just check  # o ./install.sh --check
 ```
 
-The enhanced facade provides:
-
-- Bounded repository snapshots with stale/refreshing state.
-- Shared action catalog for CLI and HTTP clients.
-- Structured session events with request correlation IDs.
-- `/health` and backup/restore recovery controls.
-- A lifecycle-aware Plan C runner that emits `audit/AUDIT_EVIDENCE.json` and `audit/AUDIT_RUN_STATE.json`.
-- A repeatable local benchmark via `python3 tools/q-benchmark/benchmark.py --json`.
-
-Use `just cockpit-plus`, `just run-audit`, `just benchmark`, or `just cockpit-health` for the corresponding workflows.
-
----
-
-## Activation Triggers
-
-Say any of these in a session with q-agent loaded:
-
-```
-start agent · /q-agent · iniciar agente · new project
-new feature · audit code · I want to build a system
-```
-
----
-
-## Ecosystem & Discoverability Tags (GitHub Topics)
-
-For open-source indexing and discoverability across developer communities:
-
+### Triggers de Activación Conversacional
+En cualquier sesión con `q-agent` cargado, simplemente decí:
 ```text
-specification-driven-development · sdd · tdd-framework · llmops · clean-architecture
-git-worktree · agentic-workflows · ast-parsing · claude-code-skill · antigravity-agent
-code-audit · zero-dependencies · skills-sh
+start agent · /q-agent · iniciar agente · new project · new feature · audit code
 ```
 
 ---
 
-## Contributing & Quality Standards
+## 4. Casos Reales & Vertical Slices en Producción
 
-We welcome issues, feedback, and pull requests! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) guide for details on:
-- Issue taxonomy and labels (`type:*`, `priority:*`, `scope:*`).
-- Git branching strategy (`develop` -> `feature/*` -> `main`).
-- Article ARQ-01 guidelines and Zero-Mock Terminal Evidence requirements.
-- Running the local validation suite (`python3 -m unittest discover -s tests -v`).
+`q-agent` ha sido probado y certificado en escenarios de desarrollo reales:
+
+### Caso 1: Sistema de Tickets de Atención con SLA y Worktrees
+- **Ubicación en el repo:** [`examples/support-tickets/demo.py`](examples/support-tickets/demo.py) y suite [`tests/test_e2e_ticket_system.py`](tests/test_e2e_ticket_system.py).
+- **Dominio:** Máquina de estados estricta (`OPEN` ➜ `IN_PROGRESS` ➜ `RESOLVED` ➜ `CLOSED`), motor de SLAs por prioridad (`CRITICAL` 2h, `HIGH` 8h, `MEDIUM` 24h, `LOW` 72h) y detección de incumplimientos.
+- **Flujo de Gobernanza Verificado:**
+  1. Aislamiento automático de la tarea en `.q-worktrees/task-TICKETS-01`.
+  2. Implementación de la rebanada vertical con persistencia SQLite zero-mock.
+  3. Evaluación de `q_merge_gate` (+4 LOC ➜ `exit_code: 0` `status: "PROCEED"`).
+  4. Fusión atómica a `main` y poda del worktree.
+- **Ejecución local:**
+  ```bash
+  python3 examples/support-tickets/demo.py
+  ```
+
+### Caso 2: Práctica Clínica Nutricional y Análisis Metabólico (`quim_fernando`)
+- **Dominio:** Plataforma médica y bioquímica para consulta clínica.
+- **Arquitectura:** Go 1.27 + Chi + SQLite WAL puro (`modernc.org/sqlite`) + HTMX + Alpine.js + Pico.css v2.
+- **Gobernanza:** Separación estricta de privilegios (el especialista jamás toca la caja ni cobros; módulo restringido al rol Asesora), expedientes con consecutivo automático por cita, cálculo de índice HOMA-IR y generación documental para impresión médica.
+
+### Caso 3: Plataforma Editorial Multi-Tenant de Alto Tráfico (`terracms`)
+- **Dominio:** CMS para medios de comunicación y sindicación de contenidos.
+- **Arquitectura:** Desacoplamiento de repositorios vía interfaces, caché perimetral Stale-While-Revalidate, paywall híbrido con conteo de lecturas y cumplimiento de accesibilidad WCAG 2.1 AA sin uso de elementos HTML no gobernados.
 
 ---
 
-## Version, Author & License
+## 5. Catálogo de Herramientas de Gobernanza (`tools/`)
 
-- **Version:** `v02` (2.5.4) — Hermetic Canonical Package (Dual Engine, Vertical Slices, Wave Execution, Deploy Gate, Ops Bridge, Visual Cockpit & CI Pipeline).
-- **Author & Architect:** Gabriel Magallón Sánchez / QuantumEdu (Quantum).
-- **License:** [Apache License 2.0](LICENSE).
-- **Contributing:** See [CONTRIBUTING.md](CONTRIBUTING.md).
-- **Attribution & Third-Party Credits:** See [ATTRIBUTION.md](ATTRIBUTION.md) for full acknowledgments of third-party foundations and Quantum's original skills.
+`q-agent` incluye utilidades CLI sin dependencias externas diseñadas para integrarse en pipelines y subagentes:
+
+### 1. `tools/q-worktree/` (Aislador de Worktrees para Subagentes)
+```bash
+python3 tools/q-worktree/q_worktree.py create --task TICKET-01 --base main
+python3 tools/q-worktree/q_worktree.py list --json
+python3 tools/q-worktree/q_worktree.py merge --task TICKET-01 --target main
+python3 tools/q-worktree/q_worktree.py remove --task TICKET-01
+```
+Garantiza que múltiples subagentes u oleadas trabajen en paralelo sin colisionar en el árbol de trabajo principal del usuario.
+
+### 2. `tools/q-merge-gate/` (Compuerta Determinista de Políticas de Merge)
+```bash
+python3 tools/q-merge-gate/q_merge_gate.py --base main --head HEAD --max-loc 500 --json
+```
+- **Exit 0 (`PROCEED`):** Rebanada limpia dentro del umbral de LOC (≤500) y sin disparadores de riesgo.
+- **Exit 7 (`HUMAN_APPROVAL_REQUIRED`):** Modificaciones en lógica financiera/pagos (`money`), autenticación/seguridad (`auth`) o exceso de líneas.
+- **Exit 8 (`HUMAN_ACTION_REQUIRED`):** Modificaciones destructivas en esquemas de base de datos o migraciones DDL.
+
+### 3. `skills/q-adversarial-review/` (Revisión Adversarial con *Review Remembers*)
+Audita el código con un agente con contexto limpio e implementa el protocolo **Review Remembers**: asigna identificadores persistentes (`R-01`, `R-02`...) a cada hallazgo y exige evaluar una matriz de estado (`[FIXED]`, `[NOT_FIXED]`, `[NO_LONGER_APPLIES]`) antes de autorizar la entrega, eliminando discusiones circulares.
+
+### 4. `tools/q-cockpit/` (Cockpit Visual y Recuperación de Sesión)
+```bash
+just cockpit-plus        # Inicia cockpit interactivo con snapshots de repositorio
+just cockpit-health      # Reporte de estado de salud del proyecto
+python3 tools/q-cockpit/q_cockpit_plus.py backup --output sessions.zip
+python3 tools/q-cockpit/q_cockpit_plus.py restore --archive sessions.zip --destination sessions/
+```
+
+### 5. `tools/q-audit-validator/` & `tools/q-audit-aggregator/` (Plan C Forense)
+```bash
+python3 tools/q-audit-validator/validate_audit.py --mode manifest --level 2
+python3 tools/q-audit-aggregator/generate_report.py
+```
+Implementa el principio: *"La completitud es una propiedad del sistema de archivos, no del texto generado por el LLM"*. Despacha 17 ítems forenses atómicos en paralelo (`audit/A01-A17.md`) y genera el reporte final de forma determinista con Python, con 0 tokens quemados en resúmenes.
+
+---
+
+## 6. Modos de Operación & Catálogo de Prompts
+
+`q-agent` se adapta al nivel de autonomía deseado mediante `.q-agent.json` o directamente en el diálogo:
+
+1. **`supervised` (Por defecto / Recomendado):**
+   - Ejecución autónoma en tareas mecánicas.
+   - Detención obligatoria en compuertas de diseño (P03 ADR, P04 Scope Proposal, P08 Deploy Gate).
+2. **`interactive` / Modo Mentor (El usuario al volante):**
+   - El agente no escribe código autónomamente; actúa como Mentor y Senior Architect explicando cada fase y entregando plantillas para que el usuario las complete.
+3. **`autonomous` (CI/CD / Headless):**
+   - Avanza en tareas cubiertas y explícitamente autorizadas; decisiones no resueltas o cambios fuera de alcance aún detienen el flujo.
+
+### Prompts Operativos Listos para Copiar y Pegar:
+
+#### 🎓 Modo Mentor (El usuario al volante):
+> *"Quiero ejecutar el flujo SDD manualmente paso a paso. No implementes nada por tu cuenta. Actúa únicamente como mi Mentor Arquitectónico: indícame en cada turno qué prompt o fase sigue, explícame el objetivo conceptual y entrégame la plantilla con las variables que debo completar. Yo tendré el volante."*
+
+#### 🚀 Plan A — Greenfield (Nuevo Sistema desde Cero):
+> *"Inicia un proyecto Greenfield con q-agent para construir un sistema de [nombre_sistema, ej: Helpdesk de atención con tickets y SLAs] con arquitectura hexagonal y SQLite. Guíame en los pasos iniciales y genera la Constitución y primer ADR."*
+
+#### 🔧 Plan B — Brownfield (Feature sobre Código Existente):
+> *"Ejecuta Plan B Brownfield en este repositorio para añadir el feature de [descripción_feature, ej: Dashboard de métricas con exportación a DuckDB]. Realiza el descubrimiento previo P01, actualiza a BLUEPRINT_V2 y coordina el cambio SDD."*
+
+#### ⚡ Plan F — Fast-Track (Micro-Parche Quirúrgico ≤3 archivos):
+> *"Aplica un cambio Fast-Track para solucionar el bug de [descripción_bug, ej: timeout por concurrencia en SQLite WAL]. Ejecuta la fase roja obligatoria, verifica el fallo del test reproductor y aplica el fix quirúrgico en ≤3 archivos sin tocar el dominio."*
+
+#### 🛡️ Plan C — Auditoría Forense Read-Only (MAB-PC & CAB-RP):
+> *"Ejecuta una auditoría Plan C en este repositorio bajo el protocolo MAB-PC y CAB-RP. Invariante estricto: no modifiques ningún archivo de código fuente. Inspecciona arquitectura, seguridad y persistencia, y genera la lista de issues EARS de remediación."*
+
+---
+
+## 7. Estructura del Paquete, Calidad & Atribuciones
+
+### Directorio Canónico
+```text
+q-agent-v02/
+├── SKILL.md                          # Orquestador maestro (Pasos 0 a 9)
+├── README.md                         # Documentación estratégica y flujo
+├── install.sh                        # Linker universal (AGY, Codex, Pi, Claude, OpenCode, Copilot)
+├── justfile                          # Recetas de automatización (install, check, test, cockpit)
+├── examples/                         # Implementaciones y demos de referencia
+│   └── support-tickets/              # Caso real: Sistema de tickets y SLAs E2E
+├── tests/                            # Suite oficial de regresión (69 tests unitarios y E2E)
+├── tools/                            # Herramientas de gobernanza CLI
+│   ├── q-worktree/                   # Aislamiento en Git Worktrees
+│   ├── q-merge-gate/                 # Compuerta determinista de políticas de merge
+│   ├── q-cockpit/                    # Cockpit visual e inspectores de salud
+│   ├── q-audit-validator/            # Validador de manifiesto forense Plan C
+│   └── q-audit-aggregator/           # Generador determinista de reportes
+├── prompts/                          # Prompts ejecutables del SDD Pipeline (P01 a P09)
+├── templates/                        # Plantillas canónicas (ADR, BLUEPRINT, CONSTITUTION, PROPOSAL)
+└── references/                       # Protocolos y taxonomías internas
+```
+
+### Certificación de Calidad y Tests
+Toda evolución en `q-agent` debe mantener la suite 100% verde con evidencia terminal estricta:
+```bash
+python3 -m unittest discover -s tests -v
+# 69 tests pasando en < 3s sin mocks
+```
+
+### Atribuciones y Reconocimientos
+`q-agent` incorpora con orgullo y formaliza en [`ATTRIBUTION.md`](ATTRIBUTION.md) el crédito a proyectos y metodologías de referencia de la industria:
+- **Shopify Helix:** Arquitectura modular de habilidades e interacción controlada.
+- **Super-Board (EricTechPro):** Estrategia de aislamiento en Git Worktrees, políticas deterministas de merge (`merge_policy`) y persistencia de revisiones.
+- **OpenSpec & Spec-Kit:** Esquemas de especificación basada en capacidades (BDD/EARS).
+- **BMAD Method:** Visión de Product Manager y taxonomía de user stories.
+- **SWE-agent:** Principio de *Reproduction-First TDD* (fase roja demostrable antes de implementar código).
+
+---
+
+## Licencia y Autor
+
+- **Autor & Arquitecto:** Gabriel Magallón Sánchez / QuantumEdu (Quantum).
+- **Licencia:** [Apache License 2.0](LICENSE).
+- **Contribuciones:** Consultar [CONTRIBUTING.md](CONTRIBUTING.md).

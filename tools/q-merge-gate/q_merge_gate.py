@@ -130,6 +130,7 @@ def analyze_diff(base="main", head="HEAD", max_loc=500, cwd=None):
         "loc_added": added,
         "loc_deleted": deleted,
         "total_loc": total_loc,
+        "total_loc_changed": total_loc,
         "max_loc_threshold": max_loc,
         "reasons": reasons,
         "findings": {
