@@ -162,13 +162,13 @@ start agent · /q-agent · iniciar agente · new project · new feature · audit
   python3 examples/support-tickets/demo.py
   ```
 
-### Caso 2: Práctica Clínica Nutricional y Análisis Metabólico (`quim_fernando`)
-- **Dominio:** Plataforma médica y bioquímica para consulta clínica.
-- **Arquitectura:** Go 1.27 + Chi + SQLite WAL puro (`modernc.org/sqlite`) + HTMX + Alpine.js + Pico.css v2.
-- **Gobernanza:** Separación estricta de privilegios (el especialista jamás toca la caja ni cobros; módulo restringido al rol Asesora), expedientes con consecutivo automático por cita, cálculo de índice HOMA-IR y generación documental para impresión médica.
+### Caso 2: Sistema Clínico & Práctica Médica Especializada
+- **Dominio:** Plataforma médica y bioquímica para consulta clínica ambulatoria.
+- **Arquitectura:** Go + Chi + SQLite WAL puro (`modernc.org/sqlite`) + HTMX + Alpine.js + Pico.css v2.
+- **Gobernanza:** Separación estricta de privilegios (el especialista jamás toca la caja ni cobros; módulo restringido al rol Asesora), expedientes con consecutivo automático por cita, cálculo de índice HOMA-IR y generación documental formal para impresión médica.
 
-### Caso 3: Plataforma Editorial Multi-Tenant de Alto Tráfico (`terracms`)
-- **Dominio:** CMS para medios de comunicación y sindicación de contenidos.
+### Caso 3: Plataforma Editorial & Medios Digitales Multi-Tenant
+- **Dominio:** CMS headless para medios de comunicación y sindicación de contenidos multi-sitio.
 - **Arquitectura:** Desacoplamiento de repositorios vía interfaces, caché perimetral Stale-While-Revalidate, paywall híbrido con conteo de lecturas y cumplimiento de accesibilidad WCAG 2.1 AA sin uso de elementos HTML no gobernados.
 
 ---
