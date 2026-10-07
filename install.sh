@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # q-agent Universal Runtime Linker
-# Links this canonical repository into AGY, Codex, Pi, Claude Code, and OpenCode.
+# Links this canonical repository into AGY, Codex, Pi, Claude Code, OpenCode, and GitHub Copilot.
 # Single Source of Truth architecture: updates via `git pull` propagate instantly.
 # ==============================================================================
 set -euo pipefail
@@ -24,6 +24,7 @@ RUNTIMES=(
     "Pi (Oh My Pi)|${HOME}/.pi|${HOME}/.pi/agent/skills/q-agent"
     "Claude Code|${HOME}/.claude|${HOME}/.claude/skills/q-agent"
     "OpenCode|${HOME}/.config/opencode|${HOME}/.config/opencode/skills/q-agent"
+    "GitHub Copilot|${HOME}/.copilot|${HOME}/.copilot/skills/q-agent"
 )
 
 usage() {
