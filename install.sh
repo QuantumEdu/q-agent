@@ -25,6 +25,7 @@ RUNTIMES=(
     "Claude Code|${HOME}/.claude|${HOME}/.claude/skills/q-agent"
     "OpenCode|${HOME}/.config/opencode|${HOME}/.config/opencode/skills/q-agent"
     "GitHub Copilot|${HOME}/.copilot|${HOME}/.copilot/skills/q-agent"
+    "Gentle AI (Agent System)|${HOME}/.agents|${HOME}/.agents/skills/q-agent"
 )
 
 usage() {
@@ -128,6 +129,14 @@ case "$ACTION" in
                 echo -e "  [${BLUE}SKIPPED${NC}] $name (Runtime directory ${parent} not present)"
             fi
         done
+
+        # Ensure CLI launcher is installed in ~/.local/bin/q-agent
+        if [[ -f "${SKILL_ROOT}/bin/q-agent" ]]; then
+            mkdir -p "${HOME}/.local/bin"
+            chmod +x "${SKILL_ROOT}/bin/q-agent"
+            ln -sfn "${SKILL_ROOT}/bin/q-agent" "${HOME}/.local/bin/q-agent"
+            echo -e "  [${GREEN}CLI${NC}] q-agent CLI launcher installed ➜ ${HOME}/.local/bin/q-agent"
+        fi
 
         echo -e "\n${GREEN}✓ q-agent successfully linked to ${linked_count} runtime(s).${NC}"
         echo -e "Any future 'git pull' in ${SKILL_ROOT} will reflect instantly across all agents.\n"

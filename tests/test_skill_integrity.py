@@ -116,6 +116,9 @@ class TestSkillIntegrity(unittest.TestCase):
         content = install_sh_path.read_text(encoding="utf-8")
         self.assertIn("GitHub Copilot", content)
         self.assertIn("${HOME}/.copilot/skills/q-agent", content)
+        self.assertIn("Gentle AI", content)
+        self.assertIn("${HOME}/.agents/skills/q-agent", content)
+        self.assertIn("${HOME}/.local/bin/q-agent", content)
 
     def test_all_skills_respect_200_line_budget(self):
         root_skill = ROOT_DIR / "SKILL.md"

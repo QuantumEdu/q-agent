@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# q-agent CLI launcher
+# Master Project Orchestrator
+# ==============================================================================
+set -euo pipefail
+
+REAL_SCRIPT="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "${REAL_SCRIPT}")/.." && pwd)"
+
+case "${1:-info}" in
+    info)
+        version="$(grep -m 1 '"version":' "${SCRIPT_DIR}/skill.json" | tr -d '", ' | cut -d: -f2)"
+        echo "q-agent v${version} (Master Project Orchestrator)"
+        ;;
+    --version|-v|version)
+        version="$(grep -m 1 '"version":' "${SCRIPT_DIR}/skill.json" | tr -d '", ' | cut -d: -f2)"
+        echo "v${version}"
+        ;;
+    sync|install)
+        "${SCRIPT_DIR}/install.sh" "${@:2}"
+        ;;
+    check)
+        "${SCRIPT_DIR}/install.sh" --check
+        ;;
+    test)
+        python3 -m unittest discover -s "${SCRIPT_DIR}/tests" -v
+        ;;
+    cockpit)
+        python3 "${SCRIPT_DIR}/tools/q-cockpit/q_cockpit_plus.py" serve "${@:2}"
+        ;;
+    help|--help|-h)
+        echo "Usage: q-agent <command>"
+        echo ""
+        echo "Commands:"
+        echo "  info       Display orchestrator version and metadata"
+        echo "  sync       Synchronize symlinks across all AI runtimes"
+        echo "  check      Inspect symlink integrity across runtimes"
+        echo "  test       Run regression test suite"
+        echo "  cockpit    Launch visual project cockpit"
+        echo "  help       Show this help message"
+        ;;
+    *)
+        echo "Unknown command: $1"
+        echo "Run 'q-agent help' for usage."
+        exit 1
+        ;;
+esac
