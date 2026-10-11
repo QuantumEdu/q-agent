@@ -138,6 +138,23 @@ class TestSkillIntegrity(unittest.TestCase):
         self.assertIn("q-audit-readonly", content)
         self.assertIn("q-delegate-context", content)
 
+    def test_codegraph_contract_in_dual_engine_and_prompts(self):
+        dual_engine = (ROOT_DIR / "references" / "dual-engine.md").read_text(encoding="utf-8")
+        self.assertIn("codegraph init -y", dual_engine)
+        self.assertIn("codegraph_explore", dual_engine)
+        self.assertIn("codegraph impact", dual_engine)
+
+        skill_md = (ROOT_DIR / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("CodeGraph Auto-Init", skill_md)
+
+        budgeting = (ROOT_DIR / "references" / "context-budgeting.md").read_text(encoding="utf-8")
+        self.assertIn("codegraph init -y", budgeting)
+        self.assertIn("codegraph impact", budgeting)
+
+        p04 = (ROOT_DIR / "prompts" / "P04_odd_feature_log.md").read_text(encoding="utf-8")
+        self.assertIn("codegraph init -y", p04)
+        self.assertIn("codegraph impact", p04)
+
 
 if __name__ == "__main__":
     unittest.main()
