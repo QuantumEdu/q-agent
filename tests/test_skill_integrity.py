@@ -38,13 +38,13 @@ class TestSkillIntegrity(unittest.TestCase):
         frontmatter = parts[1]
         self.assertIn("name: q-agent", frontmatter)
         self.assertIn("description:", frontmatter)
-        self.assertIn("version: 2.6.1", frontmatter)
+        self.assertIn("version: 2.7.0", frontmatter)
 
     def test_version_consistency(self):
         skill_json = json.loads((ROOT_DIR / "skill.json").read_text(encoding="utf-8"))
         skill_md = (ROOT_DIR / "SKILL.md").read_text(encoding="utf-8")
         version = skill_json["version"]
-        self.assertEqual(version, "2.6.1")
+        self.assertEqual(version, "2.7.0")
         self.assertIn(f"version: {version}", skill_md)
 
     def test_audit_manifest_reference_exists(self):
@@ -116,6 +116,24 @@ class TestSkillIntegrity(unittest.TestCase):
         content = install_sh_path.read_text(encoding="utf-8")
         self.assertIn("GitHub Copilot", content)
         self.assertIn("${HOME}/.copilot/skills/q-agent", content)
+
+    def test_all_skills_respect_200_line_budget(self):
+        root_skill = ROOT_DIR / "SKILL.md"
+        lines = len(root_skill.read_text(encoding="utf-8").splitlines())
+        self.assertLessEqual(lines, 200, f"Root SKILL.md exceeds 200 lines ({lines} lines)")
+
+        skills_dir = ROOT_DIR / "skills"
+        for child_skill in skills_dir.glob("*/SKILL.md"):
+            child_lines = len(child_skill.read_text(encoding="utf-8").splitlines())
+            self.assertLessEqual(child_lines, 200, f"{child_skill} exceeds 200 lines ({child_lines} lines)")
+
+    def test_skills_index_exists(self):
+        index_path = ROOT_DIR / "skills" / "INDEX.md"
+        self.assertTrue(index_path.exists(), "skills/INDEX.md catalog must exist")
+        content = index_path.read_text(encoding="utf-8")
+        self.assertIn("q-adversarial-review", content)
+        self.assertIn("q-audit-readonly", content)
+        self.assertIn("q-delegate-context", content)
 
 
 if __name__ == "__main__":

@@ -1,9 +1,9 @@
 # q-agent — Master Project Orchestrator
-> **Hermetic deployment package v2.6.1 (Dual Engine, Vertical Slices & Wave Execution)** · Tool-agnostic · Greenfield · Brownfield · Fast-Track · Audit
+> **Hermetic deployment package v2.7.0 (Dual Engine, Vertical Slices & Wave Execution)** · Tool-agnostic · Greenfield · Brownfield · Fast-Track · Audit
 
 [![CI Pipeline](https://github.com/QuantumEdu/q-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/QuantumEdu/q-agent/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.6.1-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.7.0-green.svg)](CHANGELOG.md)
 
 ---
 
@@ -24,7 +24,7 @@ Los frameworks contemporáneos de agentes autónomos fallan en producción debid
 
 ### Matriz Comparativa de Capacidades
 
-| Capacidad | GitHub Spec-Kit | OpenSpec | BMAD Method | Superpowers | **q-agent v2.6.1** |
+| Capacidad | GitHub Spec-Kit | OpenSpec | BMAD Method | Superpowers | **q-agent v2.7.0** |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Arquitectura de Ejecución** | Cascada BDUF (Riesgo alto de *Context Rot*) | Modular, sin compuertas deterministas | Enjambre conversacional (3x–5x costo tokens) | Prompt chain estático, soporte débil Brownfield | **Director Tier-1 + Workers Tier-2 acotados** |
 | **Aislamiento de Espacio** | Árbol de trabajo local (colisión de ramas) | Checkout manual | Dependiente del harness | Checkout manual | **Git Worktrees Mandatorios (`.q-worktrees/task-<ID>`)** |
@@ -249,30 +249,43 @@ Implementa el principio: *"La completitud es una propiedad del sistema de archiv
 
 ### Directorio Canónico
 ```text
-q-agent-v02/
-├── SKILL.md                          # Orquestador maestro (Pasos 0 a 9)
+q-agent/
+├── SKILL.md                          # Orquestador maestro (Pasos 0 a 9, ≤120 líneas)
 ├── README.md                         # Documentación estratégica y flujo
 ├── install.sh                        # Linker universal (AGY, Codex, Pi, Claude, OpenCode, Copilot)
 ├── justfile                          # Recetas de automatización (install, check, test, cockpit)
+├── skills/                           # Ecosistema de skills modulares (≤200 líneas c/u)
+│   ├── INDEX.md                      # Catálogo central de descubrimiento y dependencias
+│   ├── q-adversarial-review/         # Review Remembers con matriz R-IDs y Completion Gate
+│   ├── q-audit-readonly/             # Auditoría forense con zero-mutation gate
+│   ├── q-delegate-context/           # Delegación agnóstica de contexto
+│   ├── q-gbrain-assistant/           # Gateway de memoria GBrain
+│   ├── q-deliberate/                 # Deliberación dialéctica multi-agente
+│   ├── q-ci-fixer/                   # Corrección de pipelines CI (≤2 passes)
+│   ├── q-grill-me/                   # Entrevista socrática de alineación
+│   └── q-session-wrap/               # Cierre higiénico de sesiones
+├── workflows/                        # Flujos operativos progresivos
+│   └── plan-c-audit.md               # Protocolo MAB-PC / CAB-RP 2.0 Forense
 ├── examples/                         # Implementaciones y demos de referencia
 │   └── support-tickets/              # Caso real: Sistema de tickets y SLAs E2E
-├── tests/                            # Suite oficial de regresión (69 tests unitarios y E2E)
+├── tests/                            # Suite oficial de regresión (71 tests unitarios y E2E)
 ├── tools/                            # Herramientas de gobernanza CLI
 │   ├── q-worktree/                   # Aislamiento en Git Worktrees
 │   ├── q-merge-gate/                 # Compuerta determinista de políticas de merge
+│   ├── q-checklist/                  # Validador determinista de checklists ODD
 │   ├── q-cockpit/                    # Cockpit visual e inspectores de salud
 │   ├── q-audit-validator/            # Validador de manifiesto forense Plan C
 │   └── q-audit-aggregator/           # Generador determinista de reportes
 ├── prompts/                          # Prompts ejecutables del SDD Pipeline (P01 a P09)
 ├── templates/                        # Plantillas canónicas (ADR, BLUEPRINT, CONSTITUTION, PROPOSAL)
-└── references/                       # Protocolos y taxonomías internas
+└── references/                       # Protocolos, adaptadores CLI y taxonomías internas
 ```
 
 ### Certificación de Calidad y Tests
 Toda evolución en `q-agent` debe mantener la suite 100% verde con evidencia terminal estricta:
 ```bash
 python3 -m unittest discover -s tests -v
-# 69 tests pasando en < 3s sin mocks
+# 71 tests pasando en < 3s sin mocks
 ```
 
 ### Atribuciones y Reconocimientos

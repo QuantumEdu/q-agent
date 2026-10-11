@@ -4,110 +4,69 @@ description: "Trigger: /q-deliberate, deliberate, multi-agent debate, stress-tes
 license: Apache-2.0
 metadata:
   author: QuantumEdu
-  version: "1.0.0"
-  date: "2026-08-20"
-  updated_at: "2026-08-20"
+  version: "2.0.0"
+  date: "2026-10-10"
+  context_policy: "PROGRESSIVE"
+  requires: ["references/execution-authority.md"]
+  may_call:
+    - "skills/q-deliberate/prompts/proponent.md"
+    - "skills/q-deliberate/prompts/adversary.md"
+    - "skills/q-deliberate/prompts/synthesizer.md"
+  produces: ["docs/adr/*.md", "CONTEXT.md Glossary"]
 ---
 
-# q:deliberate
+# q:deliberate v2.0 — Deliberación Dialéctica Multi-Agente
 
-Multi-agent dialectical deliberation engine. Interrogates, stress-tests, and sharpens architectural decisions by orchestrating three specialized subagent roles before presenting frontier questions to the user.
+## 1. Quick Bootstrap & Triggers
+- **Propósito**: Interrogar, estresar y perfeccionar decisiones arquitectónicas mediante un debate dialéctico tripartito (Proponente vs Adversario vs Sintetizador) antes de presentar preguntas de frontera al usuario.
+- **Cuándo Aplica**:
+  - En Paso 2a de `q-agent` ante incertidumbre arquitectónica o bifurcaciones con tradeoffs reales.
+  - Al diseñar sistemas donde la decisión sea costosa de revertir (selección de BD, protocolo de mensajería, patrones de sincronización).
+  - Bajo demanda explícita (`/q-deliberate`).
+- **Cuándo NO Aplica (Anti-Triggers)**:
+  - ⛔ **PROHIBIDO para tareas mecánicas o ya acordadas**: Si el usuario o el equipo ya eligió el stack, no reabrir debate.
+  - ⛔ **PROHIBIDO preguntar hechos observables**: Averiguar código, versiones y APIs directamente en el repo antes de consultar al usuario.
+  - No deliberar cambios fácilmente reversibles o de bajo impacto.
+- **Política de Contexto**: `PROGRESSIVE`. Cargar prompts de roles (`prompts/proponent.md`, etc.) únicamente durante su fase de ejecución.
 
----
-
-## 1. Core Architecture & Roles
+## 2. Roles y Arquitectura Dialéctica
 
 ```text
                ┌──────────────────────────────────────┐
                │          User Prompt / Topic         │
                └──────────────────┬───────────────────┘
-                                  │
                   ┌───────────────┴───────────────┐
                   ▼                               ▼
     ┌───────────────────────────┐   ┌───────────────────────────┐
     │   Subagent 1: Proponent   │   │    Subagent 2: Adversary  │
     │      (Thesis Agent)       │   │     (Antithesis Agent)    │
-    │  - Prompts: proponent.md  │   │  - Prompts: adversary.md  │
-    │  - Primary sources & APIs │   │  - Edge cases & risks     │
     └─────────────┬─────────────┘   └─────────────┬─────────────┘
-                  │                               │
                   └───────────────┬───────────────┘
-                                  │ (Hypotheses & Critiques)
                                   ▼
                     ┌───────────────────────────┐
                     │   Subagent 3: Synthesizer │
                     │     (Arbitrator Agent)    │
-                    │  - Prompts: synthesizer.md│
-                    │  - Tradeoff evaluation    │
-                    │  - Recommendation (➡️)    │
                     └─────────────┬─────────────┘
-                                  │
                                   ▼
                     ┌───────────────────────────┐
                     │    Interactive User Round │
-                    │   - Frontier Questions    │
-                    │   - Dialectical Rationale │
-                    │   - Crystallized ADRs     │
                     └───────────────────────────┘
 ```
 
----
+## 3. Contrato de Ejecución (5 Fases)
+- [ ] **M1 (Árbol de Decisión)**: Mapear el problema como un Grafo Acíclico Dirigido (DAG) e identificar la frontera inmediata.
+- [ ] **M2 (Exploración Paralela)**:
+  - *Proponent*: Construye la tesis viable basada en documentación primaria y benchmarks.
+  - *Adversary*: Estresa límites de escala, modos de fallo y concurrencia.
+- [ ] **M3 (Síntesis y Arbitraje)**: *Synthesizer* filtra sesgos y formula recomendación vinculante (`➡️`) con mitigaciones.
+- [ ] **M4 (Ronda Interactiva)**: Presentar **una sola pregunta enfocada** con tradeoffs simétricos. **STOP y esperar**.
+- [ ] **M5 (Cristalización de ADR)**: Incorporar respuesta, cerrar nodo de frontera y generar ADR en `docs/adr/000N-<title>.md`.
 
-## Authority and pacing
-Load [Human-Scoped Execution Authority](../../references/execution-authority.md).
-Investigate accessible facts only within authorized read/research scope; do not
-probe credentials or turn investigation into installation or artifact writes.
-Reuse settled answers. The human may explicitly delegate bounded design choices;
-record those constraints and settle only those choices. Unresolved product
-decisions still require one focused question and STOP, including autonomous mode.
-
-## 2. Deliberation Workflow
-
-### Phase 1: Chart the Decision Tree
-1. Analyze the user's initial idea, problem statement, or design goal.
-2. Structure the problem as a **Directed Acyclic Graph (DAG)** of decisions.
-3. Identify the **Frontier**: all decisions whose prerequisites are already settled and can be evaluated immediately without guessing future answers.
-
-### Phase 2: Multi-Agent Parallel Exploration
-For each open question on the frontier:
-1. **Fact Gathering (Orchestrator)**: Never ask the user for facts accessible via tools (codebase, file system, docs). Dispatch read tasks directly.
-2. **Proponent Subagent (Thesis)**: Load [`prompts/proponent.md`](./prompts/proponent.md). Build the strongest viability case based on primary sources, benchmarks, and patterns.
-3. **Adversary Subagent (Antithesis)**: Load [`prompts/adversary.md`](./prompts/adversary.md). Stress-test the thesis against scale limits, concurrency, maintenance burden, and failure modes.
-
-### Phase 3: Synthesis & Arbitrated Recommendation
-1. Pass the outputs of both Proponent and Adversary to the **Synthesizer Subagent** using [`prompts/synthesizer.md`](./prompts/synthesizer.md).
-2. The Synthesizer evaluates tradeoffs, eliminates hype or unsubstantiated claims, and formulates the recommended path (`➡️`) along with mandatory mitigations.
-
-### Phase 4: Interactive Round Presentation
-1. For unresolved non-delegated decisions, use [`assets/templates/debate-round-template.md`](./assets/templates/debate-round-template.md).
-2. Present one focused question with its material tradeoff; do not reopen answered decisions.
-3. **STOP and wait** for that answer. Explicitly delegated decisions proceed within their bounds; never infer delegation from interaction mode.
-
-### Phase 5: Tree Reshaping & ADR Crystallization
-1. Incorporate the user's answers to close settled nodes on the tree.
-2. If a closed decision is **hard to reverse**, **surprising without context**, and **a meaningful tradeoff**:
-   - Generate an Architecture Decision Record (ADR) under `docs/adr/000N-<title>.md` using [`assets/templates/adr-template.md`](./assets/templates/adr-template.md).
-   - Update `CONTEXT.md` with any newly defined canonical domain terms.
-3. Recompute the frontier. If new questions are unblocked, run the next round.
-4. **Completion**: The deliberation finishes when the frontier is empty (all branches resolved).
-
----
-
-## 3. Rules & Invariants
-
-- **Facts vs Decisions**: Gather authorized facts; settle tradeoffs only when specifically delegated, otherwise ask the human.
-- **No Unexamined Assumptions**: If a dependency or constraint is unverified, assign the Adversary to challenge it before proceeding.
-- **Question pacing**: One unresolved decision at a time, then STOP. Do not repeat onboarding or permissions for already authorized fact gathering.
-- **Progressive Persistence**: Create `docs/adr/` and `CONTEXT.md` only for genuine commitments and within authorized artifact-write scope.
-
----
-
-## 4. References & Templates
-
-- **Role Prompts**:
-  - Proponent: [`prompts/proponent.md`](./prompts/proponent.md)
-  - Adversary: [`prompts/adversary.md`](./prompts/adversary.md)
-  - Synthesizer: [`prompts/synthesizer.md`](./prompts/synthesizer.md)
-- **Output Templates**:
-  - Interactive Round: [`assets/templates/debate-round-template.md`](./assets/templates/debate-round-template.md)
-  - Architecture Decision Record: [`assets/templates/adr-template.md`](./assets/templates/adr-template.md)
+## 4. Completion Gate
+Antes de dar por concluida la deliberación:
+- [ ] Frontera de decisiones completamente resuelta (DAG sin nodos pendientes).
+- [ ] ADR formalizado en `docs/adr/` para cada decisión difícil de revertir.
+- [ ] Términos canónicos agregados a `CONTEXT.md` si aplica.
+- [ ] Estado final:
+  - `[COMPLETE]` ──► Decisiones zanjadas y documentadas en disco.
+  - `[BLOCKED - reason]` ──► Disyuntiva requiere autorización humana pendiente.

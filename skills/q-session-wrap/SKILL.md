@@ -4,34 +4,39 @@ description: "Trigger: /q-session-wrap, /session-wrap, /wrap, cerrar sesion. Loc
 license: Apache-2.0
 metadata:
   author: QuantumEdu
-  version: "1.1.0"
+  version: "2.0.0"
+  date: "2026-10-10"
+  context_policy: "COMPACT"
+  requires: ["references/context-retrieval.md"]
+  may_call: ["Local backup tools"]
+  produces: ["Local Session Summary", "Closed Task Document"]
 ---
 
-# q:session-wrap
+# q:session-wrap v2.0 — Cierre de Sesión Local-First
 
-## Goal
-Close a development session with verified progress, recovery state and a visible
-report. No external memory product or database is required.
+## 1. Quick Bootstrap & Triggers
+- **Propósito**: Concluir una sesión de desarrollo con progreso comprobado, estado de recuperación limpio y bitácora actualizada en el repositorio local.
+- **Cuándo Aplica**:
+  - Al finalizar una jornada o pausa de desarrollo.
+  - Al completar un ciclo completo de `q-agent` (Paso 7 o Paso 8).
+  - Bajo invocación explícita (`/session-wrap`, `/wrap`).
+- **Cuándo NO Aplica (Anti-Triggers)**:
+  - ⛔ **PROHIBIDO asumir éxito si la persistencia en disco falla**: No omitir errores de escritura local.
+  - No reclamar commits o cambios no realizados en la sesión actual como trabajo propio.
+  - No ejecutar respaldos o escrituras remotas sin autorización explícita previa.
+- **Política de Contexto**: `COMPACT`. No requiere productos de base de datos ni servicios externos para operar.
 
-Load [Selective Context Retrieval](../../references/context-retrieval.md).
-Its provider admission and persistence rules apply to every optional write.
+## 2. Contrato de Ejecución Paso a Paso
+- [ ] **M1 (Inspección de Estado)**: Comprobar `git status -s`, commits realizados y evidencia terminal de tests.
+- [ ] **M2 (Persistencia Local-First)**: Guardar el resumen en la bitácora activa (`q-tasks/*.md` u `odd/tasks/*.md`) con: Objetivo, Instrucciones, Hallazgos, Completado, Próximos Pasos y Archivos.
+- [ ] **C1 [Condicional: Escritura Externa]**: Solo si está configurado y autorizado, sincronizar copia en store externo.
+- [ ] **C2 [Condicional: Backup SQLite]**: Solo con origen y destino autorizados expresamente, ejecutar respaldo SQLite.
+- [ ] **M3 (Reporte Final en Chat)**: Presentar el resumen visible al usuario con rutas de archivos locales y enlaces.
 
-## Procedure
-1. Inspect actual Git status, relevant commits and test evidence. Do not claim
-   unrelated recent commits as this session's work.
-2. Save the summary to the existing local task document, or a user-authorized
-   project-local session file. Include Goal, Instructions, Discoveries,
-   Accomplished, Next Steps and Relevant Files. Observe filesystem permissions;
-   if local persistence fails, deliver the summary in chat and report failure.
-3. Only if external_write is enabled and the selected provider is configured,
-   available and authorized for this write, save an appropriately scoped copy.
-   Engram and SkillVault are independent optional targets, not mandatory steps.
-   Reuse only an authoritative session identity; never invent one.
-4. Only if sqlite_backup is enabled AND source and destination are explicitly
-   authorized, perform the requested backup with a supported SQLite procedure.
-   Never inspect or copy a home-directory database merely because it exists.
-5. Report observed results: local summary locator, commits/checks, external writes
-   and backups performed, failed, pending or skipped, plus the next step.
-
-Unavailable external tools do not block closure. Preserve local state, never
-auto-install tools, and never treat a save as the final user-facing response.
+## 3. Completion Gate
+Antes de declarar la sesión como cerrada:
+- [ ] Resumen escrito exitosamente en el archivo local de tareas en disco.
+- [ ] Cada operación reportada con estado unificado:
+  - `[COMPLETE]` ──► Resumen local persistido y comprobado.
+  - `[N/A - reason]` ──► Stores externos o backups no requeridos ni configurados.
+  - `[BLOCKED - reason]` ──► Fallo de permisos de escritura en disco local.
