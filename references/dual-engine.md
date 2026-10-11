@@ -21,7 +21,7 @@ Un orquestador de nivel Senior no puede depender ciegamente de un solo runtime o
 |---|---|---|
 | **Condición de Activación** | `gentle-ai --version` responde en el host. | `gentle-ai` no detectado / entorno estándar. |
 | **Ruta de Bitácora Viva** | `odd/tasks/{{FEATURE_NAME}}.md` | `q-tasks/{{FEATURE_NAME}}.md` |
-| **Memoria Persistente** | Memoria Engram (`mem_current_project`, `mem_save`) | Markdown local / Flight Recorder append-only |
+| **Memoria Persistente** | Memoria Engram (`mem_current_project`, `mem_save`) | SkillVault (`vault_mem_save`, `vault_mem_search`, `vault_mem_context`) o Engram-compat (`skillvault mcp --compat-engram`) |
 | **Exploración de Código** | MCP `codegraph_explore` / `codegraph` CLI prioritario | `codegraph` CLI prioritario si está en host; fallback a `ripgrep`/`fd` |
 | **Revisión de Calidad** | Switch de usuario `gentle-ai review mode` | `q-audit-readonly` + `q-ci-fixer` interno |
 | **Heurística de Tareas** | ~400 líneas / unidad coherente | ~400 líneas / unidad coherente |
@@ -96,3 +96,13 @@ Para maximizar la compresión de contexto y la precisión arquitectónica:
 Si un proyecto iniciado en modo Standalone se traslada a un entorno con `gentle-ai`:
 - El agente lee la bitácora existente en `q-tasks/` y la sincroniza con `odd/tasks/` si el usuario lo solicita.
 - Los reportes generados por `BLUEPRINT.md` y las auditorías CAB-RP 2.0 son idénticos y totalmente compatibles.
+
+---
+
+## 7. Protocolo de Memoria Persistente con SkillVault (`vault_mem_*`)
+
+Cuando se utiliza SkillVault como backend de memoria para `q-agent`:
+1. **Suite Nativa:** Emplear `vault_mem_save`, `vault_mem_search`, `vault_mem_context`, `vault_mem_get`, `vault_mem_timeline`.
+2. **Deduplicación Automática:** SkillVault calcula el hash SHA-256 normalizado del contenido (`trim` + `lowercase`) para evitar registros redundantes en bucles de agentes y sesiones prolongadas.
+3. **Modo Compatibilidad Engram:** Al iniciar con `skillvault mcp --compat-engram`, SkillVault registra alias directos `mem_save`, `mem_search`, `mem_context`, `mem_get_observation`, permitiendo una transición transparente sin modificar agentes legacy.
+
