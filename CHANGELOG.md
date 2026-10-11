@@ -5,6 +5,37 @@ All notable changes to **q-agent** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - 2026-10-10
+
+### Added
+- **Central Skills Catalog & Discovery Matrix (`skills/INDEX.md`)**:
+  - Centralized discovery index mapping all 8 child skills and root orchestrator with execution contracts, triggers, anti-triggers, context policies (`COMPACT`, `PROGRESSIVE`, `FULL`), and dependency graphs (`requires`, `may_call`, `produces`).
+- **External CLI Adapters Specification (`references/external-cli-adapters.md`)**:
+  - Decoupled headless invocation patterns for Antigravity (`agy`) and Codex (`codex exec`), with explicit timeouts, error recovery, and zero-token waste contracts.
+- **GBrain Interactive Prompts Template (`templates/gbrain-prompts.md`)**:
+  - Extracted 10 interactive prompt workflows, query flags, and CLI reference matrix from GBrain into a standalone template.
+- **Plan C Forense Protocol Workflow (`workflows/plan-c-audit.md`)**:
+  - Extracted the CAB-RP 2.0 Plan C audit protocol from root `SKILL.md` into a dedicated progressive workflow document.
+- **Architectural Regression Protection (`tests/test_skill_integrity.py`)**:
+  - Added automated unit tests enforcing that root `SKILL.md` and all child skills strictly adhere to the ≤200-line budget limit and validating catalog presence.
+
+### Changed
+- **Skills Hardening & Context Efficiency (200-Line Standard)**:
+  - Reduced overall skills ecosystem token footprint by **57%** (from 1,310 to 562 total lines across all skill definitions).
+  - Every skill now enforces explicit bootstrap in lines 1–150, explicit execution contracts (`mandatory`, `conditional`, `optional`, `completion gate`), and anti-triggers ("Cuándo NO Aplica").
+  - `SKILL.md` (root): Streamlined from 337 to 116 lines (-66%), placing all core hard gates (Dual Engine, Dual Verification, Merge Gate, Deploy Gate, Ops-to-ODD) in the top 116 lines.
+  - `skills/q-adversarial-review`: Hardened to 79 lines with `context_policy: FULL`, strict anti-triggers, and formal Completion Gate requiring 100% of finding IDs (`R-XX`) in `[FIXED]`.
+  - `skills/q-audit-readonly`: Hardened to 44 lines with explicit zero-mutation gate (`git status -s` clean).
+  - `skills/q-delegate-context`: Reduced from 412 to 62 lines (-85%), eliminating token bloat from external CLI instructions.
+  - `skills/q-gbrain-assistant`: Streamlined from 130 to 53 lines (-59%) as a clean gateway.
+  - `skills/q-deliberate`: Standardized to 72 lines with structured 5-phase DAG workflow and anti-triggers.
+  - `skills/q-ci-fixer`: Standardized to 48 lines with hard limit of ≤2 passes.
+  - `skills/q-grill-me` (46 lines) and `skills/q-session-wrap` (42 lines): Standardized to unified execution contracts.
+- **Tooling Integration**:
+  - Integrated `tools/q-checklist/q_checklist.py` reference in Step 3 of root `SKILL.md`.
+
+---
+
 ## [2.6.1] - 2026-10-07
 
 ### Added

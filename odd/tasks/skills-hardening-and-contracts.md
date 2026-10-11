@@ -62,3 +62,8 @@
   - Route: Delegated / writer
   - Checks: `python3 -m unittest discover tests` passing 100% (69/69 tests passed).
   - Evidence: Todas las 9 skills con line count < 120 líneas (total 562 líneas vs 1310 iniciales); suite de 69 tests pasando en verde.
+
+- [x] **TASK-09**: Versionado v2.7.0, actualización de documentación (`CHANGELOG.md`, `README.md`) y tests de regresión del presupuesto de líneas.
+  - Route: Direct inline
+  - Checks: `skill.json`, `SKILL.md`, `tests/test_skill_integrity.py`, `CHANGELOG.md`, `README.md` actualizados a v2.7.0; 71/71 tests unitarios pasando.
+  - Evidence: Tests automatizados `test_all_skills_respect_200_line_budget` y `test_skills_index_exists` integrados y pasando en verde.
