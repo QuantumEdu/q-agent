@@ -5,6 +5,21 @@ All notable changes to **q-agent** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0] - 2026-10-11
+
+### Added
+- **Autonomous CodeGraph Protocol Integration**:
+  - **Hard Ordering Rule (Graph-Before-Filesystem)**: Enforces querying symbols, dependencies, and reference paths via CodeGraph before reading files or expanding context.
+  - **Lazy-Init Mechanism**: Auto-provisions `.codegraph/` via `codegraph init -y` upon detecting an unindexed workspace during exploration.
+  - **Dual Surface Exploration**: Native MCP tool `codegraph_explore` as primary interface, with upstream CLI fallback (`codegraph explore`) when MCP is not loaded.
+  - **Blast Radius Impact Gates**: Pre-execution dependency analysis identifying all affected callers, dependents, and test paths before code modifications.
+  - Full protocol codified across `references/dual-engine.md`, `references/context-budgeting.md`, `prompts/P01`, `prompts/P04`, `prompts/P09`, `SKILL.md`, and `skills/q-audit-readonly/SKILL.md`.
+- **Universal Runtime Linker & CLI Launcher**:
+  - Expanded `install.sh` to link Gentle AI at `~/.agents/skills/q-agent` across all 7 supported runtimes (Antigravity, Codex, Pi, Claude Code, OpenCode, Copilot, Gentle AI).
+  - Added `bin/q-agent` system CLI launcher symlinked to `~/.local/bin/q-agent` for quick synchronization (`q-agent sync`) and status checks.
+
+---
+
 ## [2.7.0] - 2026-10-10
 
 ### Added
