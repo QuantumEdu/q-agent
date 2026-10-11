@@ -38,20 +38,20 @@
   - Checks: Line count down to 44 lines (<200), zero-mutation gate verificado con git status.
   - Evidence: Anti-triggers explícitos (cero edición de código) y Completion Gate de árbol limpio.
 
-- [ ] **TASK-04**: Modularizar `skills/q-delegate-context/SKILL.md` (<200 líneas) extrayendo adaptadores a `references/external-cli-adapters.md`.
+- [x] **TASK-04**: Modularizar `skills/q-delegate-context/SKILL.md` (<200 líneas) extrayendo adaptadores a `references/external-cli-adapters.md`.
   - Route: Delegated / writer
-  - Checks: Line count < 200 lines, adapters cleanly separated.
-  - Evidence: Pending
+  - Checks: Line count down to 62 lines (<200), adaptadores extraídos cleanly.
+  - Evidence: `references/external-cli-adapters.md` creado; `SKILL.md` reducido de 412 a 62 líneas (85% menos tokens).
 
-- [ ] **TASK-05**: Aligerar `skills/q-gbrain-assistant/SKILL.md` (<100 líneas) moviendo catálogo de prompts a `templates/gbrain-prompts.md`.
+- [x] **TASK-05**: Aligerar `skills/q-gbrain-assistant/SKILL.md` (<100 líneas) moviendo catálogo de prompts a `templates/gbrain-prompts.md`.
   - Route: Delegated / writer
-  - Checks: Line count < 100 lines, templates extracted.
-  - Evidence: Pending
+  - Checks: Line count down to 53 lines (<100), prompts extraídos a plantilla.
+  - Evidence: `templates/gbrain-prompts.md` creado; bootstrap ligero de gateway a GBrain.
 
-- [ ] **TASK-06**: Normalizar `skills/q-deliberate/SKILL.md` y `skills/q-ci-fixer/SKILL.md` con anti-triggers y Completion Gates.
+- [x] **TASK-06**: Normalizar `skills/q-deliberate/SKILL.md` y `skills/q-ci-fixer/SKILL.md` con anti-triggers y Completion Gates.
   - Route: Delegated / writer
-  - Checks: Line count < 150 lines each, contracts and gates present.
-  - Evidence: Pending
+  - Checks: `q-ci-fixer` (48 líneas) y `q-deliberate` (72 líneas) normalizadas con anti-triggers y gates.
+  - Evidence: Ambas skills con checklists de ejecución, límites de pasadas y taxonomía unificada.
 
 - [ ] **TASK-07**: Crear `skills/INDEX.md` con catálogo central de descubrimiento y dependencias; conectar `tools/q-checklist`.
   - Route: Delegated / writer

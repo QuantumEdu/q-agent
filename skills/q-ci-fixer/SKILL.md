@@ -4,53 +4,45 @@ description: "Trigger: /q-ci-fixer, /fix-ci, arreglar ci, fallo github actions, 
 license: Apache-2.0
 metadata:
   author: QuantumEdu
-  version: "1.0.0"
-  date: "2026-09-03"
+  version: "2.0.0"
+  date: "2026-10-10"
+  context_policy: "COMPACT"
+  requires: ["CI logs or test failure output"]
+  produces: ["Surgical CI Fix", "Exit 0 Local Verification"]
 ---
 
-# q:ci-fixer
+# q:ci-fixer v2.0 — Reparación Quirúrgica de CI/CD
 
-## Goal
-Diagnosticar y resolver fallos de pipelines de integración continua (CI/CD) de forma sistemática y quirúrgica, garantizando que el build vuelva a verde sin relajar las reglas de calidad ni comprometer los umbrales de cobertura requeridos.
+## 1. Quick Bootstrap & Triggers
+- **Propósito**: Diagnosticar y corregir fallos en pipelines de CI/CD (GitHub Actions, linters, types, tests) de forma sistemática y quirúrgica, devolviendo el build a verde.
+- **Cuándo Aplica**:
+  - Un workflow de CI falló en un PR o commit reciente.
+  - Pasos de linteo (`ruff`, `eslint`, `flake8`) o análisis de tipos (`pyright`, `tsc`, `mypy`) arrojaron errores.
+  - La suite de pruebas falló por aserciones rotas (`AssertionError`) o por caer bajo el umbral de cobertura.
+- **Cuándo NO Aplica (Anti-Triggers)**:
+  - ⛔ **PROHIBIDO debilitar contratos**: Jamás editar `ci.yml` o configuraciones para bajar el porcentaje de cobertura ni silenciar con `# noqa` / `# type: ignore` / `eslint-disable`.
+  - ⛔ **PROHIBIDO refactors cosméticos o nuevas features**: Modificar únicamente las líneas indispensables para resolver el error.
+  - No usar si el fallo responde a una falta de definición de producto o cambio arquitectónico no acordado.
+- **Límite Duro**: Máximo **2 pasadas de corrección**. Si no compila en la 2da pasada, detenerse y declarar bloqueo.
 
-## When to Use
-- Un workflow de GitHub Actions falló en un PR o commit reciente.
-- Un paso de linteo (`ruff`, `eslint`, `flake8`) o análisis de tipos (`pyright`, `tsc`, `mypy`) arrojó errores.
-- La suite de pruebas falló por aserciones rotas (`AssertionError`) o por no alcanzar el umbral del coverage gate.
+## 2. Contrato de Ejecución Paso a Paso (4 Capas)
+- [ ] **M1 (Linteo y Formato Automático)**:
+  - Python: `uv run ruff check --fix <archivos>` y `uv run ruff format <archivos>`.
+  - JS/TS: `pnpm eslint --fix <archivos>` y `pnpm prettier --write <archivos>`.
+- [ ] **M2 (Tipado Estático y Firmas)**:
+  - Resolver `None` no manejados mediante guardas tempranas (`if val is None: return`).
+  - Corregir anotaciones asegurando coincidencia con la firma de dominio.
+- [ ] **M3 (Aserciones de Tests)**:
+  - Si es regresión de código: reparar lógica en el componente de producción.
+  - Si cambió legítimamente la regla de negocio: actualizar el test autorizado.
+- [ ] **M4 (Cobertura de Ramas)**:
+  - Agregar casos de prueba unitarios específicos para bifurcaciones (`if/else`, `except`) no cubiertas.
 
----
-
-## Invariantes Operativos No Negociables
-1. **Regla de No Debilitamiento de Contratos**:
-   - **PROHIBIDO** editar `ci.yml` o configuraciones de test para bajar el porcentaje de cobertura exigido.
-   - **PROHIBIDO** silenciar errores con supresores indiscriminados (`# noqa`, `# type: ignore`, `eslint-disable`) salvo defecto verificado del compilador o herramienta.
-2. **Blast Radius Mínimo**: Modificar únicamente las líneas indispensables para resolver el error; no aprovechar para refactorizaciones estéticas fuera de alcance.
-3. **Verificación Local Obligatoria**: Antes de proponer commit o dar por concluida la tarea, ejecutar localmente el comando exacto que falló en CI hasta obtener código de salida `0`.
-
----
-
-## Protocolo Paso a Paso en 4 Capas
-
-### Capa 1: Formato y Linteo Automático
-1. Identificar si el fallo involucra importaciones desordenadas o espaciado (`I001`, `format`).
-2. Ejecutar auto-fix focalizado en los archivos señalados:
-   - Python: `uv run ruff check --fix <archivos>` y `uv run ruff format <archivos>`
-   - JS/TS: `pnpm eslint --fix <archivos>` y `pnpm prettier --write <archivos>`
-
-### Capa 2: Tipado Estático y Firmas
-1. Analizar el reporte del comprobador de tipos (`pyright` / `tsc`).
-2. Resolver tipos `None` no manejados mediante guardas tempranas (`if value is None: return`).
-3. Corregir anotaciones de tipos incorrectas asegurando que coincidan con la firma de dominio.
-
-### Capa 3: Aserciones de Lógica de Negocio
-1. Si falla un test unitario con `AssertionError`:
-   - Determinar si el código de producción introdujo una regresión o si el test esperaba un formato desactualizado.
-   - Si es una regresión en el código: reparar la lógica en el componente de producción.
-   - Si cambió una regla de negocio legítimamente autorizada: actualizar el test para reflejar el nuevo contrato.
-
-### Capa 4: Cobertura de Ramas (Coverage Gate)
-1. Si el CI falla con "Coverage below threshold":
-   - Inspeccionar el reporte de cobertura (`--cov-report=term-missing` o HTML).
-   - Identificar las líneas y bifurcaciones (`if/else`, bloques `except/catch`) no ejecutadas.
-   - Agregar casos de prueba unitarios específicos que cubran esos caminos de código.
-2. Ejecutar la suite completa y certificar código de salida `0`.
+## 3. Completion Gate
+Antes de declarar resuelto el CI:
+- [ ] Ejecutar localmente el comando exacto que falló en CI y verificar **código de salida `0`**.
+- [ ] Comprobar que `ci.yml` y umbrales de cobertura permanecen inalterados.
+- [ ] Estado final declarado:
+  - `[COMPLETE]` ──► Build local pasando en verde con exit code 0.
+  - `[BLOCKED - reason]` ──► Error requiere decisión humana de arquitectura o se agotó el límite de 2 pasadas.
+  - `[FAILED - reason]` ──► Imposible resolver sin debilitar contratos.
