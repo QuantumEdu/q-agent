@@ -19,7 +19,7 @@ fecha: "{{YYYY-MM-DD}}"
 ## 1. Invariantes Operativos de Auditoría (Heredados de `q-audit-readonly`)
 
 1. **Inmutabilidad Absoluta en Disco:** Auditoría 100% de solo lectura. Queda prohibido modificar el código auditado (`replace_file_content`, `write_to_file`, `git checkout`). Al finalizar, `git status -s` debe permanecer inalterado (salvo el reporte `AUDIT_REPORT.md`).
-2. **CodeGraph Primero:** Si `codegraph` o MCPs están disponibles, usarlos prioritariamente para trazar dependencias y blast radius antes de búsquedas ciegas de texto.
+2. **CodeGraph Primero (Hard Ordering & Auto-Init):** Antes de búsquedas ciegas de texto, verificar o inicializar el índice (`test -d .codegraph || codegraph init -y`). Usar prioritariamente `codegraph_explore` (MCP) o `codegraph explore/impact/callers` (CLI) para trazar dependencias, contratos y blast radius con AST real.
 3. **Tolerancia Cero a Falsas Completitudes (Anti-Mocking):** Verificar que las tareas marcadas `[x]` en las bitácoras ODD cuenten con registro en la tabla `Terminal Evidence Gate` (código de salida 0 y salida observable). Tareas con datos estáticos simulados o stubs permanentes sin autorización = **`❌ Gap P0 Bloqueante`**.
 
 ---

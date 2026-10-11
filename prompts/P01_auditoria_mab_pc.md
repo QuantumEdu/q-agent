@@ -26,9 +26,13 @@ fecha: "{{YYYY-MM-DD}}"
 - **Arquitecto responsable:** {{NOMBRE}}
 - **Alcance auditado:** {{QUE_QUEDA_DENTRO_Y_FUERA}}
 
-### Nota de ingestión (Protocolo Dual-Mode):
-- **Modo A (Acelerado con CodeGraph / MCP):** Si `codegraph` o MCPs de análisis de grafos están disponibles en el host, utilizarlos prioritariamente para trazar flujos de llamadas, referencias y blast radius en milisegundos sin saturar el contexto.
-- **Modo B (Standalone / Portátil):** Utilizar herramientas nativas de terminal (`ripgrep`, `fd`, `git log`). Explorar selectivamente: árbol de directorios, manifiestos de dependencias (`go.mod`, `package.json`, `pyproject.toml`), `README.md`, configuración de DB (`schema.sql`, migraciones) y módulos funcionales. Cero dumps masivos ciegos al contexto.
+### Nota de ingestión (Protocolo Dual-Mode & CodeGraph Auto-Init):
+- **CodeGraph Primero (Hard Ordering):** Antes de cualquier exploración amplia de archivos, verificar si el repositorio cuenta con índice `.codegraph/`. Si falta y `codegraph` está disponible en el host:
+  ```bash
+  test -d "$(git rev-parse --show-toplevel 2>/dev/null)/.codegraph" || codegraph init -y "$(git rev-parse --show-toplevel 2>/dev/null)"
+  ```
+- **Modo A (Acelerado con CodeGraph / MCP):** Si el MCP `codegraph_explore` está activo, invocarlo prioritariamente para trazar flujos de llamadas, referencias y blast radius en milisegundos sin saturar el contexto.
+- **Modo B (CodeGraph CLI Upstream / Standalone):** Si no hay MCP disponible pero `codegraph` existe en el host, ejecutar directamente `codegraph explore -p <root> "<query>"` o `codegraph node -p <root> <symbol>`. Solo en entornos sin CodeGraph caer a herramientas nativas (`ripgrep`, `fd`, `git log`) con exploración selectiva. Cero dumps masivos ciegos al contexto.
 
 ---
 

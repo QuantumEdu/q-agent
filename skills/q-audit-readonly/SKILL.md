@@ -28,7 +28,7 @@ metadata:
 
 ## 2. Invariantes Operativos No Negociables
 1. **Inmutabilidad Absoluta en Disco**: Al finalizar, `git status -s` debe ser idéntico al estado inicial (salvo el reporte generado si fue solicitado expresamente).
-2. **CodeGraph / MCP Primero**: Resolver llamadas y blast radius con herramientas de grafo antes de búsquedas ciegas de texto.
+2. **CodeGraph / Dual Surface Primero**: Verificar índice (`test -d .codegraph || codegraph init -y`). Resolver llamadas, dependencias y blast radius vía `codegraph_explore` (MCP) o `codegraph` CLI antes de búsquedas ciegas de texto.
 3. **Tolerancia Cero a Mocks (Anti-Mocking)**: Ninguna tarea finalizada puede depender de datos simulados o stubs no autorizados (clasificado como `❌ Gap P0`).
 
 ## 3. Contrato de Ejecución Paso a Paso

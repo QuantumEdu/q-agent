@@ -17,7 +17,7 @@ fecha: "{{YYYY-MM-DD}}"
 
 ## 1. Reglas Operativas Previas a la Escritura
 
-1. **Exploración Proporcional:** Antes de redactar la bitácora, explorar el código existente relevante utilizando `codegraph_explore` (si está disponible) o `ripgrep`/`fd`. Conocer los archivos existentes evita duplicar modelos o inventar rutas erróneas.
+1. **Exploración con CodeGraph e Impact Gate:** Antes de redactar la bitácora, verificar el índice del repositorio con `test -d .codegraph || codegraph init -y`. Explorar los símbolos existentes vía MCP `codegraph_explore` o CLI (`codegraph explore -p <root> "<query>"`). Evaluar el blast radius del cambio con `codegraph impact <symbol>` para asegurar que el alcance se mantenga como Vertical Slice cohesiva sin efectos colaterales no mapeados. Cero adivinación de rutas o firmas.
 2. **Cero Burocracia Innecesaria:** Si el cambio es una corrección trivial de 1 solo archivo (<50 líneas), resolverla directamente inline sin crear artefactos durables. Si implica 2 o más pasos o componentes, la creación de la bitácora es obligatoria.
 3. **Respeto a la Ruta del Motor:**
    - Si el Motor es Gentle-AI: Escribir en `odd/tasks/{{FEATURE_NAME}}.md` (y sincronizar con Engram si está disponible).
