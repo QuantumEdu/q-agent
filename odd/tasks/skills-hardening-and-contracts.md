@@ -28,15 +28,15 @@
   - Checks: Line count down to 116 lines (<200), 69/69 unit tests passing.
   - Evidence: `workflows/plan-c-audit.md` created; `SKILL.md` reduced from 337 to 116 lines; all 69 unit tests pass.
 
-- [ ] **TASK-02**: Blindar `skills/q-adversarial-review/SKILL.md` con Completion Gate estricto, anti-triggers y política `FULL`.
+- [x] **TASK-02**: Blindar `skills/q-adversarial-review/SKILL.md` con Completion Gate estricto, anti-triggers y política `FULL`.
   - Route: Delegated / writer
-  - Checks: Line count < 200 lines, contains Completion Gate and anti-triggers.
-  - Evidence: Pending
+  - Checks: Line count down to 79 lines (<200), Completion Gate y anti-triggers presentes.
+  - Evidence: Review Remembers con matriz R-IDs estricta y bloqueo de cierre con veredicto REJECTED.
 
-- [ ] **TASK-03**: Cerrar compuerta en `skills/q-audit-readonly/SKILL.md` con anti-triggers y verificación de no-mutación.
+- [x] **TASK-03**: Cerrar compuerta en `skills/q-audit-readonly/SKILL.md` con anti-triggers y verificación de no-mutación.
   - Route: Delegated / writer
-  - Checks: Line count < 200 lines, contains zero-mutation gate.
-  - Evidence: Pending
+  - Checks: Line count down to 44 lines (<200), zero-mutation gate verificado con git status.
+  - Evidence: Anti-triggers explícitos (cero edición de código) y Completion Gate de árbol limpio.
 
 - [ ] **TASK-04**: Modularizar `skills/q-delegate-context/SKILL.md` (<200 líneas) extrayendo adaptadores a `references/external-cli-adapters.md`.
   - Route: Delegated / writer
