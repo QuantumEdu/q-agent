@@ -27,7 +27,7 @@ metadata:
 - **Política de Contexto**: `FULL`. El auditor debe leer y evaluar los 5 ejes y la matriz de `R-IDs` completos antes de dictaminar.
 
 ## 2. Invariantes Operativos No Negociables
-1. **Aislamiento Absoluto de Contexto**: Despachar vía `invoke_subagent` con rol `"Adversarial Architecture Reviewer"` inyectando únicamente: diff, criterios UAC, reglas constitucionales y reporte previo (si existe).
+1. **Aislamiento Absoluto de Contexto (Context Isolation)**: Despachar vía `invoke_subagent` con rol `"Adversarial Architecture Reviewer"` inyectando únicamente: diff, criterios UAC, reglas constitucionales y reporte previo (si existe).
 2. **Cero Empatía / Cero Supuestos**: Evaluar solo hechos observables en el diff. Sin tests reales, con HTML en backend o interfaces pasamanos = `REJECTED`.
 3. **Protocolo Review Remembers**:
    - Cada objeción recibe un ID persistente: `R-01`, `R-02`, etc.

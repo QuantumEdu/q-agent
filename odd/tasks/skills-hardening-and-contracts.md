@@ -53,12 +53,12 @@
   - Checks: `q-ci-fixer` (48 líneas) y `q-deliberate` (72 líneas) normalizadas con anti-triggers y gates.
   - Evidence: Ambas skills con checklists de ejecución, límites de pasadas y taxonomía unificada.
 
-- [ ] **TASK-07**: Crear `skills/INDEX.md` con catálogo central de descubrimiento y dependencias; conectar `tools/q-checklist`.
+- [x] **TASK-07**: Crear `skills/INDEX.md` con catálogo central de descubrimiento y dependencias; conectar `tools/q-checklist`.
   - Route: Delegated / writer
-  - Checks: `skills/INDEX.md` exists and indexes all 8 child skills + root orchestrator.
-  - Evidence: Pending
+  - Checks: `skills/INDEX.md` creado indexando las 8 child skills + root orquestador; `tools/q-checklist` referenciado en Paso 3 de `SKILL.md`.
+  - Evidence: Catálogo tabular con matriz de ruteo, triggers, anti-triggers, políticas y dependencias.
 
-- [ ] **TASK-08**: Normalizar `skills/q-session-wrap/SKILL.md` y `skills/q-grill-me/SKILL.md`; verificar suite completa de tests de integridad.
+- [x] **TASK-08**: Normalizar `skills/q-session-wrap/SKILL.md` y `skills/q-grill-me/SKILL.md`; verificar suite completa de tests de integridad.
   - Route: Delegated / writer
-  - Checks: `python3 -m unittest discover tests` passing 100%.
-  - Evidence: Pending
+  - Checks: `python3 -m unittest discover tests` passing 100% (69/69 tests passed).
+  - Evidence: Todas las 9 skills con line count < 120 líneas (total 562 líneas vs 1310 iniciales); suite de 69 tests pasando en verde.
