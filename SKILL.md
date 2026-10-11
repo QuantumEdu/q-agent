@@ -64,8 +64,9 @@ Paso 9     ──► BUCLE OPS-TO-ODD (Reproduction-First ante incidentes)
 
 ### [Paso 3] Gate de Metaorquestación (Dual Engine)
 - [ ] Sondear: `gentle-ai --version 2>/dev/null || echo "GENTLE_AI_NOT_FOUND"`.
-  - **Motor A (Gentle-AI ODD)**: Si está presente. Bitácora en `odd/tasks/<feature>.md`, MCP `codegraph_explore`.
-  - **Motor B (Standalone ODD)**: Si falta. Bitácora en `q-tasks/<feature>.md`, herramientas locales CLI.
+  - **Motor A (Gentle-AI ODD)**: Si está presente. Bitácora en `odd/tasks/<feature>.md`, CodeGraph prioritario.
+  - **Motor B (Standalone ODD)**: Si falta. Bitácora en `q-tasks/<feature>.md`, CodeGraph CLI / herramientas locales.
+- [ ] **CodeGraph Auto-Init**: Si falta índice en repo: `test -d .codegraph || codegraph init -y`. Exploración obligatoria vía MCP `codegraph_explore` o CLI upstream (`codegraph explore/impact`) antes de búsquedas ciegas.
 - [ ] Verificar `CONSTITUTION.md` (Artículo ARQ-01: Slices por defecto, SQLite WAL, higiene HTML, SQL parametrizado, cero mocks). En proyectos nuevos sin constitución, inicializar con `python3 tools/q-checklist/q_checklist.py`.
 
 ### [Paso 4] Apertura de Bitácora Única ODD

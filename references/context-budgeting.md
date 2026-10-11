@@ -65,9 +65,14 @@ class SQLiteMeetingRepository:
 
 ## 4. Protocolo de Ejecución del Agente
 
-1. **Antes de P04 / P06:**
-   - Si `codegraph` está disponible, utilizar `codegraph_explore` para extraer únicamente los símbolos y dependencias relevantes.
-   - Si no está disponible, utilizar búsquedas precisas de definiciones (`grep_search` con patrones `def `, `class `, `interface `) en lugar de leer archivos enteros.
+1. **Antes de P04 / P06 (CodeGraph Prioritario & Auto-Init):**
+   - Verificar si el proyecto cuenta con índice `.codegraph/`. Si falta y `codegraph` está disponible en el host:
+     ```bash
+     test -d "$(git rev-parse --show-toplevel 2>/dev/null)/.codegraph" || codegraph init -y "$(git rev-parse --show-toplevel 2>/dev/null)"
+     ```
+   - Utilizar prioritariamente la tool MCP `codegraph_explore` o el CLI upstream (`codegraph explore -p <root> "<query>"`) para extraer únicamente los símbolos y dependencias relevantes en una sola llamada.
+   - Para evaluar impacto y blast radius antes de mutaciones: ejecutar `codegraph impact -p <root> -d 2 <symbol>` y `codegraph affected -p <root> <files...>`.
+   - Si CodeGraph no está disponible en el host, utilizar búsquedas precisas de definiciones (`grep` con patrones `def `, `class `, `interface `) en lugar de leer archivos enteros.
 2. **Prohibición de Volcados Ciegos:**
    - Queda estrictamente prohibido leer más de 3 archivos completos simultáneos durante las fases de diseño o propuesta.
 3. **Registro en Flight Recorder:**

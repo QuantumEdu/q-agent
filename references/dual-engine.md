@@ -22,7 +22,7 @@ Un orquestador de nivel Senior no puede depender ciegamente de un solo runtime o
 | **Condición de Activación** | `gentle-ai --version` responde en el host. | `gentle-ai` no detectado / entorno estándar. |
 | **Ruta de Bitácora Viva** | `odd/tasks/{{FEATURE_NAME}}.md` | `q-tasks/{{FEATURE_NAME}}.md` |
 | **Memoria Persistente** | Memoria Engram (`mem_current_project`, `mem_save`) | Markdown local / Flight Recorder append-only |
-| **Exploración de Código** | MCP `codegraph_explore` / Grafo semántico | `ripgrep` (`rg`), `fd`, `git log` nativos |
+| **Exploración de Código** | MCP `codegraph_explore` / `codegraph` CLI prioritario | `codegraph` CLI prioritario si está en host; fallback a `ripgrep`/`fd` |
 | **Revisión de Calidad** | Switch de usuario `gentle-ai review mode` | `q-audit-readonly` + `q-ci-fixer` interno |
 | **Heurística de Tareas** | ~400 líneas / unidad coherente | ~400 líneas / unidad coherente |
 | **Gate de Verificación** | Terminal Evidence Gate obligatorio | Terminal Evidence Gate obligatorio |
@@ -39,15 +39,14 @@ flowchart TD
     ProbeGentleAI -- SÍ --> SelectGentleAI["Activar MOTOR A: Gentle-AI Integrated ODD"]
     ProbeGentleAI -- NO --> SelectStandalone["Activar MOTOR B: q-agent Standalone (Vertical Slices & Wave Execution)"]
     
-    SelectGentleAI --> CheckCodeGraph{"¿MCP codegraph disponible?"}
-    CheckCodeGraph -- SÍ --> UseCodeGraph["Exploración prioritaria vía codegraph_explore"]
-    CheckCodeGraph -- NO --> FallbackRipgrepA["Exploración vía ripgrep / fd"]
+    SelectGentleAI --> CheckCodeGraph{"¿CodeGraph disponible? (MCP o CLI)"}
+    SelectStandalone --> CheckCodeGraph
     
-    SelectStandalone --> ProbeTools["Configurar herramientas nativas: ripgrep, fd, git"]
+    CheckCodeGraph -- SÍ --> UseCodeGraph["Exploración prioritaria vía CodeGraph (MCP codegraph_explore o CLI)"]
+    CheckCodeGraph -- NO --> FallbackRipgrep["Exploración textual fallback: ripgrep / fd"]
     
     UseCodeGraph --> ValidateConst["Validar vigencia de CONSTITUTION.md (ARQ-01)"]
-    FallbackRipgrepA --> ValidateConst
-    ProbeTools --> ValidateConst
+    FallbackRipgrep --> ValidateConst
     
     ValidateConst --> EmitGate["Emitir Declaración de Gate al Usuario"]
 ```
@@ -67,7 +66,32 @@ Independientemente del motor que gestione la bitácora o las herramientas auxili
 
 ---
 
-## 5. Portabilidad e Interoperabilidad
+## 5. Protocolo Autónomo de CodeGraph (Hard Ordering & Dual Surface)
+
+Para maximizar la compresión de contexto y la precisión arquitectónica:
+
+1. **Hard Ordering Rule (Prohibición de Grep Ciego Inicial):**
+   Ante preguntas estructurales, arquitectónicas, mapeo de llamadas o previo a cualquier mutación de código, **está prohibido iniciar con un bucle de `grep`/`find`**. CodeGraph es la primera opción obligatoria.
+2. **Lazy-Initialization Autónoma ("Missing is the trigger"):**
+   Si el proyecto carece de `.codegraph/`, el agente ejecuta de inmediato:
+   ```bash
+   test -d "$(git rev-parse --show-toplevel 2>/dev/null)/.codegraph" || codegraph init -y "$(git rev-parse --show-toplevel 2>/dev/null)"
+   ```
+   No se debe abandonar CodeGraph por falta de índice previo; la ausencia del índice es la orden de crearlo.
+3. **Superficie Dual de Consulta:**
+   - **Superficie A (MCP):** Llamar a `codegraph_explore(query, projectPath)` para obtener en una sola interacción los símbolos con numeración de línea, los call paths y el blast radius.
+   - **Superficie B (CLI Upstream):** Si el harness no expone la herramienta MCP, ejecutar directamente en bash:
+     - Exploración de área: `codegraph explore -p <root> "<query>"`
+     - Símbolo o archivo específico: `codegraph node -p <root> <symbol>`
+     - Rastreo de llamadas: `codegraph callers -p <root> <symbol>` y `codegraph callees -p <root> <symbol>`
+     - Blast radius e impacto: `codegraph impact -p <root> -d 2 <symbol>`
+     - Tests afectados: `codegraph affected -p <root> <files...>`
+4. **Impact Gates en Vertical Slices:**
+   Antes de editar, calcular el blast radius (`codegraph impact`) para certificar que la Vertical Slice no introduce efectos colaterales no autorizados.
+
+---
+
+## 6. Portabilidad e Interoperabilidad
 
 Si un proyecto iniciado en modo Standalone se traslada a un entorno con `gentle-ai`:
 - El agente lee la bitácora existente en `q-tasks/` y la sincroniza con `odd/tasks/` si el usuario lo solicita.
