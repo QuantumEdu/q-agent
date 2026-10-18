@@ -29,4 +29,25 @@ Con esas respuestas, genera instantáneamente:
 python path/to/q-agent/tools/q-checklist/q_checklist.py
 ```
 
-*Cero dependencias externas — funciona con cualquier intérprete estándar de Python 3.8+.*
+*Cero dependencias externas — usa Python 3.10+ como el resto de q-agent.*
+
+## Coherencia y configuración del entorno
+
+La constitución y el ADR describen la arquitectura seleccionada: hexagonal,
+Clean, capas o monolito modular con slices verticales. Elegir monolito modular
+no impone puertos ni capas globales. Las opciones numéricas y los valores por
+defecto del menú se conservan.
+
+El JSON parte de `templates/q-agent.json` y aplica el aislamiento elegido.
+`runtime.executor`, `models.tier1_frontier` y `models.tier2_local` quedan en
+`null` (sin configurar). Antes de usarlos, establece el ejecutor real y los
+identificadores de modelos cuya disponibilidad hayas comprobado con su proveedor.
+No se deducen por tener un CLI instalado ni se comprueban credenciales al generar.
+La generación de archivos no instala ni activa ejecutores o modelos.
+
+BDD y property-based son estrategias complementarias: el gate general de
+reproducción de fallos de q-agent permanece activo en todas las opciones.
+
+Esta corrección se aplica a nuevas generaciones. Para proyectos existentes,
+revisa los tres artefactos manualmente; volver a ejecutar el checklist sobrescribe
+esos archivos y puede perder decisiones personalizadas.

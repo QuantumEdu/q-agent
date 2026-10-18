@@ -56,6 +56,34 @@ DECISION_OPTIONS = {
 }
 
 
+ARCHITECTURE_GUIDANCE = {
+    "hexagonal": {
+        "principle": "El dominio permanece independiente de infraestructura; los puertos definen los contratos y los adaptadores los implementan.",
+        "components": "- **Domain Layer**: Entidades y reglas de negocio.\n- **Ports Layer**: Contratos de entrada y salida.\n- **Adapters Layer**: Persistencia y transporte seleccionados.",
+        "rationale": "Permite sustituir infraestructura manteniendo estables los contratos del dominio.",
+        "tradeoff": "Mantener puertos explícitos y sus adaptadores añade código y exige revisar sus contratos.",
+    },
+    "clean": {
+        "principle": "Las dependencias apuntan hacia entidades y casos de uso; los detalles externos quedan fuera de las reglas de negocio.",
+        "components": "- **Entidades**: Reglas de negocio.\n- **Casos de uso**: Flujos de aplicación.\n- **Interfaces e infraestructura**: Presentación, persistencia y frameworks.",
+        "rationale": "Separa las políticas de negocio de los detalles externos.",
+        "tradeoff": "Mantener dependencias hacia el interior puede requerir contratos en las fronteras externas.",
+    },
+    "layered": {
+        "principle": "Separar presentación, servicios y acceso a datos; explicitar la dirección de las dependencias entre capas.",
+        "components": "- **Presentación**: Transporte seleccionado.\n- **Servicios**: Operaciones y reglas de negocio.\n- **Repositorios**: Acceso a la persistencia seleccionada.",
+        "rationale": "Organiza responsabilidades por capas con una dirección de dependencias explícita.",
+        "tradeoff": "Vigilar dependencias entre capas y evitar servicios que solo reenvían llamadas.",
+    },
+    "modular_monolith": {
+        "principle": "Organizar por módulos funcionales y slices verticales; mantener juntos almacenamiento, operaciones y presentación de cada funcionalidad, sin imponer capas globales.",
+        "components": "- **Slices por funcionalidad**: Almacenamiento, operaciones, presentación y pruebas del módulo.\n- **Límites entre módulos**: Contratos solo cuando exista una frontera real; evitar interfaces pasamanos.",
+        "rationale": "Los slices verticales concentran cada cambio funcional dentro de su módulo.",
+        "tradeoff": "Mantener límites entre módulos y extraer contratos compartidos solo cuando sean necesarios.",
+    },
+}
+
+
 def prompt_choice(category_key: str) -> tuple:
     data = DECISION_OPTIONS[category_key]
     print(f"\n[?] {data['title']}:")
@@ -89,13 +117,15 @@ def generate_artifacts(project_root: Path, project_name: str, selections: dict):
 
     today = datetime.now().strftime("%Y-%m-%d")
 
+    architecture = ARCHITECTURE_GUIDANCE[selections["architecture"][0]]
+
     # 1. CONSTITUTION.md
     constitution_content = f"""# CONSTITUCIÓN ARQUITECTÓNICA — {project_name.upper()}
 Fecha de Aprobación: {today}
 Estado: [VIGENTE]
 
 ## 1. Declaración de Principios Inmutables
-1. **Aislamiento Estricto de Capas**: {selections['architecture'][1]}. Las reglas de negocio del dominio no importan librerías de infraestructura, frameworks ni adaptadores de persistencia.
+1. **Organización del Código**: {selections['architecture'][1]}. {architecture['principle']}
 2. **Estrategia de Persistencia**: {selections['persistence'][1]}.
 3. **Transporte**: {selections['transport'][1]}.
 4. **Disciplina de Testing**: {selections['testing'][1]}.
@@ -106,10 +136,10 @@ Estado: [VIGENTE]
 |---|---|---|---|---|
 | ADR-0001 | Selección de Stack y Patrones Fundacionales | [ACEPTADO] | {today} | `docs/adr/0001-stack-decisions.md` |
 
-## 3. Matriz de Componentes y Puertos
-- **Domain Layer**: Entidades puras, Value Objects, excepciones de dominio (`DomainError`).
-- **Ports Layer**: Interfaces/Protocolos tipados que definen contratos de entrada y salida.
-- **Adapters Layer**: Implementaciones concretas ({selections['persistence'][0]}, {selections['transport'][0]}).
+## 3. Componentes de la Arquitectura Seleccionada
+{architecture['components']}
+
+Persistencia: `{selections['persistence'][0]}`. Transporte: `{selections['transport'][0]}`.
 """
     (project_root / "CONSTITUTION.md").write_text(constitution_content, encoding="utf-8")
 
@@ -131,67 +161,21 @@ Se requiere establecer las bases arquitectónicas de {project_name} para garanti
 5. **Aislamiento:** {selections['isolation'][1]}.
 
 ## Racional
-- Garantiza desacoplamiento absoluto del dominio de negocio.
-- Facilita pruebas unitarias de menos de 1 segundo sin dependencias de red.
-- Minimiza el riesgo de bloqueos en concurrencia y sobrecarga en el entorno del desarrollador.
+- {architecture['rationale']}
+- La persistencia y el transporte seleccionados definen las integraciones que deben validarse.
+- El rendimiento y la concurrencia requieren mediciones en el entorno real.
 
 ## Consecuencias
-- **Positivas:** Estructura limpia, modularidad garantizada, cero dependencias pesadas innecesarias.
-- **Compromisos:** Requiere escribir puertos (interfaces) explícitos antes de implementar adaptadores.
+- **Positivas:** Responsabilidades explícitas conforme a la arquitectura seleccionada.
+- **Compromisos:** {architecture['tradeoff']}
 """
     (project_root / "docs" / "adr" / "0001-stack-decisions.md").write_text(adr_content, encoding="utf-8")
 
     # 3. .q-agent.json
-    isolation_mode = "worktree" if selections["isolation"][0] == "worktree" else "inline"
-    q_agent_json = f"""{{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "1.2",
-  "runtime": {{
-    "executor": "antigravity",
-    "mode": "single-agent",
-    "interaction_mode": "supervised",
-    "interactive_gates": [
-      "P03_blueprint",
-      "P04_propose",
-      "P09_compliance"
-    ]
-  }},
-  "workspace": {{
-    "isolation": "{isolation_mode}",
-    "worktree_pattern": "../{{repo}}-worktrees/{{branch}}"
-  }},
-  "quality_gates": {{
-    "reproduction_test_mandatory": true,
-    "ast_skeleton_first": true,
-    "max_consecutive_failures_before_rollback": 3
-  }},
-  "models": {{
-    "tier1_frontier": "gemini-3.8-flash",
-    "tier2_local": "qwen-2.5-7b-rocm"
-  }},
-  "observability": {{
-    "flight_recorder": true,
-    "log_path": ".q-agent/flight_recorder.log",
-    "eval_level": "standard"
-  }},
-  "integrations": {{
-    "github_issues": true,
-    "gbrain_mcp": false,
-    "engram_mcp": false
-  }},
-  "guardrails": {{
-    "fs_write_allowed": ["src/**", "tests/**", "docs/**", "features/**", "odd/**", "q-tasks/**"],
-    "fs_write_denied": [".git/**", "references/**", "templates/**"],
-    "shell_denied": ["rm -rf /", "rm -rf ~*", "git push --force*", "sudo *"]
-  }}
-}}
-"""
-    # Keep retrieval defaults aligned with the distributed template.
+    # Load a fresh template so all defaults stay aligned without mutating it.
     template_path = Path(__file__).resolve().parents[2] / "templates" / "q-agent.json"
-    template = json.loads(template_path.read_text(encoding="utf-8"))
-    configuration = json.loads(q_agent_json)
-    configuration["context_retrieval"] = template["context_retrieval"]
-    configuration["execution_authority"] = template["execution_authority"]
+    configuration = json.loads(template_path.read_text(encoding="utf-8"))
+    configuration["workspace"]["isolation"] = selections["isolation"][0]
     (project_root / ".q-agent.json").write_text(
         json.dumps(configuration, indent=2) + "\n", encoding="utf-8"
     )
@@ -234,6 +218,7 @@ def main():
         print("  - CONSTITUTION.md")
         print("  - docs/adr/0001-stack-decisions.md")
         print("  - .q-agent.json")
+        print("  [PENDIENTE] Configura runtime.executor y models con valores verificados en tu entorno.")
         print("\n¡Listo para entrar a P04 (/propose) con tu arquitectura pre-configurada!")
     else:
         print("\nGeneración cancelada.")

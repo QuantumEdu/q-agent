@@ -2,9 +2,9 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "version": "1.2",
   "runtime": {
-    "executor": "antigravity",
+    "executor": null,
     "mode": "single-agent",
-    "notes": "Options: antigravity, codex, pi, opencode, claude",
+    "notes": "Unconfigured: set executor only after verifying the actual host. Options: antigravity, codex, pi, opencode, claude",
     "interaction_mode": "supervised",
     "interactive_gates": [
       "P03_blueprint",
@@ -30,8 +30,8 @@
     "max_consecutive_failures_before_rollback": 3
   },
   "models": {
-    "tier1_frontier": "gemini-3.8-flash",
-    "tier2_local": "qwen-2.5-7b-rocm"
+    "tier1_frontier": null,
+    "tier2_local": null
   },
   "observability": {
     "flight_recorder": true,

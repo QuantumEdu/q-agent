@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.1] - 2026-10-18
+
+### Fixed
+- Generate architecture-specific constitutions and ADRs instead of imposing
+  hexagonal layers and ports on every selection, including modular monoliths.
+- Remove unverified executor/model defaults from the distributed configuration
+  and checklist. These fields remain null until configured for the actual host.
+- Generate configuration from the full shared template to prevent drift in
+  audit, retrieval, authority and other defaults; preserve selected isolation.
+- Document runtime setup, existing-file overwrite behavior, the common
+  reproduction gate and the Python 3.10+ requirement for the checklist.
+
+### Validation
+- Add real interactive CLI regressions for all four architectures, both workspace
+  isolation choices, unconfigured runtime/models and shared-template parity.
+- All 102 tests passed locally on Python 3.10.21, 3.11.16 and 3.12.14 on Linux.
+  Compilation, CLI help/capability checks and the local benchmark smoke check
+  also passed. Remote CI is separate from these local checks.
+
 ## [2.9.0] - 2026-10-18
 
 ### Added
