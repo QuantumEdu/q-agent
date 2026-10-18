@@ -53,7 +53,9 @@ dispatch, the seven newest existing recorded logs are retained, so the new log
 brings the normal total to eight. Older eligible UUID-named regular logs are
 removed; receipt history, unrecognized files, symlinks and hardlinks are preserved.
 Historical logs may already exceed the new per-attempt limit. Raw output stays
-private and is not automatically redacted; inspect it before sharing.
+private and is not automatically redacted; inspect it before sharing. The cockpit
+file viewer rejects the task runtime directory and symlinks into it. This does
+not isolate files from the local agent or account; they retain their OS access.
 
 `diagnostics.jsonl` and one previous file are capped at 256 KiB each. These
 best-effort records allow only fixed operation/state names and numeric outcome/

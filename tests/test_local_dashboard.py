@@ -7,6 +7,8 @@ import sys
 import tempfile
 import threading
 import unittest
+import urllib.error
+import urllib.parse
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -84,6 +86,19 @@ class LocalDashboardTests(unittest.TestCase):
         self.assertEqual(status["local_execution"]["status"], "unavailable")
         self.assertIn("project", status)
         self.assertNotIn("error", status["local_execution"])
+
+    def test_generic_file_viewer_cannot_expose_private_output_or_its_symlink(self):
+        self.cli('add', 'T1', 'Private output')
+        proof = self.cli('run', 'T1', '--request-id', 'private', '--', sys.executable,
+                         '-c', "print('private diagnostic contents')")
+        log = Path(proof['log_path'])
+        alias = self.root / 'alias.log'
+        alias.symlink_to(log)
+        for path in (log, alias):
+            query = urllib.parse.urlencode({'path': str(path.relative_to(self.root))})
+            with self.assertRaises(urllib.error.HTTPError) as error:
+                self.get('/api/file?' + query)
+            self.assertEqual(error.exception.code, 403)
 
 
 if __name__ == "__main__":

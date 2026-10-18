@@ -85,3 +85,6 @@ evidence and staleness. Verification is not acceptance and never marks Markdown
 tasks complete. Commands, log paths, raw output, retry reasons and saved process
 IDs are excluded from this projection. Missing and unreadable/corrupt ledgers
 are distinguished; neither prevents the workflow dashboard from loading.
+The generic file viewer also rejects the private `.cache/q-agent-tasks` directory
+and symlinks resolving into it. Inspect raw task output locally through its
+documented log path rather than the cockpit file API.

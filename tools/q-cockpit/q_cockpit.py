@@ -1294,6 +1294,11 @@ class CockpitHTTPHandler(http.server.BaseHTTPRequestHandler):
             self.send_error(403, "Access Denied")
             return
 
+        private_tasks = (self.project_root / '.cache/q-agent-tasks').resolve()
+        if target.is_relative_to(private_tasks):
+            self.send_error(403, "Private task runtime data")
+            return
+
         if not target.exists() or target.is_dir():
             self.send_error(404, "File not found")
             return

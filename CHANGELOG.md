@@ -27,13 +27,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SIGTERM/SIGINT cancellation now cleans up the owned process group, retains the
   actual child exit code and records an uncertain outcome instead of success.
 - Aligned the skill's visible heading with package metadata and version badges.
+- Prevented the cockpit file viewer from exposing private task runtime files,
+  including symlinks into that directory.
 
 ### Validation
 - Added real SQLite failure-injection checks for receipt, PID and result writes,
   plus live-process SIGTERM/SIGINT regression tests. CI explicitly checks the task
   tool and retains its Python 3.10/3.11/3.12 matrix. macOS remains unvalidated.
-- The initial recovery hardening passed 83 tests on Python 3.10.21, 3.11.16 and
-  3.12.14 on Linux; the local operations additions expand that regression suite.
+- All 98 tests passed locally on Python 3.10.21, 3.11.16 and 3.12.14 on Linux.
+  Real Chromium checks also verified rendering, escaped task titles and live
+  evidence-staleness refresh. A historical ledger upgraded without changing its
+  existing receipt fields. Remote CI and release publication remain separate.
 
 ## [2.8.0] - 2026-10-11
 
