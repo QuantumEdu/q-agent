@@ -35,6 +35,9 @@ case "${1:-info}" in
     resume)
         exec python3 "${SCRIPT_DIR}/tools/q-tasks/q_tasks.py" "${@:2}" resume
         ;;
+    capabilities)
+        exec python3 "${SCRIPT_DIR}/tools/q-tasks/capabilities.py" "${@:2}"
+        ;;
     help|--help|-h)
         echo "Usage: q-agent <command>"
         echo ""
@@ -46,6 +49,7 @@ case "${1:-info}" in
         echo "  cockpit    Launch visual project cockpit"
         echo "  task       Track local tasks, run commands and record verification"
         echo "  resume     Inspect durable local tasks without replaying commands"
+        echo "  capabilities Probe local support or inspect external CLI availability"
         echo "  help       Show this help message"
         ;;
     *)

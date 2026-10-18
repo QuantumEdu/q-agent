@@ -22,6 +22,7 @@ q-agent resume
 q-agent task verify TASK-01 --request-id verify-01 -- python3 -m unittest discover -s tests -v
 q-agent task history TASK-01
 q-agent task preflight
+q-agent capabilities --backend local
 ```
 
 Commands are argv arrays, not shell strings. Explicit shell scripts are supported
@@ -60,6 +61,34 @@ output fields; no command arguments, task titles, IDs, paths or raw output.
 Diagnostic failure cannot erase a durable task result. Workflow audit events,
 SQLite history and the cockpit's session records are not discarded or rotated.
 State schema upgrades add nullable columns and preserve existing receipts.
+
+## Capability contract
+
+`q-agent capabilities` (or `q-agent task capabilities`) probes the local runner
+without inference, login checks or account access. `durable_receipts` exercises
+SQLite WAL commit/reopen in a temporary directory; `process_group_cancellation`
+starts and terminates a fresh owned process group; `bounded_output` exercises the
+actual output limiter. These checks do not attest the project's filesystem,
+power-loss durability, native model sessions or containment of escaped children.
+
+`--backend codex|claude|pi` checks executable presence only. Native cancellation,
+recovery, delegation and isolation remain `unknown` without a verified adapter;
+the report never converts installation into protocol support. Local native
+conversation resume, delegation, workspace isolation and process containment
+are explicitly `unsupported`.
+
+New commands may require a verified local primitive before any receipt/dispatch:
+
+```sh
+q-agent task run TASK-01 --request-id implement-03 \
+  --require-capability bounded_output --require-capability process_group_cancellation \
+  -- python3 implement.py
+```
+
+Unsupported, unknown or failed required capabilities block execution. Requirements
+and resource/output settings are part of request identity; changing them requires
+a new request ID and any applicable retry authority. Capability probes neither
+grant permission nor install tools, create workers or contact model providers.
 
 `q-agent task --project /path/to/project add TASK-01 "Title"` targets another
 checkout; `q-agent resume --project /path/to/project` inspects it. Each checkout

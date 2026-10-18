@@ -15,7 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Interrupted work remains uncertain until inspected; machine verification does
   not bypass review, acceptance criteria or human operation authority.
 - Cloudroom-inspired roadmap distinguishing delivered local capabilities from
-  pending approval enforcement, isolation, capability detection and diagnostics.
+  pending approval enforcement, isolation and optional remote runtime integration.
+- Read-only cockpit panel for local task states, commit/exit evidence and staleness;
+  existing Markdown acceptance and review remain separate.
+- Bounded private head/tail output logs, recorded-log retention and fixed-field
+  diagnostic rotation, plus free-space admission checks and `task preflight`.
+- Capability probes for local primitives and explicit pre-dispatch requirements;
+  external CLI presence never implies native protocol support.
 
 ### Fixed
 - SIGTERM/SIGINT cancellation now cleans up the owned process group, retains the
@@ -26,7 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added real SQLite failure-injection checks for receipt, PID and result writes,
   plus live-process SIGTERM/SIGINT regression tests. CI explicitly checks the task
   tool and retains its Python 3.10/3.11/3.12 matrix. macOS remains unvalidated.
-- All 83 tests passed locally on Python 3.10.21, 3.11.16 and 3.12.14 on Linux.
+- The initial recovery hardening passed 83 tests on Python 3.10.21, 3.11.16 and
+  3.12.14 on Linux; the local operations additions expand that regression suite.
 
 ## [2.8.0] - 2026-10-11
 

@@ -183,6 +183,10 @@ replaying it. No Cloudroom or external service is required. See
 [usage, states and recovery limits](references/local-task-recovery.md).
 The [Cloudroom-inspired roadmap](references/cloudroom-inspired-roadmap.md)
 distinguishes delivered local reliability from pending runtime capabilities.
+The cockpit includes a read-only local execution panel. `q-agent task preflight`
+reports disk capacity and runner activity; `q-agent capabilities` probes local
+primitives and distinguishes external CLI installation from verified support.
+Task output and operational diagnostics have documented retention/size limits.
 
 `q-agent` incluye utilidades CLI sin dependencias externas diseñadas para integrarse en pipelines y subagentes:
 

@@ -43,6 +43,9 @@ jobs:
           python -m py_compile tools/q-audit-lifecycle/audit_lifecycle.py
           python -m py_compile tools/q-benchmark/benchmark.py
           python -m py_compile tools/q-tasks/q_tasks.py
+          python -m py_compile tools/q-tasks/runtime_support.py
+          python -m py_compile tools/q-tasks/capabilities.py
+          python -m py_compile tools/q-cockpit/task_ledger.py
           python -m py_compile tests/*.py
 
       - name: Run unit & regression test suite
@@ -65,6 +68,7 @@ jobs:
           python tools/q-tasks/q_tasks.py --help
           bash -n bin/q-agent
           bash bin/q-agent --help
+          bash bin/q-agent capabilities --backend local
 
       - name: Run local benchmark smoke check
         run: >

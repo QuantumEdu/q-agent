@@ -18,6 +18,7 @@ record, not authorization to implement all proposals or perform remote operation
 | Cockpit/task-ledger integration | Implemented | Read-only live panel with execution state, commit/exit evidence, stale evidence and unavailable-ledger handling. No queue or execution controls added. |
 | Bounded diagnostics | Implemented for the task runner | Size-limited private head/tail logs, recorded-log retention and two bounded fixed-field diagnostic files. Durable history and workflow audit events are preserved. |
 | Resource admission checks | Implemented locally | Free-space measurement and reservation before dispatch; busy runner detection. Not continuous disk protection or machine-wide resource containment. |
+| Capability detection contract | Implemented locally | Local SQLite/output/process-group primitives are probed; required unavailable capabilities block dispatch. External CLI presence is separate from native capabilities, which remain unknown without an adapter. |
 
 ## Remaining proposals
 
@@ -25,7 +26,6 @@ record, not authorization to implement all proposals or perform remote operation
 | --- | --- | --- |
 | High for protected operations | External approval enforcement | A controller outside the agent's writable state holds scoped operation credentials; approvals identify a human, operation and commit. Agent text or retry reasons cannot grant authority. |
 | High for concurrent workers | Effective isolation checks | Confirm workspace/process isolation before dispatch; reject a required isolation mode if unavailable. Git worktrees alone do not contain processes. |
-| Medium | Backend capability detection | Report verified cancellation, recovery, delegation and isolation capabilities; missing capabilities cannot silently become enabled. |
 | Optional remote workflow | Cloudroom backend adapter | Correlate task/session/request/commit IDs; preserve uncertain results, detect capabilities and verify isolation. No Cloudroom dependency is currently required. |
 
 Priorities are conditional on the workflow: a single local user does not need a

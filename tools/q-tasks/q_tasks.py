@@ -14,6 +14,7 @@ import subprocess
 import sys
 from runtime_support import (MIB, BoundedOutput, capture_command, diagnostic,
                              prune_logs, resources, runner_active)
+from capabilities import BACKENDS, CAPABILITIES, inspect_backend, require_capabilities
 
 
 def now():
@@ -57,10 +58,12 @@ class Tasks:
                 exit_code INTEGER, child_pid INTEGER, checkout_matches INTEGER,
                 error TEXT, log_path TEXT NOT NULL);
         """)
-        for column in ('min_free_bytes', 'max_log_bytes', 'output_bytes', 'output_truncated'):
+        columns = {name: 'INTEGER' for name in ('min_free_bytes', 'max_log_bytes', 'output_bytes', 'output_truncated')}
+        columns['required_capabilities'] = 'TEXT'
+        for column, kind in columns.items():
             if column not in {row[1] for row in self.db.execute('PRAGMA table_info(attempts)')}:
                 try:
-                    self.db.execute(f'ALTER TABLE attempts ADD COLUMN {column} INTEGER')
+                    self.db.execute(f'ALTER TABLE attempts ADD COLUMN {column} {kind}')
                 except sqlite3.OperationalError:
                     if column not in {row[1] for row in self.db.execute('PRAGMA table_info(attempts)')}:
                         raise
@@ -146,12 +149,13 @@ class Tasks:
         return {'resources': resources(self.root, minimum), 'runner_active': runner_active(self.directory)}
 
     def execute(self, operation, task_id, request_id, command, timeout,
-                min_free_mib=256, max_log_mib=8):
+                min_free_mib=256, max_log_mib=8, required=()):
         if not command or not request_id or not math.isfinite(timeout) or not 0 < timeout <= 900:
             raise ValueError("Supply a command, request ID and timeout in (0, 900] seconds")
-        if min_free_mib < 0 or not 1 <= max_log_mib <= 64:
+        if not 0 <= min_free_mib < 2**43 or not 1 <= max_log_mib <= 64:
             raise ValueError('Require nonnegative disk reserve and a log limit of 1..64 MiB')
         encoded = json.dumps(command)
+        required = sorted(set(required))
         with self.lock():
             self.recover()
             task = self.task(task_id)
@@ -162,6 +166,8 @@ class Tasks:
                 if ((old['min_free_bytes'] is not None and old['min_free_bytes'] != min_free_mib * MIB)
                         or (old['max_log_bytes'] is not None and old['max_log_bytes'] != max_log_mib * MIB)):
                     raise ValueError('Request ID conflicts with existing resource/output settings')
+                if (old['required_capabilities'] or '[]') != json.dumps(required):
+                    raise ValueError('Request ID conflicts with existing capability requirements')
                 return dict(old)
             if task["state"] in {"failed", "uncertain"} or (operation == "run" and task["state"] != "pending"):
                 raise ValueError("Inspect existing effects and use retry explicitly before dispatch")
@@ -171,14 +177,15 @@ class Tasks:
             admission = resources(self.root, min_free_mib * MIB)
             if not admission['admitted']:
                 raise ValueError('Resource admission rejected: ' + admission['reason'])
+            require_capabilities(required)
             # Random log names never interpret request IDs as paths.
             import uuid
             log = self.directory / (uuid.uuid4().hex + ".log")
             with self.db:
                 self.db.execute("INSERT INTO attempts (request_id,task_id,operation,command,timeout,state,"
-                                "commit_sha,started_at,log_path,min_free_bytes,max_log_bytes) VALUES (?,?,?,?,?,'running',?,?,?,?,?)",
+                                "commit_sha,started_at,log_path,min_free_bytes,max_log_bytes,required_capabilities) VALUES (?,?,?,?,?,'running',?,?,?,?,?,?)",
                                 (request_id, task_id, operation, encoded, timeout, head, now(), str(log),
-                                 min_free_mib * MIB, max_log_mib * MIB))
+                                 min_free_mib * MIB, max_log_mib * MIB, json.dumps(required)))
                 self.db.execute("UPDATE tasks SET state='running' WHERE id=?", (task_id,))
             child = None
             exit_code, error = None, None
@@ -233,6 +240,8 @@ def main():
     add.add_argument("title")
     sub.add_parser("resume")
     sub.add_parser('preflight')
+    capabilities = sub.add_parser('capabilities')
+    capabilities.add_argument('--backend', choices=BACKENDS, default='local')
     history = sub.add_parser("history")
     history.add_argument("task")
     retry = sub.add_parser("retry")
@@ -245,10 +254,14 @@ def main():
         execute.add_argument("--timeout", type=float, default=300)
         execute.add_argument('--min-free-mib', type=int, default=256)
         execute.add_argument('--max-log-mib', type=int, default=8)
+        execute.add_argument('--require-capability', action='append', choices=CAPABILITIES, default=[])
     # Split explicitly: argparse REMAINDER would swallow options after task ID.
     argv = sys.argv[1:]
     separator = argv.index("--") if "--" in argv else len(argv)
     args = parser.parse_args(argv[:separator])
+    if args.action == 'capabilities':
+        print(json.dumps(inspect_backend(args.backend)))
+        return 0
     store = None
     try:
         store = Tasks(args.project)
@@ -264,7 +277,7 @@ def main():
             result = store.retry(args.task, args.reason)
         else:
             result = store.execute(args.action, args.task, args.request_id, argv[separator + 1:], args.timeout,
-                                   args.min_free_mib, args.max_log_mib)
+                                   args.min_free_mib, args.max_log_mib, args.require_capability)
         print(json.dumps(result, ensure_ascii=False))
         return 1 if result.get("state") in {"failed", "uncertain"} else 0
     except (ValueError, OSError, sqlite3.Error, subprocess.CalledProcessError) as exc:
