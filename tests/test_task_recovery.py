@@ -108,6 +108,26 @@ class TaskRecoveryTests(unittest.TestCase):
         self.assertEqual(result["state"], "uncertain")
         self.assertEqual(result["error"], "timeout")
 
+    def test_low_disk_admission_does_not_dispatch(self):
+        self.cli("add", "T1", "Feature")
+        self.cli("run", "T1", "--request-id", "low-space", "--min-free-mib", "1000000000", "--",
+                 sys.executable, "-c", "from pathlib import Path; Path('.cache/effect').touch()", code=2)
+        self.assertFalse((self.root / '.cache/effect').exists())
+        self.assertEqual(self.cli('history', 'T1')['attempts'], [])
+        self.assertEqual(self.cli('preflight')['resources']['reason'], 'ok')
+
+    def test_large_output_is_drained_with_bounded_log_and_successful_command(self):
+        self.cli('add', 'T1', 'Output limits')
+        command = [sys.executable, '-c', "import sys; sys.stdout.write('HEAD'+'x'*3000000+'TAIL')"]
+        proof = self.cli('run', 'T1', '--request-id', 'output', '--max-log-mib', '1', '--', *command)
+        data = Path(proof['log_path']).read_bytes()
+        self.assertEqual(len(data), 1024 * 1024)
+        self.assertTrue(data.startswith(b'HEAD') and data.endswith(b'TAIL'))
+        self.assertEqual(proof['exit_code'], 0)
+        self.assertEqual(proof['output_bytes'], 3000008)
+        self.assertTrue(proof['output_truncated'])
+        self.cli('run', 'T1', '--request-id', 'output', '--max-log-mib', '2', '--', *command, code=2)
+
     def test_invalid_timeout_does_not_dispatch_and_failed_verification_keeps_exit(self):
         self.cli("add", "T1", "Feature")
         for timeout in ("0", "-1", "nan", "inf", "901"):

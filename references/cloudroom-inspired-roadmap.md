@@ -16,6 +16,8 @@ record, not authorization to implement all proposals or perform remote operation
 | Durable execution journal | Implemented as attempt records | Transactional local attempts and history, not a full event-sourced runtime or queued scheduler. |
 | Signal/storage failure handling | Hardened | Owned-group cancellation for SIGINT/SIGTERM; real SQLite failure-injection tests; SIGKILL remains uncertain. |
 | Cockpit/task-ledger integration | Implemented | Read-only live panel with execution state, commit/exit evidence, stale evidence and unavailable-ledger handling. No queue or execution controls added. |
+| Bounded diagnostics | Implemented for the task runner | Size-limited private head/tail logs, recorded-log retention and two bounded fixed-field diagnostic files. Durable history and workflow audit events are preserved. |
+| Resource admission checks | Implemented locally | Free-space measurement and reservation before dispatch; busy runner detection. Not continuous disk protection or machine-wide resource containment. |
 
 ## Remaining proposals
 
@@ -24,8 +26,6 @@ record, not authorization to implement all proposals or perform remote operation
 | High for protected operations | External approval enforcement | A controller outside the agent's writable state holds scoped operation credentials; approvals identify a human, operation and commit. Agent text or retry reasons cannot grant authority. |
 | High for concurrent workers | Effective isolation checks | Confirm workspace/process isolation before dispatch; reject a required isolation mode if unavailable. Git worktrees alone do not contain processes. |
 | Medium | Backend capability detection | Report verified cancellation, recovery, delegation and isolation capabilities; missing capabilities cannot silently become enabled. |
-| Medium | Bounded/redacted diagnostics | Bound disk use and separate ordinary diagnostics from private command output; retention and redaction tests required. Current logs are private, not size-bounded. |
-| Conditional on heavy local work | Resource admission checks | Check free space and active workloads before costly commands; distinguish unavailable measurements from safe capacity. No cgroup/disk enforcement is currently delivered. |
 | Optional remote workflow | Cloudroom backend adapter | Correlate task/session/request/commit IDs; preserve uncertain results, detect capabilities and verify isolation. No Cloudroom dependency is currently required. |
 
 Priorities are conditional on the workflow: a single local user does not need a

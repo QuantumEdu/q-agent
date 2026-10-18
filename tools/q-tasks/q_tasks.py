@@ -12,7 +12,8 @@ import signal
 import sqlite3
 import subprocess
 import sys
-import time
+from runtime_support import (MIB, BoundedOutput, capture_command, diagnostic,
+                             prune_logs, resources, runner_active)
 
 
 def now():
@@ -31,20 +32,6 @@ def command_signals():
     finally:
         for signum, handler in previous.items():
             signal.signal(signum, handler)
-
-
-def wait_command(child, timeout, received):
-    deadline = time.monotonic() + timeout
-    while not received:
-        remaining = deadline - time.monotonic()
-        if remaining <= 0:
-            return "timeout"
-        try:
-            child.wait(timeout=min(remaining, .1))
-            return "interrupted" if received else None
-        except subprocess.TimeoutExpired:
-            continue
-    return "terminated" if received[0] == signal.SIGTERM else "interrupted"
 
 
 class Tasks:
@@ -70,6 +57,13 @@ class Tasks:
                 exit_code INTEGER, child_pid INTEGER, checkout_matches INTEGER,
                 error TEXT, log_path TEXT NOT NULL);
         """)
+        for column in ('min_free_bytes', 'max_log_bytes', 'output_bytes', 'output_truncated'):
+            if column not in {row[1] for row in self.db.execute('PRAGMA table_info(attempts)')}:
+                try:
+                    self.db.execute(f'ALTER TABLE attempts ADD COLUMN {column} INTEGER')
+                except sqlite3.OperationalError:
+                    if column not in {row[1] for row in self.db.execute('PRAGMA table_info(attempts)')}:
+                        raise
 
     def checkout(self):
         def git(*args):
@@ -148,9 +142,15 @@ class Tasks:
         return {"attempts": [dict(row) for row in self.db.execute(
             "SELECT * FROM attempts WHERE task_id=? ORDER BY rowid", (task_id,))]}
 
-    def execute(self, operation, task_id, request_id, command, timeout):
+    def preflight(self, minimum=256 * MIB):
+        return {'resources': resources(self.root, minimum), 'runner_active': runner_active(self.directory)}
+
+    def execute(self, operation, task_id, request_id, command, timeout,
+                min_free_mib=256, max_log_mib=8):
         if not command or not request_id or not math.isfinite(timeout) or not 0 < timeout <= 900:
             raise ValueError("Supply a command, request ID and timeout in (0, 900] seconds")
+        if min_free_mib < 0 or not 1 <= max_log_mib <= 64:
+            raise ValueError('Require nonnegative disk reserve and a log limit of 1..64 MiB')
         encoded = json.dumps(command)
         with self.lock():
             self.recover()
@@ -159,31 +159,42 @@ class Tasks:
             if old:
                 if (old["task_id"], old["operation"], old["command"], old["timeout"]) != (task_id, operation, encoded, timeout):
                     raise ValueError("Request ID conflicts with an existing operation")
+                if ((old['min_free_bytes'] is not None and old['min_free_bytes'] != min_free_mib * MIB)
+                        or (old['max_log_bytes'] is not None and old['max_log_bytes'] != max_log_mib * MIB)):
+                    raise ValueError('Request ID conflicts with existing resource/output settings')
                 return dict(old)
             if task["state"] in {"failed", "uncertain"} or (operation == "run" and task["state"] != "pending"):
                 raise ValueError("Inspect existing effects and use retry explicitly before dispatch")
             head, clean = self.checkout()
             if operation == "verify" and not clean:
                 raise ValueError("Commit changes and exclude .cache/ before commit-bound verification")
+            admission = resources(self.root, min_free_mib * MIB)
+            if not admission['admitted']:
+                raise ValueError('Resource admission rejected: ' + admission['reason'])
             # Random log names never interpret request IDs as paths.
             import uuid
             log = self.directory / (uuid.uuid4().hex + ".log")
             with self.db:
                 self.db.execute("INSERT INTO attempts (request_id,task_id,operation,command,timeout,state,"
-                                "commit_sha,started_at,log_path) VALUES (?,?,?,?,?,'running',?,?,?)",
-                                (request_id, task_id, operation, encoded, timeout, head, now(), str(log)))
+                                "commit_sha,started_at,log_path,min_free_bytes,max_log_bytes) VALUES (?,?,?,?,?,'running',?,?,?,?,?)",
+                                (request_id, task_id, operation, encoded, timeout, head, now(), str(log),
+                                 min_free_mib * MIB, max_log_mib * MIB))
                 self.db.execute("UPDATE tasks SET state='running' WHERE id=?", (task_id,))
             child = None
             exit_code, error = None, None
+            capture = None
             with command_signals() as received:
                 try:
-                    with log.open("xb") as output:
+                    prune_logs(self.directory, [row[0] for row in self.db.execute(
+                        'SELECT log_path FROM attempts ORDER BY rowid DESC')])
+                    with log.open("x+b") as output:
                         os.chmod(log, 0o600)
+                        capture = BoundedOutput(output, max_log_mib * MIB)
                         child = subprocess.Popen(command, cwd=self.root, stdin=subprocess.DEVNULL,
-                                                 stdout=output, stderr=subprocess.STDOUT, start_new_session=True)
+                                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, start_new_session=True)
                         with self.db:
                             self.db.execute("UPDATE attempts SET child_pid=? WHERE request_id=?", (child.pid, request_id))
-                        error = wait_command(child, timeout, received)
+                        error = capture_command(child, timeout, received, capture)
                 except OSError:
                     error = "launch_or_log_failed"
                 finally:
@@ -194,15 +205,23 @@ class Tasks:
                         except ProcessLookupError:
                             pass
                         exit_code = child.wait()
+                        child.stdout.close()
             end_head, end_clean = self.checkout()
             matches = clean and end_clean and head == end_head
             state = ("uncertain" if error else "failed" if exit_code != 0 else
                      "awaiting_verification" if operation == "run" else "verified" if matches else "uncertain")
             with self.db:
-                self.db.execute("UPDATE attempts SET state=?, finished_at=?, exit_code=?, checkout_matches=?, error=? "
-                                "WHERE request_id=?", (state, now(), exit_code, int(matches), error, request_id))
+                total = capture.total if capture else 0
+                self.db.execute("UPDATE attempts SET state=?, finished_at=?, exit_code=?, checkout_matches=?, error=?, "
+                                "output_bytes=?, output_truncated=? WHERE request_id=?",
+                                (state, now(), exit_code, int(matches), error, total, int(total > max_log_mib * MIB), request_id))
                 self.db.execute("UPDATE tasks SET state=? WHERE id=?", (state, task_id))
-            return dict(self.db.execute("SELECT * FROM attempts WHERE request_id=?", (request_id,)).fetchone())
+            result = dict(self.db.execute("SELECT * FROM attempts WHERE request_id=?", (request_id,)).fetchone())
+            try:
+                diagnostic(self.directory, result)
+            except OSError:
+                result['diagnostics_recorded'] = False  # Never invalidate durable work for best-effort diagnostics.
+            return result
 
 
 def main():
@@ -213,6 +232,7 @@ def main():
     add.add_argument("task")
     add.add_argument("title")
     sub.add_parser("resume")
+    sub.add_parser('preflight')
     history = sub.add_parser("history")
     history.add_argument("task")
     retry = sub.add_parser("retry")
@@ -223,6 +243,8 @@ def main():
         execute.add_argument("task")
         execute.add_argument("--request-id", required=True)
         execute.add_argument("--timeout", type=float, default=300)
+        execute.add_argument('--min-free-mib', type=int, default=256)
+        execute.add_argument('--max-log-mib', type=int, default=8)
     # Split explicitly: argparse REMAINDER would swallow options after task ID.
     argv = sys.argv[1:]
     separator = argv.index("--") if "--" in argv else len(argv)
@@ -236,10 +258,13 @@ def main():
             result = store.resume()
         elif args.action == "history":
             result = store.history(args.task)
+        elif args.action == 'preflight':
+            result = store.preflight()
         elif args.action == "retry":
             result = store.retry(args.task, args.reason)
         else:
-            result = store.execute(args.action, args.task, args.request_id, argv[separator + 1:], args.timeout)
+            result = store.execute(args.action, args.task, args.request_id, argv[separator + 1:], args.timeout,
+                                   args.min_free_mib, args.max_log_mib)
         print(json.dumps(result, ensure_ascii=False))
         return 1 if result.get("state") in {"failed", "uncertain"} else 0
     except (ValueError, OSError, sqlite3.Error, subprocess.CalledProcessError) as exc:

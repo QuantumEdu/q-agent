@@ -21,6 +21,7 @@ q-agent resume
 # Inspect the diff and commit the implementation before commit-bound verification.
 q-agent task verify TASK-01 --request-id verify-01 -- python3 -m unittest discover -s tests -v
 q-agent task history TASK-01
+q-agent task preflight
 ```
 
 Commands are argv arrays, not shell strings. Explicit shell scripts are supported
@@ -34,6 +35,31 @@ SIGINT and SIGTERM request cancellation: the owned process group is stopped,
 the child's actual exit code is retained, and the attempt remains `uncertain`.
 SIGKILL and a power loss cannot run cleanup and may leave external effects or
 children alive; recovery never assumes those effects can be repeated safely.
+
+## Resource admission and bounded diagnostics
+
+Every new `run`/`verify` measures free space on the project filesystem before
+dispatch, with a default reserve of 256 MiB. `--min-free-mib N` changes that
+reserve (zero still requires a valid measurement). Missing measurements block
+dispatch. `preflight` reports current capacity and whether this runner's lock
+is busy; it does not inventory unrelated processes, impose RAM/CPU limits or
+monitor disk consumption continuously. The execution lock serializes local tasks.
+
+New command logs retain their beginning and end within 8 MiB by default;
+`--max-log-mib N` allows 1..64 MiB. Excess bytes are drained rather than blocking
+the command, and receipts record `output_bytes`/`output_truncated`. Before a new
+dispatch, the seven newest existing recorded logs are retained, so the new log
+brings the normal total to eight. Older eligible UUID-named regular logs are
+removed; receipt history, unrecognized files, symlinks and hardlinks are preserved.
+Historical logs may already exceed the new per-attempt limit. Raw output stays
+private and is not automatically redacted; inspect it before sharing.
+
+`diagnostics.jsonl` and one previous file are capped at 256 KiB each. These
+best-effort records allow only fixed operation/state names and numeric outcome/
+output fields; no command arguments, task titles, IDs, paths or raw output.
+Diagnostic failure cannot erase a durable task result. Workflow audit events,
+SQLite history and the cockpit's session records are not discarded or rotated.
+State schema upgrades add nullable columns and preserve existing receipts.
 
 `q-agent task --project /path/to/project add TASK-01 "Title"` targets another
 checkout; `q-agent resume --project /path/to/project` inspects it. Each checkout
