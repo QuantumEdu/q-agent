@@ -2,7 +2,8 @@
 
 Use the installed `q-agent` launcher, or `<SKILL_ROOT>/bin/q-agent`, from the
 project repository. Python 3.10+, SQLite (stdlib), Git and POSIX process groups
-are required; Linux and macOS are supported. No Cloudroom, model account or
+are required. Linux is tested; macOS uses the same POSIX facilities but has not
+been validated in the release checks. Native Windows is unsupported. No Cloudroom, model account or
 background service is needed. Existing Markdown task logs remain authoritative
 for scope, acceptance criteria, reviews and human decisions.
 
@@ -29,6 +30,10 @@ be positive and at most 900 seconds. Commands inherit the caller's permissions;
 this utility grants no new authority and is not a sandbox. It is for finite
 commands: their remaining process-group descendants are stopped at command end.
 Detached descendants that escape the process group are not contained.
+SIGINT and SIGTERM request cancellation: the owned process group is stopped,
+the child's actual exit code is retained, and the attempt remains `uncertain`.
+SIGKILL and a power loss cannot run cleanup and may leave external effects or
+children alive; recovery never assumes those effects can be repeated safely.
 
 `q-agent task --project /path/to/project add TASK-01 "Title"` targets another
 checkout; `q-agent resume --project /path/to/project` inspects it. Each checkout
@@ -71,3 +76,14 @@ changes reverted during a check are outside this Git comparison; this is not a
 hermetic build attestation. Run meaningful checks and inspect their actual output.
 Exit codes: 0 = recorded success/report, 1 = failed/uncertain attempt, 2 = rejected
 input, busy runner or storage/Git failure. Stored command exit codes are separate.
+
+## Storage failure checks
+
+The regression suite injects real SQLite trigger failures at receipt creation,
+PID persistence and final-result persistence. A failed receipt prevents dispatch;
+a failed result cannot become successful verification. If recovery cannot write,
+it returns an error until storage is repaired. These tests exercise transaction
+failures, not a physical full disk, filesystem corruption or power-loss simulation.
+
+See [the Cloudroom-inspired roadmap](cloudroom-inspired-roadmap.md) for the
+implemented features and remaining proposals. No Cloudroom service code is bundled.

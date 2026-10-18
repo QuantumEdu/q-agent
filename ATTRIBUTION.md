@@ -67,6 +67,13 @@ El proyecto **`q-agent`** ha sido concebido, diseñado y orquestado por **Gabrie
 
 ---
 
+## Cloudroom Core design inspiration
+
+[Cloudroom Core](https://github.com/davidondrej/cloudroom-core) by David Ondrej
+(Apache-2.0) informed the local recovery design: durable requests, explicit uncertain
+outcomes and separation of command completion from acceptance. q-agent implements
+these ideas independently in Python/SQLite; no Cloudroom service source is bundled.
+
 ## 📜 3. Licencia de Software
 
 Todo el paquete `q-agent v2.0` se distribuye bajo la **Apache License, Version 2.0**:

@@ -12,10 +12,39 @@ import signal
 import sqlite3
 import subprocess
 import sys
+import time
 
 
 def now():
     return datetime.now(timezone.utc).isoformat()
+
+
+@contextmanager
+def command_signals():
+    """Defer cancellation until Popen has returned an owned process handle."""
+    received = []
+    previous = {}
+    try:
+        for signum in (signal.SIGINT, signal.SIGTERM):
+            previous[signum] = signal.signal(signum, lambda number, frame: received.append(number))
+        yield received
+    finally:
+        for signum, handler in previous.items():
+            signal.signal(signum, handler)
+
+
+def wait_command(child, timeout, received):
+    deadline = time.monotonic() + timeout
+    while not received:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            return "timeout"
+        try:
+            child.wait(timeout=min(remaining, .1))
+            return "interrupted" if received else None
+        except subprocess.TimeoutExpired:
+            continue
+    return "terminated" if received[0] == signal.SIGTERM else "interrupted"
 
 
 class Tasks:
@@ -146,28 +175,25 @@ class Tasks:
                 self.db.execute("UPDATE tasks SET state='running' WHERE id=?", (task_id,))
             child = None
             exit_code, error = None, None
-            try:
-                with log.open("xb") as output:
-                    os.chmod(log, 0o600)
-                    child = subprocess.Popen(command, cwd=self.root, stdin=subprocess.DEVNULL,
-                                             stdout=output, stderr=subprocess.STDOUT, start_new_session=True)
-                    with self.db:
-                        self.db.execute("UPDATE attempts SET child_pid=? WHERE request_id=?", (child.pid, request_id))
-                    exit_code = child.wait(timeout=timeout)
-            except subprocess.TimeoutExpired:
-                error = "timeout"
-            except KeyboardInterrupt:
-                error = "interrupted"
-            except OSError:
-                error = "launch_or_log_failed"
-            finally:
-                if child is not None:
-                    # Only this freshly spawned group is ours; never act on saved PIDs.
-                    try:
-                        os.killpg(child.pid, signal.SIGKILL)
-                    except ProcessLookupError:
-                        pass
-                    child.wait()
+            with command_signals() as received:
+                try:
+                    with log.open("xb") as output:
+                        os.chmod(log, 0o600)
+                        child = subprocess.Popen(command, cwd=self.root, stdin=subprocess.DEVNULL,
+                                                 stdout=output, stderr=subprocess.STDOUT, start_new_session=True)
+                        with self.db:
+                            self.db.execute("UPDATE attempts SET child_pid=? WHERE request_id=?", (child.pid, request_id))
+                        error = wait_command(child, timeout, received)
+                except OSError:
+                    error = "launch_or_log_failed"
+                finally:
+                    if child is not None:
+                        # Only this freshly spawned group is ours; never act on saved PIDs.
+                        try:
+                            os.killpg(child.pid, signal.SIGKILL)
+                        except ProcessLookupError:
+                            pass
+                        exit_code = child.wait()
             end_head, end_clean = self.checkout()
             matches = clean and end_clean and head == end_head
             state = ("uncertain" if error else "failed" if exit_code != 0 else

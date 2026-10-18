@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import signal
+import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -127,6 +128,78 @@ class TaskRecoveryTests(unittest.TestCase):
             self.assertTrue(json.loads(result.stdout))
         self.cli("add", "T1", "Feature")
         self.cli("add", "T1", "Conflicting title", code=2)
+
+    def sql(self, script):
+        with sqlite3.connect(self.root / ".cache/q-agent-tasks/tasks.sqlite3") as db:
+            db.executescript(script)
+
+    def test_receipt_write_failure_prevents_dispatch(self):
+        self.cli("add", "T1", "Feature")
+        self.sql("CREATE TRIGGER reject_receipt BEFORE INSERT ON attempts "
+                 "BEGIN SELECT RAISE(ABORT, 'receipt write failed'); END;")
+        self.cli("run", "T1", "--request-id", "no-write", "--", sys.executable, "-c",
+                 "from pathlib import Path; Path('.cache/effect').touch()", code=2)
+        self.assertFalse((self.root / ".cache/effect").exists())
+        self.assertEqual(self.cli("history", "T1")["attempts"], [])
+        self.assertEqual(self.cli("resume")["tasks"][0]["state"], "pending")
+
+    def test_failed_final_write_recovers_as_uncertain_without_replaying_effect(self):
+        self.cli("add", "T1", "Feature")
+        self.sql("CREATE TRIGGER reject_result BEFORE UPDATE OF state ON attempts "
+                 "WHEN NEW.state != 'running' BEGIN SELECT RAISE(ABORT, 'result write failed'); END;")
+        command = [sys.executable, "-c", "from pathlib import Path; p=Path('.cache/effect'); p.write_text(p.read_text()+'x' if p.exists() else 'x')"]
+        self.cli("run", "T1", "--request-id", "lost-result", "--", *command, code=2)
+        self.assertEqual((self.root / ".cache/effect").read_text(), "x")
+        self.cli("resume", code=2)  # A failing store must never claim recovery succeeded.
+        self.sql("DROP TRIGGER reject_result;")
+        self.assertEqual(self.cli("resume")["tasks"][0]["state"], "uncertain")
+        self.cli("run", "T1", "--request-id", "lost-result", "--", *command, code=1)
+        self.assertEqual((self.root / ".cache/effect").read_text(), "x")
+
+    def test_pid_write_failure_stops_child_and_keeps_uncertainty(self):
+        self.cli("add", "T1", "Feature")
+        self.sql("CREATE TRIGGER reject_pid BEFORE UPDATE OF child_pid ON attempts "
+                 "BEGIN SELECT RAISE(ABORT, 'pid write failed'); END;")
+        self.cli("run", "T1", "--request-id", "pid-failure", "--", sys.executable, "-c",
+                 "import time; time.sleep(20)", code=2)
+        self.sql("DROP TRIGGER reject_pid;")
+        self.assertEqual(self.cli("resume")["tasks"][0]["state"], "uncertain")
+
+    def test_termination_signals_stop_the_owned_group_and_record_uncertainty(self):
+        for signum in (signal.SIGTERM, signal.SIGINT):
+            with self.subTest(signal=signum):
+                task = f"signal-{signum}"
+                self.cli("add", task, "Signal handling")
+                marker = self.root / f".cache/ready-{signum}"
+                command = [sys.executable, "-c", "from pathlib import Path; import time; "
+                           f"Path({str(marker)!r}).touch(); time.sleep(30)"]
+                runner = subprocess.Popen([sys.executable, str(CLI), "--project", str(self.root),
+                                           "run", task, "--request-id", task, "--", *command],
+                                          stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                child_pid = None
+                try:
+                    deadline = time.monotonic() + 5
+                    while not marker.exists() and runner.poll() is None and time.monotonic() < deadline:
+                        time.sleep(.02)
+                    self.assertTrue(marker.exists())
+                    child_pid = self.cli("history", task)["attempts"][0]["child_pid"]
+                    runner.send_signal(signum)
+                    stdout, stderr = runner.communicate(timeout=5)
+                    self.assertEqual(runner.returncode, 1, stderr)
+                    proof = json.loads(stdout)
+                    self.assertEqual(proof["state"], "uncertain")
+                    self.assertLess(proof["exit_code"], 0)
+                    with self.assertRaises(ProcessLookupError):
+                        os.kill(child_pid, 0)
+                finally:
+                    if runner.poll() is None:
+                        runner.kill()
+                    runner.communicate()
+                    if child_pid:
+                        try:
+                            os.killpg(child_pid, signal.SIGKILL)
+                        except ProcessLookupError:
+                            pass
 
 
 if __name__ == "__main__":

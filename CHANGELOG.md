@@ -7,11 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.0] - 2026-10-18
+
 ### Added
 - Local task recovery through `q-agent task` and `q-agent resume`: durable SQLite
   state, idempotent request receipts, explicit retries and commit-bound verification.
   Interrupted work remains uncertain until inspected; machine verification does
   not bypass review, acceptance criteria or human operation authority.
+- Cloudroom-inspired roadmap distinguishing delivered local capabilities from
+  pending approval enforcement, isolation, capability detection and diagnostics.
+
+### Fixed
+- SIGTERM/SIGINT cancellation now cleans up the owned process group, retains the
+  actual child exit code and records an uncertain outcome instead of success.
+- Aligned the skill's visible heading with package metadata and version badges.
+
+### Validation
+- Added real SQLite failure-injection checks for receipt, PID and result writes,
+  plus live-process SIGTERM/SIGINT regression tests. CI explicitly checks the task
+  tool and retains its Python 3.10/3.11/3.12 matrix. macOS remains unvalidated.
+- All 83 tests passed locally on Python 3.10.21, 3.11.16 and 3.12.14 on Linux.
 
 ## [2.8.0] - 2026-10-11
 

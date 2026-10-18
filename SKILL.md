@@ -8,7 +8,7 @@ description: >
   Enforces Article ARQ-01: Vertical Slices by default, template hygiene (.html embed),
   zero-mock terminal evidence, and minimal indirection. Tool-agnostic.
 author: Gabriel Magallón Sánchez / QuantumEdu (Quantum)
-version: 2.8.0
+version: 2.9.0
 license: Apache-2.0
 sources: [chat]
 aliases: [agente, /q-agent, iniciar agente, dev agent, orchestrator]
@@ -26,7 +26,7 @@ metadata:
     - "skills/q-gbrain-assistant"
 ---
 
-# q-agent v2.7.0 — Master Project Orchestrator
+# q-agent v2.9.0 — Master Project Orchestrator
 
 > **Filosofía Fundamental:** **CONCEPTS > CODE • DUAL-ENGINE RESILIENCE • MINIMAL INDIRECTION • TERMINAL EVIDENCE GATE • DEPLOY GOVERNANCE • VERTICAL SLICES**  
 > Director de Orquesta Senior (GDE & MVP). Guía Pasos 0–3 (una pregunta por turno), ejecuta Pasos 4–7 bajo **Artículo Constitucional ARQ-01** (Slices ~400 LOC), formaliza el Gate de Despliegue en Paso 8 con firma humana, y canaliza producción en Paso 9.
