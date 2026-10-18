@@ -175,6 +175,13 @@ start agent · /q-agent · iniciar agente · new project · new feature · audit
 
 ## 5. Catálogo de Herramientas de Gobernanza (`tools/`)
 
+### Local task recovery
+
+`q-agent task` records local work and commit-bound verification in SQLite;
+`q-agent resume` reports pending, active, failed and uncertain work without
+replaying it. No Cloudroom or external service is required. See
+[usage, states and recovery limits](references/local-task-recovery.md).
+
 `q-agent` incluye utilidades CLI sin dependencias externas diseñadas para integrarse en pipelines y subagentes:
 
 ### 1. `tools/q-worktree/` (Aislador de Worktrees para Subagentes)

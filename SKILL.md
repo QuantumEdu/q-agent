@@ -72,6 +72,7 @@ Paso 9     ──► BUCLE OPS-TO-ODD (Reproduction-First ante incidentes)
 ### [Paso 4] Apertura de Bitácora Única ODD
 - [ ] Crear bitácora viva instanciando `templates/task-log-template.md`.
 - [ ] Definir User Stories (`US-xx`) y Acceptance Criteria (`UAC-xx`). Tabla `Terminal Evidence Gate` inicialmente vacía.
+- [ ] For resumable local execution, use [Local task recovery](references/local-task-recovery.md): register task IDs, run authorized finite commands, and record verification after committing. On a resumed session inspect `q-agent resume`; never replay uncertain work without inspecting effects and explicit retry authority. Machine verification does not replace acceptance or human gates.
 
 ### [Paso 5] Implementación por Slices Verticales
 - [ ] Construir slice por slice (Storage ──► Handler ──► Template `.html`).

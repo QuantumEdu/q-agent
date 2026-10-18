@@ -5,6 +5,14 @@ All notable changes to **q-agent** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Local task recovery through `q-agent task` and `q-agent resume`: durable SQLite
+  state, idempotent request receipts, explicit retries and commit-bound verification.
+  Interrupted work remains uncertain until inspected; machine verification does
+  not bypass review, acceptance criteria or human operation authority.
+
 ## [2.8.0] - 2026-10-11
 
 ### Added
