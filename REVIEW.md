@@ -1,3 +1,16 @@
+# q-agent 2.9.2 — Hosted unattended E2E workflow
+
+**APPROVED, round 2.** R-01 (P07 mutating formatters before budget checks) is FIXED;
+no open findings. 103 tests passed on Python 3.10/3.11/3.12; smoke checks passed.
+Hosted HTTP/SQLite recovery: 2 -> 1 -> 0 failures; negative drill: 2 -> 1 -> 1,
+then BLOCKED. Frozen tests unchanged. Repaired app independently APPROVED and
+commit-bound verification passed at 809967d. This is a host-executed workflow,
+not a code-enforced model controller; browser/external-model E2E is not certified.
+See [task evidence](q-tasks/unattended-e2e-2.9.2.md) and
+[raw logs/provenance](docs/validation/unattended-e2e-2.9.2.json). Remote CI unconfirmed.
+
+---
+
 # q-agent 2.9.1 — Checklist consistency fix
 
 Choosing a modular monolith previously generated hexagonal principles, ports and

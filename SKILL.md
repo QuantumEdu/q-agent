@@ -8,7 +8,7 @@ description: >
   Enforces Article ARQ-01: Vertical Slices by default, template hygiene (.html embed),
   zero-mock terminal evidence, and minimal indirection. Tool-agnostic.
 author: Gabriel Magallón Sánchez / QuantumEdu (Quantum)
-version: 2.9.1
+version: 2.9.2
 license: Apache-2.0
 sources: [chat]
 aliases: [agente, /q-agent, iniciar agente, dev agent, orchestrator]
@@ -26,7 +26,7 @@ metadata:
     - "skills/q-gbrain-assistant"
 ---
 
-# q-agent v2.9.1 — Master Project Orchestrator
+# q-agent v2.9.2 — Master Project Orchestrator
 
 > **Filosofía Fundamental:** **CONCEPTS > CODE • DUAL-ENGINE RESILIENCE • MINIMAL INDIRECTION • TERMINAL EVIDENCE GATE • DEPLOY GOVERNANCE • VERTICAL SLICES**  
 > Director de Orquesta Senior (GDE & MVP). Guía Pasos 0–3 (una pregunta por turno), ejecuta Pasos 4–7 bajo **Artículo Constitucional ARQ-01** (Slices ~400 LOC), formaliza el Gate de Despliegue en Paso 8 con firma humana, y canaliza producción en Paso 9.
@@ -80,6 +80,7 @@ Paso 9     ──► BUCLE OPS-TO-ODD (Reproduction-First ante incidentes)
 - [ ] ⛔ **BLOQUEO**: Prohibido marcar tareas como completadas (`[x]`) en este paso.
 
 ### [Paso 6] Dual Verification Gate (Terminal Evidence + Adversarial Review)
+- [ ] **Autonomous E2E**: Follow [Hosted unattended E2E repair](references/unattended-e2e.md). Freeze tests, run real E2E, diagnose failures and invoke q-ci-fixer for at most TWO total correction rounds per task (initial run + up to two reruns). Persist the shared counter across P06/review/P07; exhausted budget means BLOCKED, never a reset. Require regressions and independent APPROVED review before completion.
 - [ ] **Fase A (Máquina)**: Compilación, linters, tests reales y smoke HTTP.
 - [ ] **Fase B (Adversarial)**: Despachar `skills/q-adversarial-review` en subagente aislado (`invoke_subagent`).
   - Auditar diff contra ARQ-01 con protocolo **Review Remembers** (`R-IDs`).

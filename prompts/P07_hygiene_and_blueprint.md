@@ -18,16 +18,21 @@ fecha: "{{YYYY-MM-DD}}"
 ## 1. Higiene Determinista de Código (Linters y Formato)
 
 ### 1.1 Ejecución de Herramientas Nativas
-Ejecutar en terminal el formateador y analizador estático oficial del lenguaje:
-- **Go:** `gofmt -s -w .` y `go vet ./...` (o `golangci-lint run`)
-- **Python:** `black .` y `ruff check .`
-- **TypeScript/Node:** `npx prettier --write .` y `npx eslint .`
+Comenzar con comprobaciones que no modifiquen fuentes ni tests:
+- **Go:** `gofmt -l .` y `go vet ./...` (si gofmt lista archivos, la comprobación falla).
+- **Python:** `black --check .` y `ruff check .`
+- **TypeScript/Node:** `npx prettier --check .` y `npx eslint .`
+
+En modo autónomo, cualquier cambio de formato o código consume una ronda del
+presupuesto compartido ANTES de editar, excluye tests congelados y obliga a repetir
+E2E, regresiones y revisión independiente. Sin presupuesto, declarar BLOCKED.
+Un cambio posterior invalida el APPROVED anterior aunque el linter quede limpio.
 
 ### 1.2 Regla de Cero Tokens y Candado Bounded Turns (Máximo 2 Pasadas)
 - **Si el linter reporta cero errores:** Avanzar de inmediato a la Sección 2 sin redactar explicaciones superfluas. Cero consumo de tokens cuando el código está limpio.
 - **Si el linter o compilador reporta errores:**
   - Invocar `q-ci-fixer` para aplicar correcciones quirúrgicas estrictamente sobre los archivos y líneas señalados.
-  - **Límite Estricto:** Máximo 2 pasadas de corrección. Quedan prohibidos los ciclos infinitos de ajustes cosméticos. Si tras 2 pasadas persiste un error de fondo, reportarlo explícitamente al usuario.
+  - **Límite Estricto:** Máximo 2 pasadas de corrección. En modo autónomo se comparte el presupuesto por tarea de [E2E desatendido](../references/unattended-e2e.md), incluyendo P06 y revisión; P07 no reinicia el contador. Quedan prohibidos los ciclos infinitos de ajustes cosméticos. Si tras 2 pasadas persiste un error de fondo, reportarlo explícitamente al usuario.
 
 ---
 

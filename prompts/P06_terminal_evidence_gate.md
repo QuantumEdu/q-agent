@@ -63,7 +63,7 @@ Una vez que la máquina confirma verde (`exit code 0`), se activa la revisión d
 1. **Aislamiento de Contexto:** Despachar un subagente independiente (`invoke_subagent`) invocando `skills/q-adversarial-review`.
 2. **Auditoría del Diff:** El revisor evalúa el `git diff` contra el **Artículo ARQ-01** (mínima indirección, higiene de plantillas `.html`, 100% queries parametrizadas y cero mocks simulados).
 3. **Condición de Paso:** Veredicto explícito `APPROVED`.
-   - Si emite `REJECTED`: El agente escritor debe corregir las observaciones y repetir la compuerta 6.1 y 6.2.
+   - Si emite `REJECTED`: Corregir y repetir ambas fases solo si queda presupuesto. En modo autónomo cada ronda consume el contador compartido; sin presupuesto, declarar BLOCKED.
 
 ---
 
@@ -92,5 +92,5 @@ Una vez aprobadas AMBAS fases (Máquina + Adversarial):
 - Si el comando de terminal falla (código de salida != 0):
   1. Analizar el stack trace o mensaje de error real devuelto por la terminal.
   2. Corregir el código en disco.
-  3. Volver a ejecutar el comando hasta observar éxito determinista.
+  3. En modo autónomo seguir [Hosted unattended E2E repair](../references/unattended-e2e.md): máximo dos rondas totales de corrección por tarea, compartidas con revisión y P07. Ejecutar el mismo E2E tras cada corrección; agotar el presupuesto implica BLOCKED. En otros modos acordar cualquier corrección adicional antes de continuar.
   4. Jamás marcar la tarea ni reportar éxito si persiste algún fallo.

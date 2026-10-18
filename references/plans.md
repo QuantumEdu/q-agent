@@ -191,4 +191,5 @@ Configurables en `.q-agent.json` o seleccionables en el Paso 0:
    - Explain each step as requested; teaching checkpoints do not reopen settled decisions. Continue covered operations, ask only unresolved choices.
 
 3. **`autonomous` (Desatendido / CI Pipeline):**
+   - For implementation E2E, execute [Hosted unattended E2E repair](unattended-e2e.md): initial execution plus at most two corrections, shared durable budget, frozen acceptance tests, regression and independent review. The current agent host performs diagnosis/edits; there is no standalone model controller.
    - Execute only authorized phases and bounded delegated decisions. Stop for unresolved product choices or missing/expired/revoked authority; deploy and merge retain separate human gates.

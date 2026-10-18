@@ -23,9 +23,13 @@ metadata:
   - ⛔ **PROHIBIDO debilitar contratos**: Jamás editar `ci.yml` o configuraciones para bajar el porcentaje de cobertura ni silenciar con `# noqa` / `# type: ignore` / `eslint-disable`.
   - ⛔ **PROHIBIDO refactors cosméticos o nuevas features**: Modificar únicamente las líneas indispensables para resolver el error.
   - No usar si el fallo responde a una falta de definición de producto o cambio arquitectónico no acordado.
-- **Límite Duro**: Máximo **2 pasadas de corrección**. Si no compila en la 2da pasada, detenerse y declarar bloqueo.
+- **Límite Duro**: Máximo **2 pasadas de corrección**. Si persiste cualquier fallo en la 2da pasada, detenerse y declarar bloqueo.
+- **Hosted autonomous E2E**: Follow [unattended E2E](../../references/unattended-e2e.md). Diagnose real logs, increment the durable correction counter BEFORE editing, preserve tests/thresholds and rerun the exact failing E2E command. Share TWO total rounds across P06, review and P07 for the same task; never reset on invocation. Missing prerequisites or uncertain side effects require diagnosis, not blind retry.
 
 ## 2. Contrato de Ejecución Paso a Paso (4 Capas)
+En E2E autónomo, antes de M1 comprobar e incrementar el presupuesto compartido.
+Limitar autofix y formato a fuentes autorizadas, excluyendo tests congelados;
+cualquier modificación invalida evidencia y revisión anteriores y exige repetirlas.
 - [ ] **M1 (Linteo y Formato Automático)**:
   - Python: `uv run ruff check --fix <archivos>` y `uv run ruff format <archivos>`.
   - JS/TS: `pnpm eslint --fix <archivos>` y `pnpm prettier --write <archivos>`.

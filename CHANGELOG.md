@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.2] - 2026-10-18
+
+### Fixed
+- Connect autonomous P06 E2E failures to q-ci-fixer, regression and independent
+  review, with two total correction rounds shared across P06, review and P07.
+  Persist the counter before editing and stop blocked on exhausted budget.
+- Document immutable acceptance tests, finite execution deadlines, evidence,
+  cleanup and safe resumption. This is a host-executed instruction workflow;
+  a standalone model controller and code-enforced correction limit remain pending.
+
+### Validation
+- Add an intentionally defective HTTP/SQLite appointment fixture and regression
+  checking its two failures and passing control without mocks.
+- Exercise hosted recovery (two failures -> one -> zero) and a deliberately
+  incomplete-repair exhaustion case (two -> one -> one, BLOCKED); preserve raw
+  outputs, unchanged acceptance hash and source diffs in docs/validation.
+- Browser UI coverage and unattended external model CLI execution are not claimed.
+- All 103 repository tests passed locally on Python 3.10.21, 3.11.16 and 3.12.14;
+  compilation, package JSON, shell syntax, capabilities and benchmark smoke passed.
+
 ## [2.9.1] - 2026-10-18
 
 ### Fixed
