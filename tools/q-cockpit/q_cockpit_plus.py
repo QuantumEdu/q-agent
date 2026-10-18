@@ -46,6 +46,7 @@ def _load_local(module_name: str, filename: str):
 _services = _load_local("services", "cockpit_services.py")
 _observability = _load_local("observability", "cockpit_observability.py")
 _recovery = _load_local("recovery", "recovery.py")
+_ledger = _load_local("ledger", "task_ledger.py")
 ProjectSnapshotWorker = _services.ProjectSnapshotWorker
 action_catalog = _services.action_catalog
 current_request_id = _observability.current_request_id
@@ -130,6 +131,7 @@ class EnhancedHandler(legacy.CockpitHTTPHandler):
             "artifacts": snapshot["artifacts"],
             "has_visual": bool((self.project_root / "visual.html").exists()),
             "snapshot": snapshot["snapshot"],
+            "local_execution": _ledger.ledger_snapshot(self.project_root),
         }
         self.send_json(payload)
 

@@ -1086,6 +1086,12 @@
         </div>
       </div>
 
+      <section aria-labelledby="local-execution-title">
+        <h3 id="local-execution-title" style="font-size:14px; margin-bottom:10px;">Ejecución local</h3>
+        <p id="local-execution-summary" style="color:var(--text-muted); margin-bottom:10px;" role="status"></p>
+        <div id="local-execution-tasks" class="artifacts-quick-grid"></div>
+      </section>
+
       <!-- Real Artifacts Quick Panel in Mission Cockpit -->
       <div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -1240,6 +1246,18 @@
         skillvault_search_placeholder: "Buscar por nombre, tag o descripción...",
         btn_copy_skill: "📋 Copiar Contenido",
         toast_skill_copied: "¡Contenido del skill copiado al portapapeles!",
+        local_title: "Ejecución local",
+        local_absent: "No hay tareas locales registradas.",
+        local_unavailable: "No se pudo consultar el registro local. No se ha modificado ni recuperado automáticamente.",
+        local_available: "{0} tareas · Verificación técnica y aceptación humana son pasos distintos.",
+        local_stale: "Evidencia desactualizada: vuelve a verificar.",
+        local_inspect: "Inspecciona los efectos y el historial antes de reintentar.",
+        local_verified: "Verificado; aún aplican las revisiones y condiciones de aceptación.",
+        local_truncated: "Se muestran las 200 tareas más recientes.",
+        local_state_pending: "Pendiente", local_state_running: "En ejecución",
+        local_state_awaiting_verification: "Pendiente de verificación",
+        local_state_failed: "Falló", local_state_uncertain: "Resultado incierto",
+        local_state_verified: "Verificado",
 
         // Header & Meta
         proj_loading: "Cargando proyecto...",
@@ -1383,6 +1401,18 @@
         skillvault_search_placeholder: "Search by name, tag, or description...",
         btn_copy_skill: "📋 Copy Content",
         toast_skill_copied: "Skill content copied to clipboard!",
+        local_title: "Local execution",
+        local_absent: "No local tasks registered.",
+        local_unavailable: "The local ledger is unavailable. No automatic modification or recovery was performed.",
+        local_available: "{0} tasks · Technical verification and human acceptance are separate steps.",
+        local_stale: "Evidence is stale: verify again.",
+        local_inspect: "Inspect effects and history before retrying.",
+        local_verified: "Verified; reviews and acceptance criteria still apply.",
+        local_truncated: "Showing the 200 most recent tasks.",
+        local_state_pending: "Pending", local_state_running: "Running",
+        local_state_awaiting_verification: "Awaiting verification",
+        local_state_failed: "Failed", local_state_uncertain: "Uncertain outcome",
+        local_state_verified: "Verified",
 
         // Header & Meta
         proj_loading: "Loading project...",
@@ -1832,10 +1862,40 @@
       // Tab 2: Kanban Tasks or Idle State
       currentTasks = data.tasks || [];
       renderKanban(currentTasks, data.project);
+      renderLocalExecution(data.local_execution);
 
       // Tab 4: Artifacts & Cockpit Quick Panel
       currentArtifacts = data.artifacts || [];
       renderArtifacts(currentArtifacts);
+    }
+
+    function renderLocalExecution(ledger) {
+      document.getElementById('local-execution-title').textContent = t('local_title');
+      const summary = document.getElementById('local-execution-summary');
+      const container = document.getElementById('local-execution-tasks');
+      container.replaceChildren();
+      const status = ledger?.status || 'absent';
+      summary.textContent = status === 'available'
+        ? t('local_available', ledger.total) + (ledger.truncated ? ' ' + t('local_truncated') : '')
+        : t(status === 'absent' ? 'local_absent' : 'local_unavailable');
+      for (const task of ledger?.tasks || []) {
+        const card = document.createElement('article');
+        card.className = 'task-card';
+        const title = document.createElement('strong');
+        title.textContent = `${task.id}: ${task.title}`;
+        const state = document.createElement('p');
+        state.textContent = t(`local_state_${task.state}`);
+        const evidence = document.createElement('p');
+        evidence.className = 'task-meta';
+        evidence.textContent = [task.commit_sha?.slice(0, 12),
+          task.exit_code == null ? '' : `exit ${task.exit_code}`].filter(Boolean).join(' · ');
+        const note = document.createElement('p');
+        note.textContent = task.evidence_stale ? t('local_stale')
+          : ['uncertain', 'failed'].includes(task.state) ? t('local_inspect')
+          : task.state === 'verified' ? t('local_verified') : '';
+        card.append(title, state, evidence, note);
+        container.append(card);
+      }
     }
 
     function updateSliceBudget(loc) {

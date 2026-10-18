@@ -15,6 +15,7 @@ record, not authorization to implement all proposals or perform remote operation
 | Request identity and duplicate prevention | Implemented | Same request returns its receipt; conflicting reuse is rejected. Not exactly-once external effects. |
 | Durable execution journal | Implemented as attempt records | Transactional local attempts and history, not a full event-sourced runtime or queued scheduler. |
 | Signal/storage failure handling | Hardened | Owned-group cancellation for SIGINT/SIGTERM; real SQLite failure-injection tests; SIGKILL remains uncertain. |
+| Cockpit/task-ledger integration | Implemented | Read-only live panel with execution state, commit/exit evidence, stale evidence and unavailable-ledger handling. No queue or execution controls added. |
 
 ## Remaining proposals
 
@@ -24,7 +25,6 @@ record, not authorization to implement all proposals or perform remote operation
 | High for concurrent workers | Effective isolation checks | Confirm workspace/process isolation before dispatch; reject a required isolation mode if unavailable. Git worktrees alone do not contain processes. |
 | Medium | Backend capability detection | Report verified cancellation, recovery, delegation and isolation capabilities; missing capabilities cannot silently become enabled. |
 | Medium | Bounded/redacted diagnostics | Bound disk use and separate ordinary diagnostics from private command output; retention and redaction tests required. Current logs are private, not size-bounded. |
-| Medium | Cockpit/task-ledger integration | Display task states and stale evidence from the ledger without inventing a second execution queue or acceptance authority. |
 | Conditional on heavy local work | Resource admission checks | Check free space and active workloads before costly commands; distinguish unavailable measurements from safe capacity. No cgroup/disk enforcement is currently delivered. |
 | Optional remote workflow | Cloudroom backend adapter | Correlate task/session/request/commit IDs; preserve uncertain results, detect capabilities and verify isolation. No Cloudroom dependency is currently required. |
 

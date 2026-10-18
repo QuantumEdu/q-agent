@@ -72,3 +72,16 @@ This blocks until the human clicks **"Enviar Respuestas"** or decides a gate in 
 | `POST` | `/api/gate/action` | Records an approval or rejection for P03, P04, or P08 gates |
 | `POST` | `/api/grill/add_question` | Appends a new probing question from the agent |
 | `POST` | `/api/session/new` | Spawns a fresh session directory |
+
+## Local execution panel
+
+The enhanced cockpit adds `local_execution` to `/api/status`, independently of
+the Markdown task snapshot. It reads the existing SQLite ledger on every poll,
+without initializing it or changing task/attempt states. An abandoned `running`
+record is displayed as uncertain; use the task CLI for explicit recovery.
+
+The panel displays the latest 200 tasks, their execution states, commit/exit
+evidence and staleness. Verification is not acceptance and never marks Markdown
+tasks complete. Commands, log paths, raw output, retry reasons and saved process
+IDs are excluded from this projection. Missing and unreadable/corrupt ledgers
+are distinguished; neither prevents the workflow dashboard from loading.
