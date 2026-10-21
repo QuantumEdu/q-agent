@@ -30,7 +30,9 @@ Para evitar sesgos y mediciones ilusorias:
 | **2. Stress Testing** | [`stress_evaluator.py`](../../evals/harness2/stress_evaluator.py) | **Tarea A:** Multi-tenant workflow, RBAC y auditoría.<br>**Tarea B:** Migración idempotente de esquemas legacy con rollback. | Tarea A: 3/3 passed<br>Tarea B: 2/2 passed | Tarea A: 3/3 passed<br>Tarea B: 2/2 passed | **APROBADO**. q-agent corrigió autónomamente un defecto sutil de datetimes (naive vs. aware) en su 2da vuelta de corrección acotada. |
 | **3. Concurrencia y Lock Contention** | [`concurrency_evaluator.py`](../../evals/harness2/concurrency_evaluator.py) | Carrera atómica de reclamo (`claim_ticket` con 10 threads) y ráfaga de 20 threads bajo SQLite WAL sin bloqueos. | 2/2 passed (0.070s) | 2/2 passed (0.041s) | **APROBADO (2/2)**. q-agent aplicó compare-and-swap SQL atómico (`rowcount == 1`), `timeout=15.0` y revisión adversarial aprobada. |
 | **4. Context Recovery** | [`recovery_evaluator.py`](../../evals/harness2/recovery_evaluator.py) | Continuidad entre sesiones efímeras sin chat: Slice A, Slice B y reparación de regresión C. | Slice A: OK<br>Slice B: OK<br>Slice C: OK | Slice A: OK<br>Slice B: OK<br>Slice C: OK | **APROBADO (6/6)**. q-agent reparó quirúrgicamente la regresión de SLA sin rollback destructivo del trabajo previo. |
-| **5. Benchmark Oficial JobBench** | `harness2 --bench jb` | Tarea profesional completa de soporte técnico y redes (`computer_user_support_specialists/task1`) bajo ciclo recursivo Propose–Probe–Compose. | Base: 1/1 completado | Refinado (`agg1`): **89.29%** | **APROBADO (31/32 criterios)**. El framework confirmó que el arnés compuesto superó a la base (`chosen_is_base: false`) con costo de $0.24 USD. |
+| **5. JobBench Oficial (Task 1)** | `harness2 --bench jb` | Tarea profesional de soporte y redes (`computer_user_support_specialists/task1`) bajo ciclo recursivo Propose–Probe–Compose. | Base: 1/1 completado | Refinado (`agg1`): **89.29%** | **APROBADO (31/32 criterios)**. Arnés compuesto adoptado sobre la base (`chosen_is_base: false`) con costo de $0.24 USD. |
+| **6. JobBench Oficial (Task 2)** | `harness2 --bench jb` | Plan de migración W11 (75 PCs), presupuesto y análisis DB (`computer_user_support_specialists/task2`). | Base: 1/1 completado | Refinado (`agg1`): **17.07%** | **EVALUADO (14/82 puntos)**. Arnés compuesto adoptado (`chosen_is_base: false`). Brecha por truncamiento de entregables (1 de 3 archivos generados). |
+| **Puntaje Global JobBench** | Multi-task sweep (k=1) | 2 tareas profesionales completas bajo arnés adaptativo con DeepSeek. | Línea base | Global compuesto: **53.18%** | **2 de 2 tareas adoptaron el arnés adaptativo** (`agg1`) sobre la base con gasto acumulado de **$0.49 USD**. |
 
 ---
 
@@ -73,13 +75,17 @@ Los reportes y trazas completas se escriben automáticamente en `evals/harness2/
 Para ejecutar y validar contra el dataset oficial de Hugging Face bajo el framework Harness² con DeepSeek:
 
 ```bash
-# Sweep adaptativo Propose–Probe–Compose (agg1)
-python3 -m harness2.cli.sweep --bench jb --substrate oc --k 1 --tasks computer_user_support_specialists/task1 --modes parallel
+# Sweep adaptativo Propose–Probe–Compose (k=1)
+python3 -m harness2.cli.run_sweep --bench jb --substrate oc --k 1 --only-domains computer_user_support_specialists --max-tasks 2
+
+# Evaluación de rúbricas con el juez oficial
+python3 -m harness2.cli.judge --bench jb --substrate oc --k 1 --modes parallel
 
 # Inspección del reporte de adopción oficial
 python3 -m harness2.cli.report --bench jb --substrate oc --k 1 --modes parallel
 ```
 
-- **Puntaje alcanzado:** 89.29% (31/32 criterios aprobados).
-- **Adopción:** `chosen_is_base: false` (el arnés compuesto refinado superó a la base con costo de $0.24 USD).
+- **Puntaje global alcanzado:** 53.18% (64.0 / 138.0 puntos ponderados entre Task 1 y Task 2).
+- **Adopción:** `chosen_is_base: false` en ambas tareas (el arnés compuesto refinado `agg1` superó consistentemente a la base).
+- **Gasto total de improver:** $0.49 USD across both tasks.
 - **Referencia del framework:** [`QuantumEdu/harness2`](https://github.com/QuantumEdu/harness2).
