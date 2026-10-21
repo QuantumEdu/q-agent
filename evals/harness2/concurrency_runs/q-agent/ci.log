@@ -1,0 +1,9 @@
+test_atomic_ticket_claim_under_race_condition (test_concurrency.ConcurrencyAndLockContentionTest.test_atomic_ticket_claim_under_race_condition)
+10 concurrent workers race to claim 5 open tickets. ... ok
+test_high_concurrency_write_burst_under_wal (test_concurrency.ConcurrencyAndLockContentionTest.test_high_concurrency_write_burst_under_wal)
+20 concurrent threads performing rapid ticket creation, claim and resolution. ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.013s
+
+OK

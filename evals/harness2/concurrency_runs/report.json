@@ -1,0 +1,25 @@
+{
+  "kind": "local-codex-cli-concurrency-stress-prototype",
+  "official_harness2_benchmark": false,
+  "task": "Atomic ticket claiming and high-concurrency lock contention under SQLite WAL",
+  "results": [
+    {
+      "harness": "baseline",
+      "rollout_exit": 0,
+      "ci_exit": 0,
+      "tests_tampered": false,
+      "changed_files": [
+        "helpdesk.py"
+      ]
+    },
+    {
+      "harness": "q-agent",
+      "rollout_exit": 0,
+      "ci_exit": 0,
+      "tests_tampered": false,
+      "changed_files": [
+        "helpdesk.py"
+      ]
+    }
+  ]
+}
