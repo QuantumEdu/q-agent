@@ -30,7 +30,8 @@ Solo se autoriza la creación de capas de dominio aisladas (`domain/`, `ports/`,
 
 #### Cláusula 3: Persistencia Pragmática y Resiliencia
 - Las lecturas, proyecciones y agregaciones para la interfaz de usuario se consultan directamente contra el motor de almacenamiento optimizado, sin forzar la hidratación de modelos de dominio intermediarios.
-- **Invariante SQLite (si aplica):** Toda conexión SQLite debe operar obligatoriamente con `_journal_mode=WAL`, `_busy_timeout=5000` (o superior), `_synchronous=NORMAL` y un pool de conexiones controlado (1 writer para prevenir `database is locked`).
+- **Invariante SQLite y Concurrencia (si aplica):** Toda conexión SQLite debe operar obligatoriamente con `_journal_mode=WAL`, `_busy_timeout=10000` (o `timeout=15.0`), `_synchronous=NORMAL` y un pool de conexiones controlado (1 writer para prevenir `database is locked`). Para transiciones o reclamo de registros concurrentes, usar transacciones atómicas compare-and-swap (`UPDATE ... WHERE id = ? AND status = '...'` verificando `cursor.rowcount == 1`), nunca comprobaciones previas tipo `SELECT` seguidas de `UPDATE`.
+- **Invariante Temporal UTC:** Toda manipulación, almacenamiento o comparación de timestamps debe realizarse de forma estricta en tiempo universal coordinado consciente de zona horaria (`datetime.now(timezone.utc)` en Python o ISO 8601 con sufijo `+00:00`/`Z`), quedando terminantemente prohibido el uso de fechas ingenuas (naive) que originen excepciones de comparación.
 
 #### Cláusula 4: Higiene de Plantillas y Separación de Presentación
 Queda estrictamente prohibido construir interfaces o fragmentos HTML/CSS mediante concatenación de cadenas en archivos de código fuente.
@@ -42,11 +43,12 @@ Queda estrictamente prohibido construir interfaces o fragmentos HTML/CSS mediant
 - **Prevención de XSS:** Todo renderizado de datos dinámicos en HTML debe utilizar escape contextual automático.
 - **Zero Secrets:** Prohibido el almacenamiento de credenciales, API keys o tokens en el código fuente.
 
-#### Cláusula 6: Criterio de Auditoría Arquitectónica y Anti-Mocking
+#### Cláusula 6: Criterio de Auditoría Arquitectónica, Anti-Mocking y Evidencia de Entidades
 Las auditorías de calidad (P01, P09, `q-audit-readonly`):
 - Auditarán el estricto cumplimiento de las Cláusulas 1 a 5 y los Criterios de Aceptación (UAC).
 - **Prohibido penalizar la ausencia de capas horizontales vacías.**
 - **Tolerancia Cero a Fake Completions:** Todo checkbox marcado (`[x]`) debe estar respaldado por evidencia observable en terminal (código de salida 0, tests verdes, HTTP status). Mocks estáticos que simulen persistencia sin autorización explícita constituyen una falla crítica (`❌ Gap P0`).
+- **Regla de Citación de Claves Primarias (Entity ID Citation Rule):** Al auditar bases de datos, incidentes o evidencia forense en tablas, es obligatorio citar explícitamente el identificador de fila o clave primaria (`<tabla>.<pk> = <id>`) junto con los valores de las columnas semánticas; omitir el ID formal invalida la trazabilidad de la evidencia.
 
 ---
 

@@ -41,7 +41,7 @@ metadata:
 | :--- | :--- | :--- |
 | **1. Mínima Indirección (ARQ-01)** | Interfaces pasamanos, adaptadores 1-a-1, DTOs idénticos a modelos. | Interfaces redundantes o capas que solo reenvían llamadas sin lógica. |
 | **2. Higiene de Plantillas** | Vistas en archivos `.html` empaquetados (`//go:embed`, Jinja2, templates). | HTML embebido o concatenado en archivos de backend/servidor. |
-| **3. Ciberseguridad & BD** | 100% queries SQL parametrizadas. WAL mode y busy_timeout configurados. | Concatenación de strings (`fmt.Sprintf`, `f-strings`) en queries SQL. |
+| **3. Ciberseguridad, BD & Tiempo** | 100% queries SQL parametrizadas. WAL mode y timeout configurados (`busy_timeout >= 10000`, `timeout=15.0`). Invariante UTC en fechas. Compare-and-Swap atómico en transiciones. | Concatenación en SQL; SQLite sin timeout; datetimes naive (`datetime.now()`); o transiciones de estado con `SELECT` previo en vez de CAS atómico. |
 | **4. Anti-Mocking & Tests** | Aserciones reales sobre comportamiento de dominio o endpoints. | Mocks hardcodeados, tests vacíos o aserciones triviales tipo `assert True`. |
 | **5. Manejo de Errores** | Errores manejados explícitamente y propagados con contexto. | Errores silenciados con `_ = err`, `except: pass` o fallbacks silenciosos. |
 

@@ -30,6 +30,7 @@ metadata:
 1. **Inmutabilidad Absoluta en Disco**: Al finalizar, `git status -s` debe ser idéntico al estado inicial (salvo el reporte generado si fue solicitado expresamente).
 2. **CodeGraph / Dual Surface Primero**: Verificar índice (`test -d .codegraph || codegraph init -y`). Resolver llamadas, dependencias y blast radius vía `codegraph_explore` (MCP) o `codegraph` CLI antes de búsquedas ciegas de texto.
 3. **Tolerancia Cero a Mocks (Anti-Mocking)**: Ninguna tarea finalizada puede depender de datos simulados o stubs no autorizados (clasificado como `❌ Gap P0`).
+4. **Citación Explícita de Claves Primarias**: Toda evidencia extraída de tablas de base de datos o incidencias debe citar obligatoriamente la clave primaria formal (`<tabla>.<pk> = <id>`) además de los campos semánticos.
 
 ## 3. Contrato de Ejecución Paso a Paso
 - [ ] **M1 (Topología y ARQ-01)**: Registrar estado inicial (`git status -s`). Evaluar Vertical Slices, persistencia SQLite WAL y ausencia de HTML en backend.
