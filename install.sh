@@ -26,6 +26,7 @@ RUNTIMES=(
     "OpenCode|${HOME}/.config/opencode|${HOME}/.config/opencode/skills/q-agent"
     "GitHub Copilot|${HOME}/.copilot|${HOME}/.copilot/skills/q-agent"
     "Gentle AI (Agent System)|${HOME}/.agents|${HOME}/.agents/skills/q-agent"
+    "Hermes Agent|${HOME}/.hermes|${HOME}/.hermes/skills/q-agent"
 )
 
 usage() {
