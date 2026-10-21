@@ -1,23 +1,38 @@
-# q-agent Harness2 local prototype
+# q-agent Harness² Evaluation Suite
 
-This repository evaluates a local Codex CLI session against the same SQLite ticket-workflow task
-with two instruction harnesses:
+This directory contains the contrastive evaluation suites for `q-agent` applying the principles of **Harness²** ([arXiv:2610.14224](https://arxiv.org/abs/2610.14224), Google Research).
 
-1. a minimal baseline;
-2. q-agent instructions copied from the installed q-agent repository.
+The runners preserve strict experimental discipline:
+- **Immutable Tests:** SHA-256 fingerprinted test files before each phase (`tampered=True` on mismatch).
+- **Zero Mocks:** Real SQLite WAL instances with foreign key constraints.
+- **Cold-Start Recovery:** Multi-session runs use `codex exec --ephemeral` without retained conversation history.
+- **Independent Adversarial Review:** Code changes pass through an isolated review gate before approval.
 
-It is a local prototype, not an official Harness2 benchmark. Harness2's supported Codex substrate
-requires a Responses-compatible endpoint; a ChatGPT-authenticated Codex CLI does not meet that
-contract. The runner preserves the experimental discipline that matters for this prototype:
-identical fixture copies, immutable tests, real SQLite verification, captured trajectories, and
-separate baseline and q-agent result records.
+---
 
-Run the evaluator with:
+## 1. Local Evaluator Scripts
+
+Run any of the evaluation suites directly with Python:
 
 ```bash
+# 1. Base Prototype (SQLite ticket workflow, WAL, and state machine)
 python3 evaluator.py
+
+# 2. Stress & Migration (Multi-tenant RBAC & schema rollback)
+python3 stress_evaluator.py
+
+# 3. Concurrency & Contention (10-worker race & 20-thread WAL bursts)
+python3 concurrency_evaluator.py
+
+# 4. Context Recovery (3 ephemeral cold-start sessions with SLA regression)
+python3 recovery_evaluator.py
 ```
 
-Results are written below `runs/`. The evaluator exits nonzero unless both agent runs produce a
-passing, untampered implementation. This makes a failed or incomplete rollout explicit rather than
-recording it as a score.
+Results, diffs, and trajectory logs are saved under `runs/`, `stress_runs/`, `concurrency_runs/`, and `recovery_runs/`.
+
+---
+
+## 2. Official JobBench Benchmark
+
+For official JobBench benchmark execution under the Harness² recursive adaptation framework (Propose–Probe–Compose with DeepSeek), see the complete report and reproduction steps in:
+[`docs/validation/harness2-evaluation.md`](../../docs/validation/harness2-evaluation.md) and [`QuantumEdu/harness2`](https://github.com/QuantumEdu/harness2).

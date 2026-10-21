@@ -30,6 +30,7 @@ Para evitar sesgos y mediciones ilusorias:
 | **2. Stress Testing** | [`stress_evaluator.py`](../../evals/harness2/stress_evaluator.py) | **Tarea A:** Multi-tenant workflow, RBAC y auditoría.<br>**Tarea B:** Migración idempotente de esquemas legacy con rollback. | Tarea A: 3/3 passed<br>Tarea B: 2/2 passed | Tarea A: 3/3 passed<br>Tarea B: 2/2 passed | **APROBADO**. q-agent corrigió autónomamente un defecto sutil de datetimes (naive vs. aware) en su 2da vuelta de corrección acotada. |
 | **3. Concurrencia y Lock Contention** | [`concurrency_evaluator.py`](../../evals/harness2/concurrency_evaluator.py) | Carrera atómica de reclamo (`claim_ticket` con 10 threads) y ráfaga de 20 threads bajo SQLite WAL sin bloqueos. | 2/2 passed (0.070s) | 2/2 passed (0.041s) | **APROBADO (2/2)**. q-agent aplicó compare-and-swap SQL atómico (`rowcount == 1`), `timeout=15.0` y revisión adversarial aprobada. |
 | **4. Context Recovery** | [`recovery_evaluator.py`](../../evals/harness2/recovery_evaluator.py) | Continuidad entre sesiones efímeras sin chat: Slice A, Slice B y reparación de regresión C. | Slice A: OK<br>Slice B: OK<br>Slice C: OK | Slice A: OK<br>Slice B: OK<br>Slice C: OK | **APROBADO (6/6)**. q-agent reparó quirúrgicamente la regresión de SLA sin rollback destructivo del trabajo previo. |
+| **5. Benchmark Oficial JobBench** | `harness2 --bench jb` | Tarea profesional completa de soporte técnico y redes (`computer_user_support_specialists/task1`) bajo ciclo recursivo Propose–Probe–Compose. | Base: 1/1 completado | Refinado (`agg1`): **89.29%** | **APROBADO (31/32 criterios)**. El framework confirmó que el arnés compuesto superó a la base (`chosen_is_base: false`) con costo de $0.24 USD. |
 
 ---
 
@@ -56,8 +57,29 @@ python3 evals/harness2/evaluator.py
 # 2. Stress evaluation (Multi-tenancy y migración)
 python3 evals/harness2/stress_evaluator.py
 
-# 3. Context recovery entre sesiones efímeras
+# 3. Concurrencia y Lock Contention (Race conditions y ráfagas WAL)
+python3 evals/harness2/concurrency_evaluator.py
+
+# 4. Context recovery entre sesiones efímeras
 python3 evals/harness2/recovery_evaluator.py
 ```
 
-Los reportes y trazas completas se escriben automáticamente en `evals/harness2/runs/`, `evals/harness2/stress_runs/` y `evals/harness2/recovery_runs/`.
+Los reportes y trazas completas se escriben automáticamente en `evals/harness2/runs/`, `evals/harness2/stress_runs/`, `evals/harness2/concurrency_runs/` y `evals/harness2/recovery_runs/`.
+
+---
+
+## 6. Ejecución del Benchmark Oficial JobBench
+
+Para ejecutar y validar contra el dataset oficial de Hugging Face bajo el framework Harness² con DeepSeek:
+
+```bash
+# Sweep adaptativo Propose–Probe–Compose (agg1)
+python3 -m harness2.cli.sweep --bench jb --substrate oc --k 1 --tasks computer_user_support_specialists/task1 --modes parallel
+
+# Inspección del reporte de adopción oficial
+python3 -m harness2.cli.report --bench jb --substrate oc --k 1 --modes parallel
+```
+
+- **Puntaje alcanzado:** 89.29% (31/32 criterios aprobados).
+- **Adopción:** `chosen_is_base: false` (el arnés compuesto refinado superó a la base con costo de $0.24 USD).
+- **Referencia del framework:** [`QuantumEdu/harness2`](https://github.com/QuantumEdu/harness2).
