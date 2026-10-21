@@ -1,0 +1,50 @@
+{
+  "kind": "local-codex-cli-stress-prototype",
+  "official_harness2_benchmark": false,
+  "results": [
+    {
+      "case": "workflow-baseline",
+      "harness": "baseline",
+      "rollout_exit": 0,
+      "ci_exit": 0,
+      "tests_tampered": false,
+      "changed_files": [
+        " M helpdesk.py"
+      ],
+      "run_dir": "stress_runs/workflow-baseline"
+    },
+    {
+      "case": "workflow-q-agent",
+      "harness": "q-agent",
+      "rollout_exit": 0,
+      "ci_exit": 0,
+      "tests_tampered": false,
+      "changed_files": [
+        " M helpdesk.py"
+      ],
+      "run_dir": "stress_runs/workflow-q-agent"
+    },
+    {
+      "case": "migration-baseline",
+      "harness": "baseline",
+      "rollout_exit": 0,
+      "ci_exit": 0,
+      "tests_tampered": false,
+      "changed_files": [
+        " M migrate.py"
+      ],
+      "run_dir": "stress_runs/migration-baseline"
+    },
+    {
+      "case": "migration-q-agent",
+      "harness": "q-agent",
+      "rollout_exit": 0,
+      "ci_exit": 0,
+      "tests_tampered": false,
+      "changed_files": [
+        " M migrate.py"
+      ],
+      "run_dir": "stress_runs/migration-q-agent"
+    }
+  ]
+}

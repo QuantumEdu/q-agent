@@ -1,0 +1,28 @@
+{
+  "kind": "local-codex-cli-prototype",
+  "official_harness2_benchmark": false,
+  "started_at": "2026-10-21T02:29:28.783942+00:00",
+  "task": "Implement the ticket workflow in ticket_store.py.\n\nRequirements:\n- Use the existing SQLite database and retain WAL mode.\n- Implement a strict lifecycle: OPEN -> IN_PROGRESS -> RESOLVED -> CLOSED.\n- Reject every invalid transition with ValueError and do not change persisted state.\n- Implement overdue_ticket_ids(db_path, now) to return ticket IDs whose SLA due time is before now\n  and whose state is neither RESOLVED nor CLOSED.\n- SLA durations: CRITICAL 2 hours, HIGH 8 hours, MEDIUM 24 hours, LOW 72 hours.\n- Do not modify tests. Run the real test suite and leave terminal evidence in odd/tasks/\n  when the q-agent harness requests it.\n",
+  "results": [
+    {
+      "name": "baseline",
+      "returncode": 0,
+      "tests_returncode": 0,
+      "tests_tampered": false,
+      "changed_files": [
+        " M ticket_store.py"
+      ],
+      "run_dir": "runs/baseline"
+    },
+    {
+      "name": "q-agent",
+      "returncode": 0,
+      "tests_returncode": 0,
+      "tests_tampered": false,
+      "changed_files": [
+        " M ticket_store.py"
+      ],
+      "run_dir": "runs/q-agent"
+    }
+  ]
+}

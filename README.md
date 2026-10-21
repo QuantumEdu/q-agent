@@ -283,6 +283,8 @@ q-agent/
 ├── examples/                         # Implementaciones y demos de referencia
 │   └── support-tickets/              # Caso real: Sistema de tickets y SLAs E2E
 ├── tests/                            # Suite oficial de regresión (103 tests unitarios y E2E)
+├── evals/                            # Suites de evaluación formal y benchmarks (Harness² local prototype)
+│   └── harness2/                     # Evaluación contrastiva: Base, Stress y Context Recovery
 ├── tools/                            # Herramientas de gobernanza CLI
 │   ├── q-worktree/                   # Aislamiento en Git Worktrees
 │   ├── q-merge-gate/                 # Compuerta determinista de políticas de merge
@@ -302,6 +304,21 @@ python3 -m unittest discover -s tests -v
 # 71 tests pasando en < 3s sin mocks
 ```
 
+### Suite de Evaluación Contrastiva Harness² (`evals/harness2/`)
+`q-agent` incluye una suite de evaluación formal inspirada en la metodología de **Harness²** ([arXiv:2610.14224](https://arxiv.org/abs/2610.14224), Google Research) para medir el desempeño contrastivo del arnés frente a un baseline mínimo utilizando sesiones del CLI de Codex:
+
+1. **Prototipo Base ([`evaluator.py`](evals/harness2/evaluator.py)):** Flujo estricto de tickets SQLite (OPEN->CLOSED), cálculo de SLA y WAL. 3/3 tests aprobados con diff verificado por revisor independiente.
+2. **Stress Testing ([`stress_evaluator.py`](evals/harness2/stress_evaluator.py)):** Aislamiento multi-tenant, RBAC, auditoría y migración idempotente de esquemas legacy. Incluye demostración de autocorrección acotada tras feedback adversarial.
+3. **Context Recovery ([`recovery_evaluator.py`](evals/harness2/recovery_evaluator.py)):** Resistencia a la amnesia contextual en sesiones efímeras (`--ephemeral` sin historial de chat). Reparación quirúrgica de regresiones en SLA sin pérdida de trabajo no commiteado previo y con verificación de hashes SHA-256 de tests inmutables.
+
+Para reproducir la suite:
+```bash
+python3 evals/harness2/evaluator.py
+python3 evals/harness2/stress_evaluator.py
+python3 evals/harness2/recovery_evaluator.py
+```
+Detalles y trazas completas en [`docs/validation/harness2-evaluation.md`](docs/validation/harness2-evaluation.md).
+
 ### Atribuciones y Reconocimientos
 `q-agent` incorpora con orgullo y formaliza en [`ATTRIBUTION.md`](ATTRIBUTION.md) el crédito a proyectos y metodologías de referencia de la industria:
 - **Shopify Helix:** Arquitectura modular de habilidades e interacción controlada.
@@ -309,6 +326,7 @@ python3 -m unittest discover -s tests -v
 - **OpenSpec & Spec-Kit:** Esquemas de especificación basada en capacidades (BDD/EARS).
 - **BMAD Method:** Visión de Product Manager y taxonomía de user stories.
 - **SWE-agent:** Principio de *Reproduction-First TDD* (fase roja demostrable antes de implementar código).
+- **Harness² (Google Research):** Metodología de evaluación contrastiva de arneses con tests inmutables, evidencia terminal real y contraste de comportamiento en tareas de mundo abierto.
 
 ---
 

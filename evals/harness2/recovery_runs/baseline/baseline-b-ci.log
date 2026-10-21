@@ -1,0 +1,8 @@
+test_wal_tenant_validation_and_due_date (test_phase1.StorageSliceTest.test_wal_tenant_validation_and_due_date) ... ok
+test_regression_target_uses_critical_sla_after_recovery (test_phase2.WorkflowSliceTest.test_regression_target_uses_critical_sla_after_recovery) ... ok
+test_resumed_workflow_preserves_tenant_boundaries_and_audit (test_phase2.WorkflowSliceTest.test_resumed_workflow_preserves_tenant_boundaries_and_audit) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.002s
+
+OK

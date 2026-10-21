@@ -1,0 +1,8 @@
+test_overdue_excludes_resolved_and_closed_tickets (test_ticket_store.TicketStoreTest.test_overdue_excludes_resolved_and_closed_tickets) ... ok
+test_sqlite_uses_wal_mode (test_ticket_store.TicketStoreTest.test_sqlite_uses_wal_mode) ... ok
+test_ticket_lifecycle_rejects_invalid_transition_without_mutating_state (test_ticket_store.TicketStoreTest.test_ticket_lifecycle_rejects_invalid_transition_without_mutating_state) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.002s
+
+OK

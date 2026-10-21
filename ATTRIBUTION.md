@@ -64,6 +64,9 @@ El proyecto **`q-agent`** ha sido concebido, diseñado y orquestado por **Gabrie
    - **Contribución:**
      - El protocolo **"Review Remembers"**: persistencia de IDs de hallazgos (`R-01`, `R-02`...) y evaluación matricial (`fixed / notFixed / noLongerApplies`) en re-revisiones para prevenir debates circulares.
      - La compuerta determinista de política de merge (`tools/q-merge-gate`), inspirada en la arquitectura de `super-board-merge-gate.sh`, con códigos de salida semánticos (Exit 0 para avance estándar, Exit 7 para aprobación humana obligatoria por tocar dinero/auth o exceder LOC, y Exit 8 para migraciones y esquemas DDL).
+9. **Evaluación Contrastiva de Arneses (Harness²):**
+   - **Autor / Referente:** Google Research ([arXiv:2610.14224](https://arxiv.org/abs/2610.14224), *Harness²: Recursive Agent Harnessing for an Open World*).
+   - **Contribución:** Metodología experimental para evaluar y contrastar sistemas de arnés para LLMs mediante pruebas inmutables, evidencia observable en terminal sin mocks, y contraste de comportamiento en tareas de mundo abierto. Integrado en la suite `evals/harness2/`.
 
 ---
 

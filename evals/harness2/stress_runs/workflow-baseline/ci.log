@@ -1,0 +1,8 @@
+test_overdue_excludes_resolved_tickets (test_helpdesk.HelpdeskWorkflowTest.test_overdue_excludes_resolved_tickets) ... ok
+test_roles_transitions_and_audit_are_atomic (test_helpdesk.HelpdeskWorkflowTest.test_roles_transitions_and_audit_are_atomic) ... ok
+test_wal_and_tenant_scoped_overdue_tickets (test_helpdesk.HelpdeskWorkflowTest.test_wal_and_tenant_scoped_overdue_tickets) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.002s
+
+OK

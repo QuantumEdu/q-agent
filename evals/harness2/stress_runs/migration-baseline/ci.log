@@ -1,0 +1,7 @@
+test_migration_is_idempotent_and_preserves_rows (test_migrate.MigrationTest.test_migration_is_idempotent_and_preserves_rows) ... ok
+test_unsupported_priority_rolls_back_schema_and_data_mutation (test_migrate.MigrationTest.test_unsupported_priority_rolls_back_schema_and_data_mutation) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.001s
+
+OK

@@ -1,0 +1,67 @@
+{
+  "kind": "local-codex-cli-context-recovery-prototype",
+  "official_harness2_benchmark": false,
+  "context_contract": "Each phase uses codex exec --ephemeral; only repository artifacts persist.",
+  "results": [
+    {
+      "harness": "baseline",
+      "phase": "a",
+      "rollout_exit": 0,
+      "ci_exit": 0,
+      "tests_tampered": false,
+      "changed_files": [
+        "helpdesk.py"
+      ]
+    },
+    {
+      "harness": "baseline",
+      "phase": "b",
+      "rollout_exit": 0,
+      "ci_exit": 0,
+      "tests_tampered": false,
+      "changed_files": [
+        "helpdesk.py"
+      ]
+    },
+    {
+      "harness": "baseline",
+      "phase": "c",
+      "rollout_exit": 0,
+      "ci_exit": 0,
+      "tests_tampered": false,
+      "changed_files": [
+        "helpdesk.py"
+      ]
+    },
+    {
+      "harness": "q-agent",
+      "phase": "a",
+      "rollout_exit": 0,
+      "ci_exit": 0,
+      "tests_tampered": false,
+      "changed_files": [
+        "helpdesk.py"
+      ]
+    },
+    {
+      "harness": "q-agent",
+      "phase": "b",
+      "rollout_exit": 0,
+      "ci_exit": 0,
+      "tests_tampered": false,
+      "changed_files": [
+        "helpdesk.py"
+      ]
+    },
+    {
+      "harness": "q-agent",
+      "phase": "c",
+      "rollout_exit": 0,
+      "ci_exit": 0,
+      "tests_tampered": false,
+      "changed_files": [
+        "helpdesk.py"
+      ]
+    }
+  ]
+}
