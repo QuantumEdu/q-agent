@@ -26,9 +26,12 @@ python3 concurrency_evaluator.py
 
 # 4. Context Recovery (3 ephemeral cold-start sessions with SLA regression)
 python3 recovery_evaluator.py
+
+# 5. Chaos Engineering & Crash Recovery (SIGKILL, post-crash lock bursts & torn WAL frame recovery)
+python3 chaos_evaluator.py
 ```
 
-Results, diffs, and trajectory logs are saved under `runs/`, `stress_runs/`, `concurrency_runs/`, and `recovery_runs/`.
+Results, diffs, and trajectory logs are saved under `runs/`, `stress_runs/`, `concurrency_runs/`, `recovery_runs/`, and `chaos_runs/`.
 
 ---
 

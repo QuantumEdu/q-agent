@@ -1,0 +1,25 @@
+{
+  "kind": "local-codex-cli-chaos-crash-recovery-prototype",
+  "official_harness2_benchmark": false,
+  "task": "Catastrophic ungraceful process abortion (SIGKILL), post-crash lock contention, and torn WAL recovery",
+  "results": [
+    {
+      "harness": "baseline",
+      "rollout_exit": 0,
+      "ci_exit": 0,
+      "tests_tampered": false,
+      "changed_files": [
+        "helpdesk.py"
+      ]
+    },
+    {
+      "harness": "q-agent",
+      "rollout_exit": 0,
+      "ci_exit": 0,
+      "tests_tampered": false,
+      "changed_files": [
+        "helpdesk.py"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+test_post_crash_write_burst_resilience (test_chaos.ChaosAndCrashRecoveryTest.test_post_crash_write_burst_resilience)
+After an ungraceful crash, new concurrent workers must immediately succeed ... ok
+test_sigkill_crash_during_multi_statement_transaction (test_chaos.ChaosAndCrashRecoveryTest.test_sigkill_crash_during_multi_statement_transaction)
+Kills an active writer process with SIGKILL (kill -9) during transactions. ... ok
+test_torn_wal_trailing_frame_checksum_recovery (test_chaos.ChaosAndCrashRecoveryTest.test_torn_wal_trailing_frame_checksum_recovery)
+Simulate power loss during WAL sector write by appending trailing corrupted bytes. ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.106s
+
+OK
