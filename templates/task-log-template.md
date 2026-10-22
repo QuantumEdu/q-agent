@@ -90,11 +90,15 @@
 > Queda estrictamente prohibido marcar una tarea como completada (`[x]`) sin registrar en esta tabla la evidencia real de ejecución observada en la terminal.
 > Cero falsas completitudes, cero suposiciones, cero mocks permanentes sin autorización.
 
-| Wave | Tarea ID | Comando Ejecutado en Terminal | Código de Salida (Exit Code) | Resultado Observado / Evidencia | Estado |
-|---|---|---|---|---|---|
-| `W1` | `TASK-01` | `[ej. go test ./features/reuniones -v]` | `0` | `PASS: TestCreateReunion (0.02s)` | `[VERIFICADO]` |
-| `W2` | `TASK-02` | `[ej. curl -I -s http://localhost:8080/reuniones]` | `0` | `HTTP/1.1 200 OK - Content-Type: text/html` | `[VERIFICADO]` |
-| `W3` | `TASK-03` | `[ej. go vet ./... && golangci-lint run]` | `0` | `Clean - 0 warnings, 0 errors` | `[VERIFICADO]` |
+| Wave | Tarea ID | Comando Ejecutado en Terminal | Código de Salida (Exit Code) | Resultado Observado / Evidencia | Telemetría (Tokens / Costo USD) | Estado |
+|---|---|---|---|---|---|---|
+| `W1` | `TASK-01` | `[ej. go test ./features/reuniones -v]` | `0` | `PASS: TestCreateReunion (0.02s)` | `~12k tok / $0.01` | `[VERIFICADO]` |
+| `W2` | `TASK-02` | `[ej. curl -I -s http://localhost:8080/reuniones]` | `0` | `HTTP/1.1 200 OK - Content-Type: text/html` | `~24k tok / $0.02` | `[VERIFICADO]` |
+| `W3` | `TASK-03` | `[ej. go vet ./... && golangci-lint run]` | `0` | `Clean - 0 warnings, 0 errors` | `~8k tok / $0.005` | `[VERIFICADO]` |
+
+### 💰 Telemetría y Presupuesto Económico de Ejecución
+- **Gasto acumulado del feature:** `{{$USD / Tokens}}` across `{{N}}` waves.
+- **Eficiencia de Corrección (Zero-Waste):** [Indicar número de rondas de corrección consumidas, ej. 0/2 en verde a la primera pasada].
 
 ---
 

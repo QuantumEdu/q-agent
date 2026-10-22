@@ -89,6 +89,81 @@ def check_file(file_path: Path, forbid_placeholders: bool = True, min_bytes: int
             result["errors"].append(f"Failed to inspect DOCX file: {e}")
         return result
 
+    # OpenXML XLSX spreadsheet container and text/formula inspection (zero-dependency)
+    if file_path.suffix.lower() == ".xlsx":
+        try:
+            if not zipfile.is_zipfile(file_path):
+                result["valid"] = False
+                result["errors"].append("Invalid XLSX deliverable: not a valid ZIP archive")
+                return result
+
+            with zipfile.ZipFile(file_path, "r") as zf:
+                namelist = zf.namelist()
+                if "xl/workbook.xml" not in namelist:
+                    result["valid"] = False
+                    result["errors"].append("Invalid XLSX deliverable: missing 'xl/workbook.xml' in package")
+                    return result
+
+                sheet_files = [name for name in namelist if name.startswith("xl/worksheets/") and name.endswith(".xml")]
+                if not sheet_files:
+                    result["valid"] = False
+                    result["errors"].append("Invalid XLSX deliverable: no worksheets found under 'xl/worksheets/'")
+                    return result
+
+                all_texts = []
+                if "xl/sharedStrings.xml" in namelist:
+                    try:
+                        ss_xml = zf.read("xl/sharedStrings.xml")
+                        ss_root = ET.fromstring(ss_xml)
+                        all_texts.extend([elem.text for elem in ss_root.iter() if elem.tag.endswith("}t") and elem.text])
+                    except Exception:
+                        pass
+
+                has_rows = False
+                excel_errors = {"#N/A", "#REF!", "#VALUE!", "#DIV/0!", "#NULL!", "#NAME?"}
+                found_errors = []
+
+                for s_file in sheet_files:
+                    s_xml = zf.read(s_file)
+                    s_root = ET.fromstring(s_xml)
+                    rows = [elem for elem in s_root.iter() if elem.tag.endswith("}row")]
+                    if rows:
+                        has_rows = True
+                    for cell in s_root.iter():
+                        if cell.tag.endswith("}c"):
+                            c_type = cell.attrib.get("t", "")
+                            inline_texts = [elem.text for elem in cell.iter() if elem.tag.endswith("}t") and elem.text]
+                            all_texts.extend(inline_texts)
+                            for val_node in cell.iter():
+                                if val_node.tag.endswith("}v") and val_node.text:
+                                    val_text = val_node.text.strip()
+                                    if val_text in excel_errors:
+                                        found_errors.append(f"Spreadsheet error '{val_text}' found in {s_file}")
+                                    if c_type != "s":
+                                        all_texts.append(val_text)
+
+                if not has_rows:
+                    result["valid"] = False
+                    result["errors"].append("XLSX deliverable contains empty worksheets without data rows")
+
+                if found_errors:
+                    result["valid"] = False
+                    result["errors"].extend(found_errors[:3])
+
+                if forbid_placeholders and all_texts:
+                    joined_text = " ".join(all_texts)
+                    for pat in DEFAULT_PLACEHOLDERS:
+                        matches = list(re.finditer(pat, joined_text, re.IGNORECASE))
+                        if matches:
+                            result["valid"] = False
+                            result["errors"].append(
+                                f"Unfilled placeholder '{matches[0].group()}' found in XLSX content"
+                            )
+        except Exception as e:
+            result["valid"] = False
+            result["errors"].append(f"Failed to inspect XLSX file: {e}")
+        return result
+
     # Text content inspection for supported file types
     text_extensions = {".md", ".html", ".htm", ".txt", ".csv", ".json", ".rules", ".conf", ".sql", ".py", ".ts", ".js", ".go"}
     if file_path.suffix.lower() in text_extensions:

@@ -83,12 +83,12 @@ Paso 9     ──► BUCLE OPS-TO-ODD (Reproduction-First ante incidentes)
 - [ ] ⛔ **BLOQUEO**: Prohibido marcar tareas como completadas (`[x]`) en este paso.
 
 ### [Paso 6] Dual Verification Gate (Terminal Evidence + Adversarial Review)
-- [ ] **Autonomous E2E**: Follow [Hosted unattended E2E repair](references/unattended-e2e.md). Freeze tests, run real E2E, diagnose failures and invoke q-ci-fixer for at most TWO total correction rounds per task (initial run + up to two reruns). Persist the shared counter across P06/review/P07; exhausted budget means BLOCKED, never a reset. Require regressions and independent APPROVED review before completion.
+- [ ] **Autonomous E2E**: Follow [Hosted unattended E2E repair](references/unattended-e2e.md). Freeze tests, run real E2E, diagnose failures and invoke q-ci-fixer for at most TWO total correction rounds per task (initial run + up to two reruns). Persist the shared counter across P06/review/P07; exhausted budget means BLOCKED, never a reset. Si se agota el presupuesto en un worktree aislado, aislar la rama mediante `python3 tools/q-worktree/q_worktree.py quarantine --task TASK-XX --reason "<motivo>"`. Require regressions and independent APPROVED review before completion.
 - [ ] **Fase A (Máquina)**: Compilación, linters, tests reales y smoke HTTP.
 - [ ] **Fase B (Adversarial)**: Despachar `skills/q-adversarial-review` en subagente aislado (`invoke_subagent`).
   - Auditar diff contra ARQ-01 con protocolo **Review Remembers** (`R-IDs`).
   - Exigir veredicto `APPROVED` antes de autorizar cierre.
-- [ ] **Registro en Bitácora**: Registrar salida exitosa (exit 0) en la tabla `Terminal Evidence Gate`.
+- [ ] **Registro en Bitácora**: Registrar salida exitosa (exit 0) y telemetría de costo/tokens en la tabla `Terminal Evidence Gate`.
 - [ ] Marcar checkbox `[x]` únicamente con evidencia terminal registrada y veredicto `APPROVED`.
 
 ### [Paso 7] Higiene Determinista, Consolidación y Cierre
@@ -110,7 +110,7 @@ Paso 9     ──► BUCLE OPS-TO-ODD (Reproduction-First ante incidentes)
 ## 3. Completion Gate del Orquestador
 Antes de certificar la entrega de un ciclo al usuario:
 - [ ] Cada tarea de la bitácora viva cuenta con entrada verificada en `Terminal Evidence Gate`.
-- [ ] **Manifiesto de Entregables cumplido**: Todos los archivos y artefactos solicitados en la spec existen físicamente en disco y pasan el linter estructural sin placeholders (`python3 tools/q-inspect/q_inspect.py <archivos>`, soportando código, texto y documentos OpenXML `.docx` zero-dep), sin truncamientos ni meras referencias en texto.
+- [ ] **Manifiesto de Entregables cumplido**: Todos los archivos y artefactos solicitados en la spec existen físicamente en disco y pasan el linter estructural sin placeholders (`python3 tools/q-inspect/q_inspect.py <archivos>`, soportando código, texto y documentos OpenXML `.docx`/`.xlsx` zero-dep), sin truncamientos ni meras referencias en texto.
 - [ ] Veredicto adversarial emitido como `APPROVED` sin blockers `R-xx` abiertos.
 - [ ] `REVIEW.md` generado y presentado para firma humana en Paso 8.
 - [ ] Estado final declarado explícitamente: `[COMPLETE]`, `[BLOCKED - reason]` o `[FAILED - reason]`.

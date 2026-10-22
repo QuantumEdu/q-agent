@@ -85,6 +85,43 @@ class TestQWorktree(unittest.TestCase):
         self.assertTrue(merged_file.exists())
         self.assertFalse(expected_wt.exists())
 
+    def test_worktree_quarantine(self):
+        class ArgsCreate:
+            task = "TASK-FAIL-01"
+            base = "main"
+            worktree_dir = None
+            json = True
+
+        res = q_worktree.cmd_create(ArgsCreate())
+        self.assertEqual(res, 0)
+
+        expected_wt = self.repo_dir / ".q-worktrees" / "task-TASK-FAIL-01"
+        self.assertTrue(expected_wt.exists())
+
+        # Write dirty file that fails CI / review
+        dirty_file = expected_wt / "broken_feature.py"
+        dirty_file.write_text("raise RuntimeError('broken')", encoding="utf-8")
+
+        class ArgsQuarantine:
+            task = "TASK-FAIL-01"
+            reason = "CI review failed after 2 rounds"
+            worktree_dir = None
+            json = True
+
+        res_quarantine = q_worktree.cmd_quarantine(ArgsQuarantine())
+        self.assertEqual(res_quarantine, 0)
+
+        # Worktree path should be pruned
+        self.assertFalse(expected_wt.exists())
+
+        # Original wave branch should no longer exist
+        code_wave, _, _ = q_worktree.run_git(["rev-parse", "--verify", "wave/TASK-FAIL-01"], cwd=self.repo_dir)
+        self.assertNotEqual(code_wave, 0)
+
+        # Quarantined branch should exist
+        code_quar, out_quar, _ = q_worktree.run_git(["rev-parse", "--verify", "quarantine/TASK-FAIL-01"], cwd=self.repo_dir)
+        self.assertEqual(code_quar, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -232,6 +232,65 @@ def cmd_merge(args):
     return 0
 
 
+def cmd_quarantine(args):
+    repo_root = get_repo_root()
+    if not repo_root:
+        sys.stderr.write("Error: not inside a git repository.\n")
+        return 1
+
+    wt_dir_arg = getattr(args, "worktree_dir", None)
+    worktrees_dir = Path(wt_dir_arg) if wt_dir_arg else repo_root / ".q-worktrees"
+    target_path = worktrees_dir / f"task-{args.task}"
+    branch_name = f"wave/{args.task}"
+    quarantine_branch = f"quarantine/{args.task}"
+
+    if not target_path.exists():
+        code, _, _ = run_git(["rev-parse", "--verify", branch_name], cwd=repo_root)
+        if code != 0:
+            sys.stderr.write(f"Worktree or branch not found for task: {args.task}\n")
+            return 1
+
+    reason = getattr(args, "reason", None) or "Verification or review failure limit exceeded"
+
+    # Commit any uncommitted dirty state inside the worktree
+    if target_path.exists():
+        run_git(["add", "-A"], cwd=target_path)
+        run_git(["commit", "-m", f"quarantine: capture dirty state for {args.task} ({reason})"], cwd=target_path)
+
+        # Force remove worktree to release the branch
+        code, out, err = run_git(["worktree", "remove", "--force", str(target_path)], cwd=repo_root)
+        if code != 0:
+            sys.stderr.write(f"Failed to remove worktree: {err}\n")
+            return 2
+        run_git(["worktree", "prune"], cwd=repo_root)
+
+    # Rename branch to quarantine/*
+    code, _, _ = run_git(["rev-parse", "--verify", quarantine_branch], cwd=repo_root)
+    if code == 0:
+        run_git(["branch", "-D", quarantine_branch], cwd=repo_root)
+
+    code, out, err = run_git(["branch", "-m", branch_name, quarantine_branch], cwd=repo_root)
+    if code != 0:
+        sys.stderr.write(f"Failed to rename branch to '{quarantine_branch}': {err}\n")
+        return 3
+
+    result = {
+        "status": "quarantined",
+        "task": args.task,
+        "quarantine_branch": quarantine_branch,
+        "reason": reason,
+        "path": str(target_path)
+    }
+
+    if getattr(args, "json", False):
+        print(json.dumps(result, indent=2))
+    else:
+        print(f"☣️ Task '{args.task}' quarantined to branch '{quarantine_branch}' (Reason: {reason})")
+        print(f"   Worktree cleaned: {target_path}")
+
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="q-agent Worktree Manager for subagent isolation"
@@ -264,6 +323,13 @@ def main():
     p_merge.add_argument("--worktree-dir", help="Custom worktree parent directory")
     p_merge.add_argument("--json", action="store_true", help="Output JSON format")
 
+    # quarantine
+    p_quarantine = subparsers.add_parser("quarantine", help="Quarantine failed task worktree to quarantine/* branch and prune")
+    p_quarantine.add_argument("--task", required=True, help="Task identifier to quarantine")
+    p_quarantine.add_argument("--reason", default="Verification or review failure limit exceeded", help="Reason for quarantining task")
+    p_quarantine.add_argument("--worktree-dir", help="Custom worktree parent directory")
+    p_quarantine.add_argument("--json", action="store_true", help="Output JSON format")
+
     args = parser.parse_args()
 
     if args.command == "create":
@@ -274,6 +340,8 @@ def main():
         return cmd_remove(args)
     elif args.command == "merge":
         return cmd_merge(args)
+    elif args.command == "quarantine":
+        return cmd_quarantine(args)
 
     return 0
 
