@@ -34,7 +34,8 @@ Para evitar sesgos y mediciones ilusorias:
 | **6. JobBench Oficial (Task 1)** | `harness2 --bench jb` | Tarea profesional de soporte y redes (`computer_user_support_specialists/task1`) bajo ciclo recursivo Propose–Probe–Compose. | Base: 1/1 completado | Refinado (`agg1`): **89.29%** | **APROBADO (31/32 criterios)**. Arnés compuesto adoptado sobre la base (`chosen_is_base: false`) con costo de $0.24 USD. |
 | **7. JobBench Oficial (Task 2)** | `harness2 --bench jb` | Plan de migración W11 (75 PCs), presupuesto y análisis DB (`computer_user_support_specialists/task2`). | Base: 1/1 completado | Refinado (`agg1`): **17.07%** | **EVALUADO (14/82 puntos)**. Arnés compuesto adoptado (`chosen_is_base: false`). Brecha por truncamiento de entregables (1 de 3 archivos generados). |
 | **8. JobBench Oficial (Task 3)** | `harness2 --bench jb` | Hardening Nginx/Iptables, forense de intrusión ShopVault y reporte NIST (`web_administrators/task1`). | Base: 1/1 completado | Refinado (`agg1`): **48.00%** | **EVALUADO (24/50 puntos, 4/8 rúbricas)**. Arnés compuesto adoptado (`chosen_is_base: false`). 100% de los 5 entregables generados en disco; aprobó firewall, TLS posture y auditoría de CR. |
-| **Puntaje Global Multi-Dominio** | Multi-domain sweep (k=1) | 3 tareas profesionales completas en 2 ocupaciones (Soporte Técnico y Administración Web). | Línea base | **100% adopción del arnés refinado** | **3 de 3 tareas adoptaron el arnés adaptativo** (`agg1`) sobre la base con gasto total de **$0.72 USD**. |
+| **9. Harness² LAB Benchmark** | `harness2 --bench lab` | Análisis de markup y reporte de desviaciones en transferencias transfronterizas de datos (`data-privacy-cybersecurity/analyze-counterparty-markup-of-cross`) con 5 documentos base y 61 criterios de rúbrica. | Base: 1/1 completado | Refinado (`agg1`): **100.00% (61/61 ALL-PASS)** | **APROBADO (61/61 criterios)**. Arnés compuesto adoptado (`chosen_is_base: false`). Generó reporte `.docx` completo cubriendo 100% de las desviaciones legales/técnicas a $0.29 USD de improver. |
+| **Puntaje Global Multi-Dominio** | Multi-domain sweep (k=1) | 4 tareas completas en 3 dominios (Soporte TI, Admin Web y Ciberseguridad / Privacidad de Datos). | Línea base | **100% adopción del arnés refinado** | **4 de 4 tareas adoptaron el arnés adaptativo** (`agg1`) sobre la base con gasto acumulado de **$1.01 USD**. |
 
 ---
 
@@ -53,6 +54,11 @@ Se sometió al motor a fallos de procesos abruptos (`kill -9`) en pleno ciclo de
 - **Cero registros rotos:** SQLite WAL descartó limpiamente las transacciones incompletas; `verify_integrity` confirmó 0 registros huérfanos y `integrity_check == ['ok']`.
 - **Ráfaga concurrente post-crash:** Gracias a la configuración de `busy_timeout=10000` y `timeout=15.0`, 20 workers simultáneos pudieron adquirir locks y completar escrituras sin excepciones de `database is locked`.
 - **Truncamiento de frames dañados:** Ante la inyección de bytes basura en el WAL, el mecanismo de checksums por frame de SQLite descartó el sector dañado y restauró la consistencia al último commit válido.
+
+### Perfección en Razonamiento Complejo y Rúbricas Legales (Harness² LAB)
+En la tarea `data-privacy-cybersecurity/analyze-counterparty-markup-of-cross` (evaluación de acuerdos de transferencia transfronteriza de datos con 5 documentos fuente en formato DOCX y EML):
+- **Score Perfecto 100.0% (61/61 ALL-PASS):** El arnés adaptativo compuesto (`agg1`) superó a la base en todas las 61 aserciones de rúbrica evaluadas con `deepseek-chat` (537,248 tokens de evaluación).
+- **Inferencia de Habilidades On-Demand:** El improver descubrió que mantener todas las reglas en el prompt base saturaba la atención del modelo; compuso una skill dedicada `skills/deviation-report/SKILL.md` con un método de 8 pasos y una regla en `guardrails.md` para activarla por demanda, logrando reconciliar 35 desviaciones contractuales exactas.
 
 ---
 
