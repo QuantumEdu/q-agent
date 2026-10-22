@@ -56,9 +56,9 @@ Si la tarea incluye un endpoint o fragmento de vista (HTMX/HTML):
 
 #### A.4 Manifiesto de Entregables & Grounding Empírico
 Si la tarea especifica múltiples artefactos o reportes:
-- Verificar que *todos y cada uno* de los archivos requeridos existan físicamente en disco y no estén vacíos:
+- Ejecutar el linter estructural oficial para verificar que existan, no pesen 0 bytes y no contengan placeholders vacíos (`TODO`, `NaN`, tablas sin datos):
   ```bash
-  test -s <archivo_1> && test -s <archivo_2> ...
+  python3 tools/q-inspect/q_inspect.py <archivo_1> <archivo_2> ...
   ```
 - Prohibido dar por buena la compuerta si algún archivo fue únicamente referenciado en texto sin materializarse en disco.
 - Verificar que afirmaciones de compatibilidad o configuración tengan respaldo observable mediante consultas a la base de datos o logs reales, nunca en suposiciones del modelo.
