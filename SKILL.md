@@ -39,6 +39,9 @@ metadata:
   - No deliberar si la decisión técnica ya fue resuelta o delegada explícitamente.
 - **Protocolo Bilingüe**: Detecta y refleja el idioma del usuario. Artefactos técnicos (código, commits, specs) **siempre en inglés**.
 - **Fronteras de Directorio**: `<SKILL_ROOT>` (paquete `q-agent`) vs `<PROJECT_ROOT>` (repositorio activo/`cwd`). Nunca mezclar.
+- **Higiene de Sandbox CLI**: Todo script temporal, binario o extracción intermedia DEBE residir en `.scratch/` del workspace/repo, nunca en rutas globales `/tmp`.
+- **Andamio Modular On-Demand**: Metodologías de dominio extensas (>30-50 líneas) deben modularizarse bajo demanda (`skills/<dominio>/SKILL.md`) con disparadores concisos, previniendo saturación de atención en el contexto raíz.
+- **Invariante de Citación de Claves Primarias**: Toda referencia a registros de base de datos, configuraciones, incidencias o contratos DEBE citar la clave primaria o ancla formal (`<tabla>.<pk>`, `config_id`, `ticket_id`, `clause_number`, timestamp).
 
 ## 2. Contrato de Ejecución del Ciclo (Pasos 0 a 9)
 
@@ -107,7 +110,7 @@ Paso 9     ──► BUCLE OPS-TO-ODD (Reproduction-First ante incidentes)
 ## 3. Completion Gate del Orquestador
 Antes de certificar la entrega de un ciclo al usuario:
 - [ ] Cada tarea de la bitácora viva cuenta con entrada verificada en `Terminal Evidence Gate`.
-- [ ] **Manifiesto de Entregables cumplido**: Todos los archivos y artefactos solicitados en la spec existen físicamente en disco y pasan el linter estructural sin placeholders (`python3 tools/q-inspect/q_inspect.py <archivos>`), sin truncamientos ni meras referencias en texto.
+- [ ] **Manifiesto de Entregables cumplido**: Todos los archivos y artefactos solicitados en la spec existen físicamente en disco y pasan el linter estructural sin placeholders (`python3 tools/q-inspect/q_inspect.py <archivos>`, soportando código, texto y documentos OpenXML `.docx` zero-dep), sin truncamientos ni meras referencias en texto.
 - [ ] Veredicto adversarial emitido como `APPROVED` sin blockers `R-xx` abiertos.
 - [ ] `REVIEW.md` generado y presentado para firma humana en Paso 8.
 - [ ] Estado final declarado explícitamente: `[COMPLETE]`, `[BLOCKED - reason]` o `[FAILED - reason]`.

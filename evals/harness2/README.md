@@ -35,7 +35,7 @@ Results, diffs, and trajectory logs are saved under `runs/`, `stress_runs/`, `co
 
 ---
 
-## 2. Official JobBench Benchmark
+## 2. Official Benchmarks (JobBench & Harness² LAB)
 
-For official JobBench benchmark execution under the Harness² recursive adaptation framework (Propose–Probe–Compose with DeepSeek), see the complete report and reproduction steps in:
+For official JobBench and Harness² LAB (Harvey Labs multi-document reasoning) benchmark execution under the Harness² recursive adaptation framework (Propose–Probe–Compose with DeepSeek), see the complete report and reproduction steps in:
 [`docs/validation/harness2-evaluation.md`](../../docs/validation/harness2-evaluation.md) and [`QuantumEdu/harness2`](https://github.com/QuantumEdu/harness2).

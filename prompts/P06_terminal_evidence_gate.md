@@ -54,14 +54,15 @@ Si la tarea incluye un endpoint o fragmento de vista (HTMX/HTML):
 - Verificar que los headers de respuesta sean correctos (`Content-Type: text/html; charset=utf-8`).
 - Verificar que el fragmento HTML contenga los elementos de interfaz requeridos por el `UAC`.
 
-#### A.4 Manifiesto de Entregables & Grounding Empírico
+#### A.4 Manifiesto de Entregables, Grounding Empírico e Higiene de Sandbox
 Si la tarea especifica múltiples artefactos o reportes:
-- Ejecutar el linter estructural oficial para verificar que existan, no pesen 0 bytes y no contengan placeholders vacíos (`TODO`, `NaN`, tablas sin datos):
+- Ejecutar el linter estructural oficial para verificar que existan, no pesen 0 bytes y no contengan placeholders vacíos (`TODO`, `NaN`, tablas sin datos, incluyendo documentos OpenXML `.docx` íntegros zero-dep):
   ```bash
   python3 tools/q-inspect/q_inspect.py <archivo_1> <archivo_2> ...
   ```
 - Prohibido dar por buena la compuerta si algún archivo fue únicamente referenciado en texto sin materializarse en disco.
-- Verificar que afirmaciones de compatibilidad o configuración tengan respaldo observable mediante consultas a la base de datos o logs reales, nunca en suposiciones del modelo.
+- **Higiene de Sandbox CLI:** Todo script o binario temporal de prueba o inspección debe crearse en `.scratch/` local del proyecto y ser limpiado al terminar, nunca en `/tmp`.
+- **Citación Estricta de Claves Primarias:** Verificar que afirmaciones de compatibilidad, incidentes o configuración tengan respaldo observable citando el ID formal (`config_id`, `ticket_id`, `clause_number`, `cve_id`, timestamps) extraído de bases de datos o logs reales, nunca en suposiciones del modelo.
 
 ---
 

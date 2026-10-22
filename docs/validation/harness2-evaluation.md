@@ -106,3 +106,26 @@ python3 -m harness2.cli.report --bench jb --substrate oc --k 1 --modes parallel
 - **Adopción:** `chosen_is_base: false` en ambas tareas (el arnés compuesto refinado `agg1` superó consistentemente a la base).
 - **Gasto total de improver:** $0.49 USD across both tasks.
 - **Referencia del framework:** [`QuantumEdu/harness2`](https://github.com/QuantumEdu/harness2).
+
+---
+
+## 7. Ejecución del Benchmark Oficial Harness² LAB (Harvey Labs)
+
+Para ejecutar y validar la suite avanzada de razonamiento y análisis contractual con múltiples documentos fuente (DOCX, EML) bajo el framework Harness²:
+
+```bash
+# Sweep adaptativo Propose–Probe–Compose (k=1)
+python3 -m harness2.cli.run_sweep --bench lab --substrate oc --k 1 --only-domains data-privacy-cybersecurity --max-tasks 1
+
+# Evaluación de rúbricas con el juez oficial (DeepSeek / OpenAI compatible)
+python3 -m harness2.cli.judge --bench lab --substrate oc --k 1 --modes parallel
+
+# Inspección del reporte de adopción oficial
+python3 -m harness2.cli.report --bench lab --substrate oc --k 1 --modes parallel
+```
+
+- **Puntaje alcanzado:** 100.00% (61/61 criterios aprobados, ALL-PASS).
+- **Tokens evaluados:** 537,248 tokens de razonamiento y rúbrica.
+- **Adopción:** `chosen_is_base: false` (el arnés compuesto refinado `agg1` fue seleccionado unánimemente sobre la base).
+- **Gasto de improver:** $0.29 USD.
+- **Caso de estudio detallado:** [`docs/CASE_STUDY_QAGENT.md`](https://github.com/QuantumEdu/harness2/blob/main/docs/CASE_STUDY_QAGENT.md) en `QuantumEdu/harness2`.

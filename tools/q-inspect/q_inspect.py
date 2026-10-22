@@ -15,6 +15,8 @@ import json
 import os
 import re
 import sys
+import xml.etree.ElementTree as ET
+import zipfile
 from pathlib import Path
 
 # Tokens indicating unfulfilled mock or placeholder content
@@ -49,6 +51,42 @@ def check_file(file_path: Path, forbid_placeholders: bool = True, min_bytes: int
     if size < min_bytes:
         result["valid"] = False
         result["errors"].append(f"File is empty or below {min_bytes} bytes (got {size} bytes)")
+        return result
+
+    # OpenXML DOCX container and text inspection (zero-dependency)
+    if file_path.suffix.lower() == ".docx":
+        try:
+            if not zipfile.is_zipfile(file_path):
+                result["valid"] = False
+                result["errors"].append("Invalid DOCX deliverable: not a valid ZIP archive")
+                return result
+
+            with zipfile.ZipFile(file_path, "r") as zf:
+                if "word/document.xml" not in zf.namelist():
+                    result["valid"] = False
+                    result["errors"].append("Invalid DOCX deliverable: missing 'word/document.xml' in package")
+                    return result
+
+                doc_xml = zf.read("word/document.xml")
+                root = ET.fromstring(doc_xml)
+
+                text_nodes = [elem.text for elem in root.iter() if elem.tag.endswith("}t") and elem.text]
+                extracted_text = " ".join(text_nodes).strip()
+
+                if not extracted_text:
+                    result["valid"] = False
+                    result["errors"].append("DOCX deliverable contains empty body or no text runs ('w:t')")
+                elif forbid_placeholders:
+                    for pat in DEFAULT_PLACEHOLDERS:
+                        matches = list(re.finditer(pat, extracted_text, re.IGNORECASE))
+                        if matches:
+                            result["valid"] = False
+                            result["errors"].append(
+                                f"Unfilled placeholder '{matches[0].group()}' found in DOCX content"
+                            )
+        except Exception as e:
+            result["valid"] = False
+            result["errors"].append(f"Failed to inspect DOCX file: {e}")
         return result
 
     # Text content inspection for supported file types

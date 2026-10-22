@@ -33,6 +33,8 @@ metadata:
 4. **Citación Explícita de Claves Primarias**: Toda evidencia extraída de tablas de base de datos o incidencias debe citar obligatoriamente la clave primaria formal (`<tabla>.<pk> = <id>`) además de los campos semánticos.
 5. **Anclaje de Taxonomías y Estándares**: En reportes de ciberseguridad, riesgos o auditoría, fijar explícitamente la taxonomía canónica y su versión (ej. MITRE ATT&CK v14, OWASP Top 10 2021), prohibiendo categorizaciones ambiguas.
 6. **Jerarquía Estricta de Verdad**: Los registros empíricos en base de datos y logs locales tienen prioridad absoluta; nunca sobreescribir ni contradecir hallazgos empíricos basándose en memoria o heurísticas del modelo.
+7. **Higiene de Sandbox CLI (`.scratch/`)**: Cualquier script temporal de inspección o extracción debe crearse exclusivamente en el directorio local `.scratch/` del proyecto y removerse antes del cierre, estrictamente prohibido usar `/tmp`.
+8. **Validación Estructural de Entregables**: Los artefactos requeridos (incluyendo documentos `.docx` y archivos empaquetados) deben verificarse con `python3 tools/q-inspect/q_inspect.py` para asegurar integridad estructural y ausencia de placeholders.
 
 ## 3. Contrato de Ejecución Paso a Paso
 - [ ] **M1 (Topología y ARQ-01)**: Registrar estado inicial (`git status -s`). Evaluar Vertical Slices, persistencia SQLite WAL y ausencia de HTML en backend.
