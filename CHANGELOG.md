@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.10.0] - 2026-10-22
+
+### Added
+- **Zero-Dependency OpenXML Deliverable Linter (`tools/q-inspect/q_inspect.py`):**
+  Added structural inspection for `.docx` and `.xlsx` artifacts using Python standard library
+  (`zipfile`, `xml.etree.ElementTree`). Validates container integrity, extracts body/cell text,
+  detects spreadsheet error formulas (`#REF!`, `#N/A`, `#VALUE!`), checks data row presence,
+  and flags unfilled sentinel placeholders (`TODO`, `NaN`, `undefined`, `[Insert]`).
+- **Subagent Git Worktree Quarantine Protocol (`tools/q-worktree/q_worktree.py`):**
+  Added `quarantine` subcommand (`python3 tools/q-worktree/q_worktree.py quarantine --task <id> --reason <reason>`)
+  that atomically snapshots dirty worktree state, force-prunes the worktree directory,
+  and archives the branch to `quarantine/<task_id>` when verification or review budgets are exhausted.
+- **Economic Governance & Telemetry (`templates/task-log-template.md` & `SKILL.md`):**
+  Extended `Terminal Evidence Gate` with optional `Telemetría (Tokens / Costo USD)` column and
+  a cumulative budget section to trace token expenditure and zero-waste repair efficiency.
+- **On-Demand Skill Elicitation Pattern (`templates/CONSTITUTION.md` & `SKILL.md`):**
+  Constitutional rule under Article ARQ-01 outlawing injecting large (>30-50 lines) domain manuals
+  into root prompts; requires modularization into on-demand skills (`skills/<domain>/SKILL.md`)
+  with concise triggers to prevent context saturation and attention decay (*Lost in the Middle*).
+- **CLI Sandbox Storage Hygiene:**
+  Mandated workspace-local `.scratch/` (or repository `.scratch/` / `.tmp/`) path conventions
+  for all ephemeral test scripts and extractions, strictly prohibiting writes to global `/tmp`.
+- **Strict Primary Key & Citation Grounding Invariant:**
+  Constitutional requirement in Article ARQ-01 (Clause 6) to quote explicit entity IDs / primary
+  keys (`<table_name>.<pk> = <id>`, `config_id`, `ticket_id`, `clause_number`, timestamps)
+  in all audits, incident analyses, and deliverables.
+- **Harness² Evaluation Suites & Multi-Domain Benchmarks (`evals/harness2/`):**
+  Added local runners for Chaos Engineering & crash recovery (`chaos_evaluator.py`, SIGKILL mid-transaction,
+  20-thread post-crash lock bursts, torn WAL frame recovery), Concurrency, Stress/Migration, and
+  Context Recovery across ephemeral sessions. Documented official JobBench and Harness² LAB
+  (Harvey Labs multi-document reasoning with 100% 61/61 ALL-PASS score) reproduction in
+  `docs/validation/harness2-evaluation.md`.
+
+### Validation
+- Added 10 new unit test cases covering `.docx` and `.xlsx` structural linter behavior in `tests/test_q_inspect.py` (18/18 passed).
+- Added `test_worktree_quarantine` regression in `tests/test_worktree.py` (2/2 passed).
+- Updated `tests/test_skill_integrity.py` validating 2.10.0 version consistency across all packages.
+- All 122 repository tests passed in 7.202s on Linux (Exit 0).
+- Symlinks synchronized across all 8 agent runtimes (`antigravity-cli`, `codex`, `opencode`, `pi`, `claude`, `copilot`, `gentle-ai`, `hermes`) via Universal Runtime Linker (`./install.sh`).
+
 ## [2.9.2] - 2026-10-18
 
 ### Fixed
