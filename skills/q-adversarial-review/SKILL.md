@@ -35,7 +35,7 @@ metadata:
    - Veredicto `APPROVED` requiere 100% de los `R-IDs` en `[FIXED]` o `[NO_LONGER_APPLIES]`.
 4. **Bloqueo Vinculante de Tarea**: Con `REJECTED`, el escritor tiene **prohibido** marcar la tarea como completada (`[x]`).
 
-## 3. Matriz de Verificación Adversarial (5 Ejes Críticos)
+## 3. Matriz de Verificación Adversarial (6 Ejes Críticos)
 
 | Eje | Qué busca el Auditor | Criterio de Rechazo Inmediato (REJECTED) |
 | :--- | :--- | :--- |
@@ -44,6 +44,7 @@ metadata:
 | **3. Ciberseguridad, BD & Tiempo** | 100% queries SQL parametrizadas. WAL mode y timeout configurados (`busy_timeout >= 10000`, `timeout=15.0`). Invariante UTC en fechas. Compare-and-Swap atómico en transiciones. | Concatenación en SQL; SQLite sin timeout; datetimes naive (`datetime.now()`); o transiciones de estado con `SELECT` previo en vez de CAS atómico. |
 | **4. Anti-Mocking & Tests** | Aserciones reales sobre comportamiento de dominio o endpoints. | Mocks hardcodeados, tests vacíos o aserciones triviales tipo `assert True`. |
 | **5. Manejo de Errores** | Errores manejados explícitamente y propagados con contexto. | Errores silenciados con `_ = err`, `except: pass` o fallbacks silenciosos. |
+| **6. Manifiesto & Grounding Empírico** | Todos los entregables especificados creados en disco (`test -s`). Afirmaciones de compatibilidad/negocio contrastadas contra DB o logs reales. | Entregables referenciados en texto pero no creados físicamente; suposiciones heurísticas sin evidencia de consulta a la base de datos o logs. |
 
 ## 4. Contrato de Ejecución & Despacho
 - [ ] **M1 (Extracción)**: El orquestador extrae el diff (`git diff origin/main..HEAD` o `git diff HEAD~1..HEAD`) y carga reporte previo si existe.

@@ -49,6 +49,8 @@ Las auditorías de calidad (P01, P09, `q-audit-readonly`):
 - **Prohibido penalizar la ausencia de capas horizontales vacías.**
 - **Tolerancia Cero a Fake Completions:** Todo checkbox marcado (`[x]`) debe estar respaldado por evidencia observable en terminal (código de salida 0, tests verdes, HTTP status). Mocks estáticos que simulen persistencia sin autorización explícita constituyen una falla crítica (`❌ Gap P0`).
 - **Regla de Citación de Claves Primarias (Entity ID Citation Rule):** Al auditar bases de datos, incidentes o evidencia forense en tablas, es obligatorio citar explícitamente el identificador de fila o clave primaria (`<tabla>.<pk> = <id>`) junto con los valores de las columnas semánticas; omitir el ID formal invalida la trazabilidad de la evidencia.
+- **Manifiesto Estricto de Entregables (Anti-Truncamiento):** Si una tarea o especificación requiere múltiples artefactos (código, migraciones, scripts, reportes, diagramas), queda terminantemente prohibido marcar la tarea como concluida o referenciar entregables no generados. Todos y cada uno de los artefactos solicitados deben existir físicamente en disco y no estar vacíos (`test -s <archivo>`).
+- **Empirical Grounding First (Cero Suposiciones Heurísticas):** Toda aseveración técnica, cálculo de compatibilidad, regla de negocio o diagnóstico debe contrastarse directamente contra las fuentes de datos empíricas provistas (bases de datos, logs, tablas de soporte). Queda prohibido asumir datos apoyándose en heurísticas previas del modelo sin verificación explícita en los registros.
 
 ---
 

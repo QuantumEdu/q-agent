@@ -107,6 +107,7 @@ Paso 9     ──► BUCLE OPS-TO-ODD (Reproduction-First ante incidentes)
 ## 3. Completion Gate del Orquestador
 Antes de certificar la entrega de un ciclo al usuario:
 - [ ] Cada tarea de la bitácora viva cuenta con entrada verificada en `Terminal Evidence Gate`.
+- [ ] **Manifiesto de Entregables cumplido**: Todos los archivos y artefactos solicitados en la spec existen físicamente en disco y no están vacíos (`test -s <archivo>`), sin truncamientos ni meras referencias en texto.
 - [ ] Veredicto adversarial emitido como `APPROVED` sin blockers `R-xx` abiertos.
 - [ ] `REVIEW.md` generado y presentado para firma humana en Paso 8.
 - [ ] Estado final declarado explícitamente: `[COMPLETE]`, `[BLOCKED - reason]` o `[FAILED - reason]`.
