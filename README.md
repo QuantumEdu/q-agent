@@ -48,7 +48,7 @@ La memoria del proyecto opera de forma local-first; la consulta a repositorios d
 
 ## 2. Flujo Integral de Ejecución (End-to-End Flow)
 
-El ciclo de vida en `q-agent` sigue una progresión estricta desde la concepción hasta el despliegue:
+El ciclo de vida en `q-agent` sigue una progresión estricta desde la concepción hasta el despliegue a producción, garantizando evidencia observable y cero mocks:
 
 ```mermaid
 flowchart TD
@@ -65,47 +65,57 @@ flowchart TD
         S2 --> S3{"Paso 3: Gate de Meta-Orquestación"}:::gate
     end
 
-    subgraph DualEngine["FASE II: DUAL ENGINE & RUTA DE TRABAJO"]
-        S3 -->|"Motor Dual Integrado"| S4a["Gentle-AI ODD (Harness estándar)"]:::auto
-        S3 -->|"Motor Canónico"| S4b["q-agent Standalone (Pipeline SDD nativo)"]:::auto
+    subgraph DualEngine["FASE II: DUAL ENGINE & APERTURA DE BITÁCORA"]
+        S3 -->|"Motor Dual Integrado"| S4a["Gentle-AI ODD (odd/tasks/<feature>.md)"]:::auto
+        S3 -->|"Motor Canónico"| S4b["q-agent Standalone (q-tasks/<feature>.md)"]:::auto
     end
 
-    subgraph WaveExec["FASE III: EJECUCIÓN POR OLEADAS & WORKTREES (Pasos 4 a 7)"]
+    subgraph WaveExec["FASE III: EJECUCIÓN POR OLEADAS & COMPUERTA DUAL (Pasos 4 a 7)"]
         S4a & S4b --> WT["Aislamiento en Git Worktrees (.q-worktrees/task-ID)"]:::auto
-        WT --> TDD["Reproduction-First TDD (RED obligatorio -> GREEN)"]:::auto
-        TDD --> HYG["Higiene de Linters (q-ci-fixer, máx 2 pasadas)"]:::skill
+        WT --> SLICE["Paso 5: Slice Vertical Autónomo (~400 LOC, ARQ-01)"]:::auto
+        SLICE --> DUAL_GATE{"Paso 6: Dual Verification Gate"}:::gate
+        DUAL_GATE -->|"Fase A (Máquina)"| MACH["Compilación, Tests, Linters & q_inspect (.docx/.xlsx)"]:::auto
+        DUAL_GATE -->|"Fase B (Adversarial)"| AR["q-adversarial-review (Review Remembers R-IDs)"]:::skill
+        AR -->|"REJECTED (Budget agotado)"| QUAR["q-worktree quarantine (Aislamiento a quarantine/*)"]:::gate
+        MACH & AR -->|"APPROVED (Exit 0)"| TEG["Terminal Evidence Gate (Evidencia real + Telemetría Costo)"]:::auto
+        TEG --> SYNC["Paso 7: Higiene Determinista & Sync en BLUEPRINT.md"]:::auto
     end
 
-    subgraph GovernanceGate["FASE IV: GOBERNANZA & DEPLOY GATE (Paso 8 y Cierre)"]
-        HYG --> MG{"q-merge-gate (Análisis determinista de blast-radius)"}:::gate
-        MG -->|"Exit 0: PROCEED"| MRG["Merge limpio a main & Prune de Worktree"]:::auto
-        MG -->|"Exit 7 / 8"| HUM["Compuerta Humana Requerida (Security/Money/Schema)"]:::gate
+    subgraph GovernanceGate["FASE IV: GOBERNANZA & DEPLOY GATE (Pasos 8 y 9)"]
+        SYNC --> MG{"Paso 8: q-merge-gate (Análisis blast-radius)"}:::gate
+        MG -->|"Exit 0: PROCEED"| MRG["Merge a main & Prune de Worktree"]:::auto
+        MG -->|"Exit 7 / 8"| HUM["Compuerta Humana (Security/Money/Schema)"]:::gate
         HUM --> MRG
-        MRG --> AR["q-adversarial-review (Review Remembers Protocol)"]:::skill
-        AR --> S8["Paso 8: Deploy Gate Formal (REVIEW.md firmado)"]:::gate
-        S8 --> S9["Paso 9 / Ops: Retroalimentación continua (P10 Ops-to-ODD)"]:::auto
+        MRG --> S8["Deploy Gate Formal (REVIEW.md firmado por humano)"]:::gate
+        S8 --> S9["Paso 9 / Ops: Bucle Ops-to-ODD (Telemetría -> RED_FAIL TDD)"]:::auto
     end
 ```
 
 ### Las 4 Fases Operativas:
 
 1. **Fase I: Onboarding Socrático & Descubrimiento (Pasos 0 a 3):**
-   - Una sola pregunta por turno. El agente escucha, no asume.
-   - Identifica el Plan: **Plan A** (Greenfield), **Plan B** (Brownfield), **Plan F** (Fast-Track quirúrgico ≤3 archivos) o **Plan C** (Auditoría Forense CAB-RP 2.0).
-   - Cristaliza decisiones mediante `q-deliberate` (Proponente, Adversario, Sintetizador) y redacta los primeros ADRs.
+   - **Una sola pregunta por turno:** El agente escucha y valida antes de asumir.
+   - **Selección de Plan:** **Plan A** (Greenfield), **Plan B** (Brownfield), **Plan F** (Fast-Track quirúrgico ≤3 archivos) o **Plan C** (Auditoría Forense CAB-RP 2.0).
+   - **Elicitación y Deliberación:** `q-deliberate` resuelve bifurcaciones dialécticas y genera ADRs; `q-grill-me` desafía supuestos frágiles antes de escribir especificaciones.
 
-2. **Fase II: Meta-Orquestación & Dual Engine (Paso 3):**
-   - Detecta si el entorno opera bajo el harness de Gentle-AI o en modo Standalone.
-   - Aplica el **Model Tier Routing**: Tiers de alto razonamiento (Tier 1: Gemini Pro, GPT-6 Astra) para arquitectura, especificaciones y contratos; Tiers locales y ultrarrápidos (Tier 2: Qwen ROCm, Gemini Flash-Lite) para reparación de linters y tests unitarios.
+2. **Fase II: Meta-Orquestación & Dual Engine (Pasos 3 y 4):**
+   - **Detección Dinámica:** Detecta automáticamente si opera bajo Gentle-AI ODD (`odd/tasks/`) o en modo Standalone (`q-tasks/`).
+   - **CodeGraph Auto-Init:** Inicializa y explora dependencias mediante AST real (`codegraph_explore` / `codegraph impact`) antes de búsquedas ciegas.
+   - **Apertura de Bitácora Viva:** Define User Stories ágiles (BMAD) y Criterios de Aceptación (`UAC`), gobernados bajo el **Artículo Constitucional ARQ-01**.
 
-3. **Fase III: Ejecución por Oleadas & Worktrees Aislados (Pasos 4 a 7):**
-   - Se crean entornos efímeros bajo `.q-worktrees/task-<ID>` mediante `q_worktree.py`. La rama de trabajo del desarrollador jamás se ensucia ni sufre colisiones.
-   - **Reproduction-First TDD:** Se escribe el test reproductor antes de tocar el código fuente (`RED_FAIL`). Al implementar la solución, se certifica el paso verde (`GREEN_PASS`).
+3. **Fase III: Ejecución por Oleadas & Compuerta Dual (Pasos 4 a 7):**
+   - **Aislamiento en Worktrees:** Cada tarea corre en `.q-worktrees/task-<ID>` mediante `q_worktree.py`, protegiendo la rama de trabajo principal de colisiones.
+   - **Slices Verticales Cohesivos:** Persistencia pragmática (SQLite WAL con `busy_timeout=10000`, transacciones atómicas Compare-and-Swap, timestamps UTC) y separación de vistas `.html` empaquetadas.
+   - **Compuerta Dual de Verificación (Paso 6):**
+     * **Fase A (Máquina):** Compilación estricta, tests automatizados, linters y validación estructural de entregables vía `tools/q-inspect/q_inspect.py` (código, documentos `.docx` y hojas de cálculo `.xlsx` sin dependencias externas).
+     * **Fase B (Adversarial):** Subagente aislado audita el `git diff` contra ARQ-01 mediante el protocolo *Review Remembers* (`R-01`, `R-02`), exigiendo veredicto `APPROVED`. Si se agota el presupuesto de 2 rondas, la rama se aísla automáticamente a `quarantine/<task_id>`.
+   - **Terminal Evidence Gate:** Registro obligatorio de comandos reales, códigos de salida 0 y telemetría de costos/tokens por tarea en la bitácora viva.
+   - **Paso 7 Higiene:** Consolidación de nuevos slices en `BLUEPRINT.md`.
 
-4. **Fase IV: Gobernanza, Compuerta de Políticas y Cierre (Pasos 8 y 9):**
-   - **`q-merge-gate`:** Analiza el diff de la rama antes de fusionar. Si se superan 500 LOC o se tocan dominios sensibles (`money`, `auth`, `schema`), detiene la automatización y exige aprobación explícita humana.
-   - **Review Remembers Protocol (`q-adversarial-review`):** Audita el código con un agente sin sesgo previo y hace seguimiento formal de hallazgos persistentes (`R-01`, `R-02`).
-   - **Paso 8 Deploy Gate:** Firma humana obligatoria en `REVIEW.md` antes de cualquier despliegue a producción.
+4. **Fase IV: Gobernanza de Fusión, Deploy Gate y Operaciones (Pasos 8 y 9):**
+   - **Merge Gate Determinista (`q-merge-gate`):** Evalúa el radio de impacto (*blast radius*). Si el cambio supera 500 LOC o toca dominios críticos (`money`, `auth`, esquemas DDL), detiene la automatización y exige aprobación humana (`Exit 7/8`).
+   - **Paso 8 Deploy Gate:** Generación de `REVIEW.md` con matriz de evidencia. **Bloqueo absoluto:** Prohibido desplegar a producción sin firma humana explícita.
+   - **Paso 9 Bucle Ops-to-ODD:** Los fallos o logs en producción (Sentry/telemetría) se inyectan como tests reproductores en rojo (`RED_FAIL`) antes de autorizar cualquier reparación.
 
 ---
 
@@ -190,16 +200,25 @@ Task output and operational diagnostics have documented retention/size limits.
 
 `q-agent` incluye utilidades CLI sin dependencias externas diseñadas para integrarse en pipelines y subagentes:
 
-### 1. `tools/q-worktree/` (Aislador de Worktrees para Subagentes)
+### 1. `tools/q-worktree/` (Aislador de Worktrees y Protocolo de Cuarentena)
 ```bash
 python3 tools/q-worktree/q_worktree.py create --task TICKET-01 --base main
 python3 tools/q-worktree/q_worktree.py list --json
 python3 tools/q-worktree/q_worktree.py merge --task TICKET-01 --target main
+python3 tools/q-worktree/q_worktree.py quarantine --task TICKET-01 --reason "Review budget exhausted"
 python3 tools/q-worktree/q_worktree.py remove --task TICKET-01
 ```
-Garantiza que múltiples subagentes u oleadas trabajen en paralelo sin colisionar en el árbol de trabajo principal del usuario.
+Garantiza que múltiples subagentes u oleadas trabajen en paralelo sin colisionar en el árbol de trabajo principal del usuario. Si un slice agota su presupuesto de corrección o es bloqueado, `quarantine` archiva atómicamente la rama a `quarantine/<task_id>` y desmonta el directorio sin ensuciar `main`.
 
-### 2. `tools/q-merge-gate/` (Compuerta Determinista de Políticas de Merge)
+### 2. `tools/q-inspect/` (Linter Estructural de Entregables Zero-Dep)
+```bash
+python3 tools/q-inspect/q_inspect.py report.docx balance.xlsx handler.go
+python3 tools/q-inspect/q_inspect.py --json spec.md data.csv
+```
+- **Integridad de Ofimática OpenXML:** Inspecciona documentos `.docx` y hojas de cálculo `.xlsx` sin dependencias de terceros (utilizando la librería estándar de Python vía `zipfile` y `xml.etree.ElementTree`).
+- **Detección de Defectos Estructurales:** Alerta ante cuerpos vacíos, hojas de cálculo sin filas, fórmulas rotas (`#REF!`, `#N/A`, `#VALUE!`, `#DIV/0!`) y sentinelas de relleno (`TODO`, `NaN`, `undefined`, `[Insert]`).
+
+### 3. `tools/q-merge-gate/` (Compuerta Determinista de Políticas de Merge)
 ```bash
 python3 tools/q-merge-gate/q_merge_gate.py --base main --head HEAD --max-loc 500 --json
 ```
@@ -207,10 +226,10 @@ python3 tools/q-merge-gate/q_merge_gate.py --base main --head HEAD --max-loc 500
 - **Exit 7 (`HUMAN_APPROVAL_REQUIRED`):** Modificaciones en lógica financiera/pagos (`money`), autenticación/seguridad (`auth`) o exceso de líneas.
 - **Exit 8 (`HUMAN_ACTION_REQUIRED`):** Modificaciones destructivas en esquemas de base de datos o migraciones DDL.
 
-### 3. `skills/q-adversarial-review/` (Revisión Adversarial con *Review Remembers*)
+### 4. `skills/q-adversarial-review/` (Revisión Adversarial con *Review Remembers*)
 Audita el código con un agente con contexto limpio e implementa el protocolo **Review Remembers**: asigna identificadores persistentes (`R-01`, `R-02`...) a cada hallazgo y exige evaluar una matriz de estado (`[FIXED]`, `[NOT_FIXED]`, `[NO_LONGER_APPLIES]`) antes de autorizar la entrega, eliminando discusiones circulares.
 
-### 4. `tools/q-cockpit/` (Cockpit Visual y Recuperación de Sesión)
+### 5. `tools/q-cockpit/` (Cockpit Visual y Recuperación de Sesión)
 ```bash
 just cockpit-plus        # Inicia cockpit interactivo con snapshots de repositorio
 just cockpit-health      # Reporte de estado de salud del proyecto
@@ -218,7 +237,7 @@ python3 tools/q-cockpit/q_cockpit_plus.py backup --output sessions.zip
 python3 tools/q-cockpit/q_cockpit_plus.py restore --archive sessions.zip --destination sessions/
 ```
 
-### 5. `tools/q-audit-validator/` & `tools/q-audit-aggregator/` (Plan C Forense)
+### 6. `tools/q-audit-validator/` & `tools/q-audit-aggregator/` (Plan C Forense)
 ```bash
 python3 tools/q-audit-validator/validate_audit.py --mode manifest --level 2
 python3 tools/q-audit-aggregator/generate_report.py
