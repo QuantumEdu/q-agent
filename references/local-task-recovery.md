@@ -144,3 +144,10 @@ failures, not a physical full disk, filesystem corruption or power-loss simulati
 
 See [the Cloudroom-inspired roadmap](cloudroom-inspired-roadmap.md) for the
 implemented features and remaining proposals. No Cloudroom service code is bundled.
+
+## Durable workflow controller (2.11+)
+
+See [Durable workflows](durable-workflow.md) for phase checkpoints, shared repair
+budgets, process-orphan exclusion, effect reconciliation and ledger snapshots.
+Uncertain commands now require a structured `task reconcile` before retry by
+default; legacy commands remain available without workflow registration.

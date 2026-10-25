@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.11.0]
+
+### Added
+- Optional Python/SQLite workflow controller with versioned phase checkpoints,
+  sequence checks, frozen test/config surfaces, commit-bound proof and review.
+- Transactional per-task correction budget (default two), consumed before child
+  admission and preserved across failures, duplicate requests and restarts.
+- Candidate-bound local effect receipts with recorded authorization evidence,
+  one-time claims, external-outcome reconciliation and append-only event history.
+  This ledger is not a remote executor or external authorization boundary.
+- Explicit command reconciliation plus private SQLite backup/empty-ledger restore,
+  integrity/version/project checks and non-overwriting snapshot creation.
+
+### Fixed
+- Gate child execution until process identity is durably recorded. An inherited
+  workload lease and Linux subreaper supervision block conflicting dispatch after
+  runner SIGKILL, including detached descendants. Missing supervisor completion
+  requires explicit reconciliation; foreign process environments are never read.
+- Failed reverification clears prior green proof. Candidate, test or controller
+  drift blocks completion, review reuse and stale effect claims.
+- Preserve legacy command use; new durable workflows require Linux /proc. Strong
+  containment, native conversation recovery and external approval enforcement
+  remain separate integrations.
+
+### Validation
+- All 139 tests passed locally on Python 3.10.21, 3.11.16 and 3.12.14,
+  including 17 new durability regressions. Independent review APPROVED with
+  R-01/R-02 fixed; original SIGTERM/SIGINT and receipt failure tests preserved.
+- Compilation, shell/package checks, CLI and benchmark smoke passed. Local
+  results and controller fingerprint are recorded in docs/validation.
+
 ## [2.10.0] - 2026-10-22
 
 ### Added

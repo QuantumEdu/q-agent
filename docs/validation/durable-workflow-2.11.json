@@ -1,0 +1,42 @@
+{
+  "release": "2.11.0",
+  "base_commit": "d187e632f66c8ca9b47b577be08d0e865561feaf",
+  "controller_sha256": "0c774d6504dd96e8737fce3d126d859b811376211a09228b0dcad890714d20eb",
+  "command": "python3 -m unittest discover -s tests -v",
+  "conditions": "separate workspace-local TMPDIR and Q_COCKPIT_HOME; all three interpreters ran concurrently",
+  "results": [
+    {
+      "python": "Python 3.10.21",
+      "tests": 139,
+      "exit_code": 0,
+      "log_sha256": "3f9955b443f285c9e10367b9753ae309d6cecc0cd8dfcc0bb6e9852f1d0a36b9"
+    },
+    {
+      "python": "Python 3.11.16",
+      "tests": 139,
+      "exit_code": 0,
+      "log_sha256": "e9ff59cceaee0eaf6f98985214c29ca8cd38a7639c8242fb0b4001ebafe1b2d1"
+    },
+    {
+      "python": "Python 3.12.14",
+      "tests": 139,
+      "exit_code": 0,
+      "log_sha256": "57336eca5cecf06b650fa9edc86c04b08105333b47930ca754c53577fe0b908f"
+    }
+  ],
+  "review": {
+    "verdict": "APPROVED",
+    "reviewer": "independent durable_controller_review",
+    "R-01": "FIXED: completed crashed repair reconciliation preserves budget and requires fresh proof",
+    "R-02": "FIXED: reproduction bound to workflow registration",
+    "independent_durability_tests": 17
+  },
+  "smoke": [
+    "compileall tools/tests",
+    "shell syntax",
+    "skill.json parse",
+    "CLI version and help",
+    "local benchmark"
+  ],
+  "scope": "Linux local process/workflow durability; no native model resume, remote deployment, external approval security boundary, or kernel sandbox claimed"
+}

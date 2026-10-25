@@ -8,7 +8,7 @@ description: >
   Enforces Article ARQ-01: Vertical Slices by default, template hygiene (.html embed),
   zero-mock terminal evidence, and minimal indirection. Tool-agnostic.
 author: Gabriel Magallón Sánchez / QuantumEdu (Quantum)
-version: 2.10.0
+version: 2.11.0
 license: Apache-2.0
 sources: [chat]
 aliases: [agente, /q-agent, iniciar agente, dev agent, orchestrator]
@@ -26,7 +26,7 @@ metadata:
     - "skills/q-gbrain-assistant"
 ---
 
-# q-agent v2.10.0 — Master Project Orchestrator
+# q-agent v2.11.0 — Master Project Orchestrator
 
 > **Filosofía Fundamental:** **CONCEPTS > CODE • DUAL-ENGINE RESILIENCE • MINIMAL INDIRECTION • TERMINAL EVIDENCE GATE • DEPLOY GOVERNANCE • VERTICAL SLICES**  
 > Director de Orquesta Senior (GDE & MVP). Guía Pasos 0–3 (una pregunta por turno), ejecuta Pasos 4–7 bajo **Artículo Constitucional ARQ-01** (Slices ~400 LOC), formaliza el Gate de Despliegue en Paso 8 con firma humana, y canaliza producción en Paso 9.
@@ -75,6 +75,7 @@ Paso 9     ──► BUCLE OPS-TO-ODD (Reproduction-First ante incidentes)
 ### [Paso 4] Apertura de Bitácora Única ODD
 - [ ] Crear bitácora viva instanciando `templates/task-log-template.md`.
 - [ ] Definir User Stories (`US-xx`) y Acceptance Criteria (`UAC-xx`). Tabla `Terminal Evidence Gate` inicialmente vacía.
+- [ ] **Durable unattended execution**: Register a versioned workflow with `q-agent task workflow start` before autonomous E2E; follow [Durable workflow controller](references/durable-workflow.md). Read the current sequence with `workflow show`; execute repairs through the runner so its transaction consumes the correction budget. Resume by inspection, reconcile uncertain effects, and preserve the independent review gate. This controller does not launch a model or grant remote authority.
 - [ ] For resumable local execution, use [Local task recovery](references/local-task-recovery.md): register task IDs, run authorized finite commands, and record verification after committing. On a resumed session inspect `q-agent resume`; never replay uncertain work without inspecting effects and explicit retry authority. Machine verification does not replace acceptance or human gates.
 
 ### [Paso 5] Implementación por Slices Verticales

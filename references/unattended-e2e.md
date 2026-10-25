@@ -1,7 +1,10 @@
 # Hosted unattended E2E repair
 
 This is an instruction-driven P06 workflow executed by the current agent host.
-It does not launch a model, add a CLI controller or enforce permissions in code.
+It does not launch a model or enforce remote permissions. The optional
+[durable controller](durable-workflow.md) now persists phases and enforces repair
+budgets for commands dispatched through registered workflows. Use it for
+autonomous execution; the host still performs diagnosis and supplies commands.
 Use it in `autonomous` mode when implementation, testing and bounded corrections
 are already authorized. Follow [execution authority](execution-authority.md).
 No extra question is needed for covered local repairs. Merge/deploy keep their
@@ -26,9 +29,11 @@ Mode selection alone never authorizes previously unapproved edits or operations.
    needed, but never delete/skip/weaken tests or change expected behavior to pass.
    Record new tests with their own hashes. A legitimate acceptance change needs
    separate user authority and a new task, not silent editing during this loop.
-4. Set `corrections_used = 0`, `max_corrections = 2` and persist them in the log.
-   Initial run is execution 0; corrections 1 and 2 permit executions 1 and 2.
-   A correction may fix multiple related defects. Stop early on success.
+4. Register the durable workflow with maximum two corrections. Its SQLite
+   counter is authoritative; mirror it in the log instead of maintaining a second
+   counter. Initial run is execution 0; corrections 1 and 2 permit executions 1
+   and 2. Dispatch each whole repair round as one bounded command in `fixing`;
+   its invocation may edit multiple related files. Stop early on success.
 
 ## Execute, diagnose, repair, verify
 
@@ -72,7 +77,8 @@ Record only executed rows. Save diagnosis/counter BEFORE editing. On resumption
 recover the counter from this same log and inspect the working tree/processes.
 If the record is missing or contradictory, stop blocked instead of assuming zero.
 With `q-agent task`, register once and use distinct request IDs per execution.
-After failure inspect effects, then use `task retry --reason` referencing that
+After failure inspect effects; uncertain commands require `task reconcile` with
+   the observed outcome first. Then use `task retry --reason` referencing that
 inspection and the existing human authorization before another `task run`.
 A retry reason is evidence metadata, never a grant of permission. Commit before
 `task verify` and preserve its commit-bound evidence; machine success is separate

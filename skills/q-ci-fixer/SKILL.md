@@ -27,7 +27,7 @@ metadata:
 - **Hosted autonomous E2E**: Follow [unattended E2E](../../references/unattended-e2e.md). Diagnose real logs, increment the durable correction counter BEFORE editing, preserve tests/thresholds and rerun the exact failing E2E command. Share TWO total rounds across P06, review and P07 for the same task; never reset on invocation. Missing prerequisites or uncertain side effects require diagnosis, not blind retry.
 
 ## 2. Contrato de Ejecución Paso a Paso (4 Capas)
-En E2E autónomo, antes de M1 comprobar e incrementar el presupuesto compartido.
+En E2E autónomo usar el [controlador durable](../../references/durable-workflow.md): antes de M1 comprobar la fase y secuencia actuales; despachar toda corrección mediante `task run` en fase `fixing`, donde el contador se incrementa transaccionalmente. La bitácora refleja el contador persistido y nunca lo sustituye.
 Limitar autofix y formato a fuentes autorizadas, excluyendo tests congelados;
 cualquier modificación invalida evidencia y revisión anteriores y exige repetirlas.
 - [ ] **M1 (Linteo y Formato Automático)**:

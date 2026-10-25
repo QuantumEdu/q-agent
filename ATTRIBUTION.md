@@ -86,3 +86,7 @@ Todo el paquete `q-agent v2.0` se distribuye bajo la **Apache License, Version 2
 - Exige la preservación de los avisos de derechos de autor y este manifiesto de atribución en toda redistribución.
 
 Para más detalles, consultar el archivo [`LICENSE`](LICENSE).
+
+Durable workflow design references: [Pi-Durable-SRE-Agent](https://github.com/GIFO14/Pi-Durable-SRE-Agent/tree/d6218a8d8ac509bd1c2f65de090055450cbc9a1b)
+and the official Pi Durable 1.3.0 SDK's checkpoint/replay model. q-agent's Python/SQLite
+controller is an independent implementation, without a Pi SDK dependency.

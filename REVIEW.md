@@ -1,3 +1,24 @@
+# q-agent 2.11.0 — Durable workflow controller
+
+**APPROVED.** R-01 (completed interrupted repair recovery) and R-02 (historical
+failure used as RED) are FIXED; no open findings. Linux subreaper supervision and
+completion receipts replace global environment scanning. The controller persists
+phases, repair budgets, candidate-bound evidence, local effect receipts and backup
+state; it does not launch models, deploy or enforce remote operation authority.
+
+139 tests passed on each of Python 3.10/3.11/3.12 concurrently. Independent reviewer
+passed all 17 new durability tests. Original 13 runner tests and smoke checks passed.
+See [task evidence](q-tasks/durable-workflow-2.11.md),
+[validation record](docs/validation/durable-workflow-2.11.json) and
+[operating contract](references/durable-workflow.md).
+
+Publication uses the user's existing explicit direct-main-push authorization.
+No production deployment is part of this change. The broad feature diff exceeds
+500 lines; it requires the existing human publication authority plus independent
+review, rather than a claim that a machine gate alone authorizes publication.
+
+---
+
 # q-agent 2.9.2 — Hosted unattended E2E workflow
 
 **APPROVED, round 2.** R-01 (P07 mutating formatters before budget checks) is FIXED;

@@ -41,3 +41,11 @@ workers require their own implementation and verification, not just configuratio
 The version declaration and changelog on a branch prepare a release; they do not
 prove a PR merged, a tag exists or a release was published. GitHub API access is
 required to automate PR/release operations and inspect remote CI.
+
+## Local workflow extension (2.11)
+
+[Durable workflows](durable-workflow.md) add phase checkpoints, transactional repair
+budgets, orphan exclusion for cooperative Linux workloads, candidate-bound local
+effect receipts and ledger snapshots. They do not provide kernel containment,
+model-conversation recovery, remote credentials or external approval enforcement.
+Those conditional roadmap items remain open.
