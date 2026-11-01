@@ -23,7 +23,7 @@ En el desarrollo asistido por IA, el fallo más común es dar por terminado un c
 **Criterio de Tolerancia Cero:**
 - Ningún checkbox se marca por "suposición".
 - Ningún endpoint se da por bueno sin haber recibido una respuesta HTTP válida o haber ejecutado su test de integración correspondiente.
-- Toda simulación no autorizada se clasifica como una falta crítica (`❌ Gap P0`).
+- Toda simulación no autorizada se clasifica como una falta crítica (`❌ Gap P0`). Quedan prohibidos mocks sintéticos que falseen lógica de dominio o persistencia interna; se autorizan emuladores herméticos de contrato (WireMock, LocalStack, sandbox SQLite) para aislar servicios externos con efectos colaterales.
 
 ---
 
