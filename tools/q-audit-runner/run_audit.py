@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import importlib.util
 import json
 import subprocess
 import sys
@@ -14,19 +13,12 @@ from typing import Any
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
 
+if str(HERE) not in sys.path:
+    sys.path.insert(0, str(HERE))
 
-def _load(name: str, path: Path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        raise ImportError(f"Unable to load {path}")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
-    return module
+import audit_lifecycle as lifecycle_module
+import evidence as evidence_module
 
-
-lifecycle_module = _load("q_audit_lifecycle_runner", ROOT / "tools/q-audit-lifecycle/audit_lifecycle.py")
-evidence_module = _load("q_audit_evidence_runner", ROOT / "tools/q-audit-evidence/evidence.py")
 AuditLifecycle = lifecycle_module.AuditLifecycle
 AuditState = lifecycle_module.AuditState
 
