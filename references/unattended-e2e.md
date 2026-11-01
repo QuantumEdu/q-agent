@@ -43,7 +43,11 @@ Mode selection alone never authorizes previously unapproved edits or operations.
   timeout, interrupted execution or missing evidence never count as a pass.
 - On failure inspect current logs and side effects. Identify failing acceptance
   criteria and classify product defect versus environment/uncertain outcome.
-  Repair an understood, in-scope product defect using `skills/q-ci-fixer`.
+  For suspected transient or environment issues (e.g., SQLite lock contention,
+  socket timeouts, port race conditions), run exactly ONE clean rerun without editing
+  code. If it passes, log `FLAKY_ENVIRONMENT` with 0 corrections consumed.
+  If it reproduces identically, classify as a deterministic defect and repair
+  using `skills/q-ci-fixer`.
 - **Before each source-editing correction, increment and persist the counter.**
   Every repair round consumes budget, including unsuccessful fixes and review or
   regression findings. P06, q-ci-fixer and P07 share the SAME task budget; changing

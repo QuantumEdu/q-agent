@@ -84,7 +84,7 @@ Paso 9     ──► BUCLE OPS-TO-ODD (Reproduction-First ante incidentes)
 - [ ] ⛔ **BLOQUEO**: Prohibido marcar tareas como completadas (`[x]`) en este paso.
 
 ### [Paso 6] Dual Verification Gate (Terminal Evidence + Adversarial Review)
-- [ ] **Autonomous E2E**: Follow [Hosted unattended E2E repair](references/unattended-e2e.md). Freeze tests, run real E2E, diagnose failures and invoke q-ci-fixer for at most TWO total correction rounds per task (initial run + up to two reruns). Persist the shared counter across P06/review/P07; exhausted budget means BLOCKED, never a reset. Si se agota el presupuesto en un worktree aislado, aislar la rama mediante `python3 tools/q-worktree/q_worktree.py quarantine --task TASK-XX --reason "<motivo>"`. Require regressions and independent APPROVED review before completion.
+- [ ] **Autonomous E2E**: Follow [Hosted unattended E2E repair](references/unattended-e2e.md). Freeze tests, run real E2E, triage transient flakiness with a single clean rerun (flakes do not consume budget), diagnose deterministic failures and invoke q-ci-fixer for at most TWO total correction rounds per task (initial run + up to two reruns). Persist the shared counter across P06/review/P07; exhausted budget means BLOCKED, never a reset. Si se agota el presupuesto en un worktree aislado, aislar la rama mediante `python3 tools/q-worktree/q_worktree.py quarantine --task TASK-XX --reason "<motivo>"`. Require regressions and independent APPROVED review before completion.
 - [ ] **Fase A (Máquina)**: Compilación, linters, tests reales y smoke HTTP.
 - [ ] **Fase B (Adversarial)**: Despachar `skills/q-adversarial-review` en subagente aislado (`invoke_subagent`).
   - Auditar diff contra ARQ-01 con protocolo **Review Remembers** (`R-IDs`).

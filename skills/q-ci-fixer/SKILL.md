@@ -24,6 +24,7 @@ metadata:
   - ⛔ **PROHIBIDO refactors cosméticos o nuevas features**: Modificar únicamente las líneas indispensables para resolver el error.
   - No usar si el fallo responde a una falta de definición de producto o cambio arquitectónico no acordado.
 - **Límite Duro**: Máximo **2 pasadas de corrección**. Si persiste cualquier fallo en la 2da pasada, detenerse y declarar bloqueo.
+- **Triaje Previo de Flakiness**: No invocar ante fallos ambientales efímeros (`database is locked`, socket timeout); comprobar primero con re-ejecución limpia única. Solo reparar fallos deterministas reproducibles.
 - **Hosted autonomous E2E**: Follow [unattended E2E](../../references/unattended-e2e.md). Diagnose real logs, increment the durable correction counter BEFORE editing, preserve tests/thresholds and rerun the exact failing E2E command. Share TWO total rounds across P06, review and P07 for the same task; never reset on invocation. Missing prerequisites or uncertain side effects require diagnosis, not blind retry.
 
 ## 2. Contrato de Ejecución Paso a Paso (4 Capas)

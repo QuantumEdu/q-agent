@@ -101,6 +101,7 @@ Una vez aprobadas AMBAS fases (Máquina + Adversarial):
 
 - Si el comando de terminal falla (código de salida != 0):
   1. Analizar el stack trace o mensaje de error real devuelto por la terminal.
-  2. Corregir el código en disco.
-  3. En modo autónomo seguir [Hosted unattended E2E repair](../references/unattended-e2e.md): máximo dos rondas totales de corrección por tarea, compartidas con revisión y P07. Ejecutar el mismo E2E tras cada corrección; agotar el presupuesto implica BLOCKED. En otros modos acordar cualquier corrección adicional antes de continuar.
-  4. Jamás marcar la tarea ni reportar éxito si persiste algún fallo.
+  2. **Triaje de Flake vs. Defecto Determinista:** Si el fallo presenta síntomas ambientales o intermitentes (`database is locked`, contención de recursos, socket timeout transitorio), ejecutar exactamente **una re-ejecución limpia sin mutar código**. Si pasa en el segundo intento, registrar la advertencia como `FLAKY_ENVIRONMENT` sin descontar presupuesto de corrección.
+  3. Si el fallo es determinista o se repite de forma idéntica en el re-intento: recién entonces clasificar como defecto de producto, incrementar el contador durable de corrección y proceder a corregir el código en disco (o invocar `skills/q-ci-fixer`).
+  4. En modo autónomo seguir [Hosted unattended E2E repair](../references/unattended-e2e.md): máximo dos rondas totales de corrección por tarea, compartidas con revisión y P07. Ejecutar el mismo E2E tras cada corrección; agotar el presupuesto implica BLOCKED. En otros modos acordar cualquier corrección adicional antes de continuar.
+  5. Jamás marcar la tarea ni reportar éxito si persiste algún fallo.
