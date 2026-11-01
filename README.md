@@ -1,9 +1,9 @@
 # q-agent — Master Project Orchestrator
-> **Hermetic deployment package v2.11.0 (Dual Engine, Vertical Slices & Wave Execution)** · Tool-agnostic · Greenfield · Brownfield · Fast-Track · Audit
+> **Hermetic deployment package v2.11.1 (Dual Engine, Vertical Slices & Wave Execution)** · Tool-agnostic · Greenfield · Brownfield · Fast-Track · Audit
 
 [![CI Pipeline](https://github.com/QuantumEdu/q-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/QuantumEdu/q-agent/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.11.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.11.1-green.svg)](CHANGELOG.md)
 
 ---
 
@@ -24,7 +24,7 @@ Los frameworks contemporáneos de agentes autónomos fallan en producción debid
 
 ### Matriz Comparativa de Capacidades
 
-| Capacidad | GitHub Spec-Kit | OpenSpec | BMAD Method | Superpowers | **q-agent v2.11.0** |
+| Capacidad | GitHub Spec-Kit | OpenSpec | BMAD Method | Superpowers | **q-agent v2.11.1** |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Arquitectura de Ejecución** | Cascada BDUF (Riesgo alto de *Context Rot*) | Modular, sin compuertas deterministas | Enjambre conversacional (3x–5x costo tokens) | Prompt chain estático, soporte débil Brownfield | **Director Tier-1 + Workers Tier-2 acotados** |
 | **Aislamiento de Espacio** | Árbol de trabajo local (colisión de ramas) | Checkout manual | Dependiente del harness | Checkout manual | **Git Worktrees Mandatorios (`.q-worktrees/task-<ID>`)** |
@@ -38,7 +38,7 @@ Los frameworks contemporáneos de agentes autónomos fallan en producción debid
 ### El Artículo Constitucional ARQ-01: Vertical Slices
 1. **Vertical Slices por Defecto:** Cada feature o fix se entrega como una rebanada vertical completa (Dominio, Persistencia, Casos de Uso/Servicio, Presentación y Tests) en ≤400–500 líneas de código modificadas.
 2. **Indirección Mínima:** Prohibido crear capas o interfaces cosméticas sin al menos 2 implementaciones concretas o un límite de infraestructura genuino.
-3. **Evidencia Terminal con Cero Mocks:** No se aceptan mocks en el dominio central. Todo resultado debe certificarse con comandos ejecutados contra bases de datos reales (ej. SQLite WAL) y suites de tests unitarios/e2e.
+3. **Evidencia Terminal con Cero Mocks:** No se aceptan mocks en el dominio central. Todo resultado debe certificarse con comandos ejecutados contra bases de datos reales (ej. SQLite WAL) y suites de tests unitarios/e2e. Se autorizan y fomentan emuladores herméticos de contrato (LocalStack, WireMock, sandboxes SQLite in-memory) para aislar servicios externos de terceros sin falsear la lógica interna del sistema.
 
 ### Autoridad de Ejecución & Recuperación Selectiva de Contexto
 El contrato de [Autoridad de Ejecución Acotada por Humanos](references/execution-authority.md) delimita el alcance de permisos: la investigación pública no autoriza escrituras ni mutaciones en repositorios privados; las operaciones remotas y el despliegue/merge requieren autoridad humana independiente.
@@ -309,6 +309,7 @@ q-agent/
 │   ├── q-merge-gate/                 # Compuerta determinista de políticas de merge
 │   ├── q-checklist/                  # Validador determinista de checklists ODD
 │   ├── q-cockpit/                    # Cockpit visual e inspectores de salud
+│   ├── q-audit-runner/               # Runner unificado y ciclo de vida Plan C
 │   ├── q-audit-validator/            # Validador de manifiesto forense Plan C
 │   └── q-audit-aggregator/           # Generador determinista de reportes
 ├── prompts/                          # Prompts ejecutables del SDD Pipeline (P01 a P09)
@@ -320,7 +321,7 @@ q-agent/
 Toda evolución en `q-agent` debe mantener la suite 100% verde con evidencia terminal estricta:
 ```bash
 python3 -m unittest discover -s tests -v
-# 71 tests pasando en < 3s sin mocks
+# 139 tests pasando en < 16s sin mocks
 ```
 
 ### Suite de Evaluación Contrastiva Harness² (`evals/harness2/`)

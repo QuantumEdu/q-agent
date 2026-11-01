@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.11.1] - 2026-11-01
+
+### Added
+- **Single Clean Rerun Flake Triage (P06 & `unattended-e2e`):**
+  Added diagnostic triaging in the Terminal Evidence Gate (`prompts/P06_terminal_evidence_gate.md`, `references/unattended-e2e.md`, `SKILL.md`) for transient environmental errors (e.g. SQLite database lock contention, socket timeouts, port race conditions). Executes a single clean rerun without editing source code; passing runs log `FLAKY_ENVIRONMENT` with 0 correction budget spent, protecting viable tasks from premature quarantine or budget exhaustion.
+
+### Fixed
+- **ARQ-01 Anti-Mocking Boundary Clarification (`templates/CONSTITUTION.md` & `skills/q-adversarial-review`):**
+  Clarified the constitutional definition of forbidden mocks versus authorized hermetic contract emulators. Strictly forbids synthetic in-code mocks (`MagicMock`, monkeypatching) that evade internal domain logic or simulate persistence without disk writes. Explicitly authorizes hermetic test doubles and contract emulators (e.g., LocalStack, WireMock, in-memory SQLite sandboxes) for external third-party services with side-effects or rate limits.
+
+### Refactored
+- **Audit Runner Cohesion & De-indirection (`tools/q-audit-runner/`):**
+  Consolidated `audit_lifecycle.py` and `evidence.py` directly into `tools/q-audit-runner/`, removing the dynamic `importlib` loading hack in `run_audit.py` to strictly comply with Article ARQ-01 Minimal Indirection. Preserved full backward compatibility with clean re-export proxies in `tools/q-audit-lifecycle/` and `tools/q-audit-evidence/`.
+
+### Validation
+- All 139 tests passed locally on Python 3.12 without mocks.
+
 ## [2.11.0]
 
 ### Added
