@@ -1,9 +1,9 @@
 # q-agent — Master Project Orchestrator
-> **Hermetic deployment package v2.11.1 (Dual Engine, Vertical Slices & Wave Execution)** · Tool-agnostic · Greenfield · Brownfield · Fast-Track · Audit
+> **Hermetic deployment package v2.12.0 (Dual Engine, Vertical Slices & Wave Execution)** · Tool-agnostic · Greenfield · Brownfield · Fast-Track · Audit
 
 [![CI Pipeline](https://github.com/QuantumEdu/q-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/QuantumEdu/q-agent/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.11.1-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.12.0-green.svg)](CHANGELOG.md)
 
 ---
 
@@ -24,7 +24,7 @@ Los frameworks contemporáneos de agentes autónomos fallan en producción debid
 
 ### Matriz Comparativa de Capacidades
 
-| Capacidad | GitHub Spec-Kit | OpenSpec | BMAD Method | Superpowers | **q-agent v2.11.1** |
+| Capacidad | GitHub Spec-Kit | OpenSpec | BMAD Method | Superpowers | **q-agent v2.12.0** |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Arquitectura de Ejecución** | Cascada BDUF (Riesgo alto de *Context Rot*) | Modular, sin compuertas deterministas | Enjambre conversacional (3x–5x costo tokens) | Prompt chain estático, soporte débil Brownfield | **Director Tier-1 + Workers Tier-2 acotados** |
 | **Aislamiento de Espacio** | Árbol de trabajo local (colisión de ramas) | Checkout manual | Dependiente del harness | Checkout manual | **Git Worktrees Mandatorios (`.q-worktrees/task-<ID>`)** |
@@ -243,6 +243,34 @@ python3 tools/q-audit-validator/validate_audit.py --mode manifest --level 2
 python3 tools/q-audit-aggregator/generate_report.py
 ```
 Implementa el principio: *"La completitud es una propiedad del sistema de archivos, no del texto generado por el LLM"*. Despacha 17 ítems forenses atómicos en paralelo (`audit/A01-A17.md`) y genera el reporte final de forma determinista con Python, con 0 tokens quemados en resúmenes.
+
+### 7. `tools/q-tickets/` (Ticket Store Durable)
+```bash
+python3 tools/q-tickets/q_tickets.py open --trigger-id github:issue_comment:9001 \
+  --title "Slow homepage" --actor iquantum --thread github:12
+python3 tools/q-tickets/q_tickets.py assign T-0001 --executor codex
+python3 tools/q-tickets/q_tickets.py attention-queue
+just tickets && just attention
+```
+Estado que sobrevive a la sesión: `Trigger → Ticket → Mandate → Assignment`, más `Subscriptions`, `Attention` y un log de eventos append-only, todo en SQLite WAL con `synchronous=FULL`. Aceptar dos veces el mismo `trigger_id` devuelve un solo ticket. Un ticket detenido no se reanuda, y un mandato emitido bajo otra versión de política se rechaza en vez de ampliarse en silencio.
+
+### 8. `tools/q-triggers/` (Triggers de GitHub con Compuerta Determinista)
+```bash
+just triggers-status
+just triggers-poll LIMIT=20          # observe: registra candidatos, no abre tickets
+python3 tools/q-triggers/q_triggers.py gate --actor <login> --text "@q-agent arreglá el test"
+```
+La compuerta corre **antes** de cualquier modelo: quién puede pedir, en qué scope y con qué fuerza (`explicit` / `inferred` / `not_admitted`). Una allowlist vacía se niega a correr en vez de admitir a todos, y el texto de un mensaje no puede cambiar la política. Arranca en `accept_mode: observe`.
+
+### 9. `tools/q-skill-doctor/` (Doctor de Skills: mide y propone, nunca edita)
+```bash
+just skill-doctor-ingest SOURCE=all LIMIT=25
+just skill-doctor-score
+just skill-doctor-report
+```
+Agrega transcripts reales (Codex, Antigravity, OpenCode o cualquier JSONL) a un corpus local y los puntúa con una rúbrica fija — eficiencia, calidad, cobertura — para emitir propuestas con evidencia. **Nunca escribe un `SKILL.md`**: un scorer con permiso de escritura sobre lo que puntúa es un lazo auto-confirmatorio sin control externo.
+
+El contrato del router que usa estas piezas está en [`skills/q-superagent/`](skills/q-superagent/SKILL.md), y la política de interrupción humana — tres clases, silencio por defecto — en [`references/attention-policy.md`](references/attention-policy.md).
 
 ---
 
