@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.12.0] - 2026-11-03
+
+### Added
+- **Durable Ticket Store (`tools/q-tickets/`, `tests/test_q_tickets.py`):**
+  SQLite WAL store implementing the minimum domain model for work that survives a
+  session: `Trigger → Ticket → Mandate → Assignment`, plus `Subscriptions`,
+  `Attention` and an append-only event log. Idempotent by `trigger_id` (accepting the
+  same event twice yields one ticket), a stopped ticket cannot be resumed, and a
+  mandate granted under a different policy version is refused instead of silently
+  widened. Fan-out delivers thread context without granting authority.
+- **GitHub Event Triggers (`tools/q-triggers/`, `tests/test_q_triggers.py`):**
+  Deterministic gate that runs before any model — who may ask, in what scope, with
+  what strength (`explicit` / `inferred` / `not_admitted`) — plus `observe` mode that
+  records candidates without opening tickets. An empty allowlist refuses to run;
+  message text cannot change policy; bots can only produce inferred candidates.
+- **Attention Policy (`references/attention-policy.md`):**
+  Silence by default. Only `actionable_result`, `blocking_decision` and `hard_stop`
+  may interrupt a human, enforced in code (argparse choices plus a SQL `CHECK`
+  constraint). Progress, permission for already-granted work and milestone restatement
+  are explicitly not permitted. Documents the consequences: the event log becomes the
+  audit trail, the human moves from operator to judge, and pull replaces push.
+- **Skill Doctor (`tools/q-skill-doctor/`, `skills/q-skill-doctor/`, `tests/test_skill_doctor.py`):**
+  Aggregates real transcripts (Codex, Antigravity, OpenCode, or any JSONL source) into
+  a local corpus, scores them against a fixed rubric (efficiency, quality, coverage),
+  and emits merge-ready proposals bound to evidence. It never writes a `SKILL.md`: a
+  scorer with write access to what it scores is a self-fulfilling loop with no external
+  check. Proposals are handed to `q-improve-loop`.
+- **Super-agent router contract (`skills/q-superagent/`):**
+  The router/worker/judge split, the one-cycle command sequence, the dispatch contract
+  (hand the worker the original request, never your plan) and the interruption rule.
+  The router does not investigate.
+
+### Changed
+- `justfile` gains `tickets`, `attention`, `triggers-poll`, `triggers-status`,
+  `skill-doctor-ingest`, `skill-doctor-score` and `skill-doctor-report`.
+- `skills/INDEX.md` and `skill.json` register `q-skill-doctor` and `q-superagent`;
+  the package root exposes both through `may_call`.
+- `.gitignore` ignores `.q-agent/` (local runtime state, same class as `.q-cockpit/`).
+
+### Validation
+- All 177 tests passed locally (38 new) on Python 3.12 without mocks.
+- Skill Doctor exercised against a real corpus: 28 sessions scored from Codex,
+  Antigravity and OpenCode; 3 proposals emitted with evidence.
+- Trigger gate verified against a real repository with `poll --observe`: no tickets
+  created, and a non-allowlisted sender addressing the agent is refused.
+
 ## [2.11.1] - 2026-11-01
 
 ### Added
