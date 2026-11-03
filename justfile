@@ -72,3 +72,31 @@ merge-gate BASE="main" MAX_LOC="500":
 # List active subagent git worktrees
 worktrees:
     python3 tools/q-worktree/q_worktree.py list
+
+# Aggregate local agent transcripts (codex | agy | opencode | all | <jsonl dir>)
+skill-doctor-ingest SOURCE="all" LIMIT="25":
+    python3 tools/q-skill-doctor/skill_doctor.py --root . ingest --source {{SOURCE}} --limit {{LIMIT}}
+
+# Score the conversation corpus against the fixed rubric
+skill-doctor-score:
+    python3 tools/q-skill-doctor/skill_doctor.py --root . score
+
+# Write skill improvement proposals as drafts (never edits a SKILL.md)
+skill-doctor-report:
+    python3 tools/q-skill-doctor/skill_doctor.py --root . report --out .q-agent/skill-doctor/proposals
+
+# List every ticket in the durable store
+tickets:
+    python3 tools/q-tickets/q_tickets.py list
+
+# Show what actually needs a human decision right now
+attention:
+    python3 tools/q-tickets/q_tickets.py attention-queue
+
+# Poll GitHub events in observe mode: records candidates, opens no tickets
+triggers-poll LIMIT="20":
+    python3 tools/q-triggers/q_triggers.py poll --observe --limit {{LIMIT}}
+
+# Print the resolved trigger policy for the current project
+triggers-status:
+    python3 tools/q-triggers/q_triggers.py status
