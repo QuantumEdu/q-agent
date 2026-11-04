@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.12.1] - 2026-11-04
+
 ### Fixed
 - Audit-item validation rejects empty-scope clean certification without inspected-source
   evidence, malformed or out-of-project citations, generated audit self-evidence,
