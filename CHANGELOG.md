@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The dependency-free manifest reader keeps fields with their owning item and reads
   scope patterns, categories, quoted scalars and inline comments. Empty active
   manifests no longer pass validation.
+- Aggregation fails closed on missing, pending, invalid and mandatory unassessed
+  items, preserves contradictory severities in reports, and refreshes diagnostic
+  gaps. Reports read the framework version from `skill.json`. Root plan copies
+  now require `--root-copies`; the runner reads the actual verdict header rather
+  than accepting the word CONDITIONAL in a finding body.
 
 ## [2.12.0] - 2026-11-03
 

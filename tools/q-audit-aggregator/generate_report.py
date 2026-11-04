@@ -11,14 +11,35 @@ Reads individual A{ID}-{slug}.md (Defects) and E{ID}-{slug}.md (Strategic Evolut
 The LLM never generates the final report, remediation plan, or strategic proposal — this script does.
 
 Usage:
-  python generate_report.py [--cwd PATH] [--manifest PATH] [--level 0|1|2] [--output PATH]
+  python generate_report.py [--cwd PATH] [--manifest PATH] [--level 0|1|2] [--output PATH] [--root-copies]
+
+Aggregation checks completion metadata, not source evidence. Run the manifest
+validator first, or use q-audit-runner for the complete validation pipeline.
 """
 
+import importlib.util
 import sys
 import re
 import json
 from pathlib import Path
 from datetime import datetime, timezone
+
+_validator_spec = importlib.util.spec_from_file_location(
+    "audit_report_validator", Path(__file__).resolve().parents[1] / "q-audit-validator/validate_audit.py"
+)
+_validator = importlib.util.module_from_spec(_validator_spec)
+_validator_spec.loader.exec_module(_validator)
+
+
+def framework_label() -> str:
+    try:
+        version = json.loads((Path(__file__).resolve().parents[2] / "skill.json").read_text())["version"]
+        return f"q-agent v{version}"
+    except (OSError, ValueError, KeyError):
+        return "q-agent"
+
+
+FRAMEWORK_LABEL = framework_label()
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -50,41 +71,8 @@ PRIORITY_MAP = {
 
 
 def load_manifest(manifest_path: Path) -> list[dict]:
-    try:
-        import yaml
-        with manifest_path.open(encoding="utf-8") as f:
-            data = yaml.safe_load(f)
-            return data.get("items", [])
-    except ImportError:
-        pass
-
-    content = manifest_path.read_text(encoding="utf-8", errors="replace")
-    id_pattern = re.compile(r'^\s+- id:\s+"?([AE]\d+)"?', re.MULTILINE)
-    slug_pattern = re.compile(r'^\s+slug:\s+"?([^"\n]+)"?', re.MULTILINE)
-    level_pattern = re.compile(r'^\s+level:\s+(\d+)', re.MULTILINE)
-    wave_pattern = re.compile(r'^\s+wave:\s+(\d+)', re.MULTILINE)
-    output_pattern = re.compile(r'^\s+output:\s+"?([^"\n]+)"?', re.MULTILINE)
-    category_pattern = re.compile(r'^\s+category:\s+"?([^"\n]+)"?', re.MULTILINE)
-
-    ids = id_pattern.findall(content)
-    slugs = slug_pattern.findall(content)
-    levels = [int(x) for x in level_pattern.findall(content)]
-    waves = [int(x) for x in wave_pattern.findall(content)]
-    outputs = output_pattern.findall(content)
-    categories = category_pattern.findall(content)
-
-    return [
-        {
-            "id": item_id,
-            "slug": slugs[i] if i < len(slugs) else "unknown",
-            "level": levels[i] if i < len(levels) else 0,
-            "wave": waves[i] if i < len(waves) else 0,
-            "output": outputs[i].strip() if i < len(outputs) else f"audit/{item_id}.md",
-            "category": categories[i] if i < len(categories) else "unknown",
-            "type": "strategic_evolution" if item_id.startswith("E") else "defect_compliance",
-        }
-        for i, item_id in enumerate(ids)
-    ]
+    """Reuse the validator's parser so both stages select the same audit items."""
+    return _validator.load_manifest(manifest_path).get("items", [])
 
 
 def parse_frontmatter(content: str) -> dict:
@@ -125,7 +113,7 @@ def build_remediation_plan(cwd: Path, defect_results: list[dict], verdict: str) 
     lines = [
         f"# 🛠️ Plan de Mejora Accionable y Remediación Técnica — {cwd.name}",
         f"",
-        f"> **Framework:** q-agent v2.5.3 — Generación Determinista de Remediación (CAB-RP)  ",
+        f"> **Framework:** {FRAMEWORK_LABEL} — Generación Determinista de Remediación (CAB-RP)  ",
         f"> **Fecha:** {now}  ",
         f"> **Veredicto General:** `{verdict}`  ",
         f"> **Objetivo:** Hoja de ruta priorizada para subsanar los defectos y deudas identificados en la auditoría.  ",
@@ -201,7 +189,7 @@ def build_strategic_proposal(cwd: Path, strategic_results: list[dict]) -> str:
     lines = [
         f"# 🚀 Propuesta Estratégica y Hoja de Ruta Evolutiva — {cwd.name}",
         f"",
-        f"> **Framework:** q-agent v2.5.3 — Auditoría de Valor, Innovación y Benchmarking (MAB-PC)  ",
+        f"> **Framework:** {FRAMEWORK_LABEL} — Auditoría de Valor, Innovación y Benchmarking (MAB-PC)  ",
         f"> **Fecha:** {now}  ",
         f"> **Objetivo:** Propuesta de evolución arquitectónica, agilidad, GUI/UX, capacidades de dominio y benchmark competitivo.  ",
         f"",
@@ -260,7 +248,8 @@ def build_strategic_proposal(cwd: Path, strategic_results: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Path) -> int:
+def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Path,
+                    root_copies: bool = False) -> int:
     print(
         f"\n[q-agent] Generating Complete Audit Suite (Reports, Remediation & Strategy)\n"
         f"  Project: {cwd.resolve()}\n"
@@ -273,7 +262,7 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
 
     if not active_items:
         print("[WARNING] No active items found for this level.")
-        return 0
+        return 1
 
     results = []
     for item in active_items:
@@ -293,6 +282,7 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
         results.append({
             **item,
             "severity": fm.get("severity", "unknown").lower(),
+            "severity_present": "severity" in fm,
             "status": fm.get("status", "unknown"),
             "body": body,
         })
@@ -300,10 +290,22 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
     defect_results = [r for r in results if not r["id"].startswith("E")]
     strategic_results = [r for r in results if r["id"].startswith("E")]
 
-    # Calculate verdict for defect items
-    all_severities = [r["severity"] for r in defect_results if r["severity"] in SEVERITY_RANK]
+    # Unassessed findings cannot quietly disappear into a clean verdict.
+    assessed = [r for r in defect_results
+                if r["status"] == "complete" and r["severity"] in SEVERITY_RANK]
+    unusable = [r for r in defect_results
+                if (r["status"] not in ("complete", "not_assessed")
+                    or (r["status"] == "complete" and r["severity"] not in SEVERITY_RANK)
+                    or (r["status"] == "not_assessed" and r.get("severity_present", False)))]
+    mandatory_unassessed = [r for r in defect_results if r["status"] == "not_assessed"
+                           and (r.get("level", 0) == 0 or r.get("category") == "security")]
+    incomplete_strategic = [r for r in strategic_results if r["status"] != "complete"]
+    incomplete = bool(unusable or mandatory_unassessed or incomplete_strategic or not assessed)
+    all_severities = [r["severity"] for r in assessed]
     worst = min(all_severities, key=lambda s: SEVERITY_RANK.get(s, 99)) if all_severities else "none"
     verdict = SEVERITY_VERDICT.get(worst, "UNKNOWN")
+    if incomplete and worst not in ("critical", "high"):
+        verdict = "INCOMPLETE"
 
     tally = {s: sum(1 for r in defect_results if r["severity"] == s) for s in SEVERITY_RANK}
     tally["missing"] = sum(1 for r in defect_results if r["severity"] == "missing")
@@ -312,7 +314,7 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
     lines = [
         f"# AUDIT REPORT — {cwd.name}",
         f"",
-        f"> **Framework:** q-agent v2.5.3 — Plan C Atomic Dispatch  ",
+        f"> **Framework:** {FRAMEWORK_LABEL} — Plan C Atomic Dispatch  ",
         f"> **Date:** {now}  ",
         f"> **Audit Level:** {level}  ",
         f"> **Defect Items Audited:** {len(defect_results)}  ",
@@ -321,6 +323,16 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
         f"> **Plan de Remediación (Defectos):** [`PLAN_DE_MEJORA.md`](./PLAN_DE_MEJORA.md)  ",
         f"> **Propuesta Estratégica (Evolución & Valor):** [`PROPUESTA_EVOLUTIVA.md`](./PROPUESTA_EVOLUTIVA.md)  ",
         f"",
+    ]
+    if incomplete:
+        lines.append("> **Audit incomplete: this is not a pass.**")
+        for result in results:
+            if result in unusable or result in mandatory_unassessed or result in incomplete_strategic:
+                lines.append(f"> - `{result['id']}`: status `{result['status']}`, severity `{result['severity']}`")
+        if not assessed:
+            lines.append("> - No defect item was assessed.")
+        lines.append("")
+    lines += [
         f"---",
         f"",
         f"## Compliance Matrix (Defect & Security Verification)",
@@ -390,27 +402,28 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
     print(f"Remediation Plan written: {plan_path}")
     print(f"Remediation Issues written: {remediation_path}")
 
-    # Root copy of PLAN_DE_MEJORA.md
-    root_plan_path = cwd / "PLAN_DE_MEJORA.md"
-    root_plan_path.write_text(remediation_content, encoding="utf-8")
-    print(f"Root Remediation Plan updated: {root_plan_path}")
+    if root_copies:
+        root_plan_path = cwd / "PLAN_DE_MEJORA.md"
+        root_plan_path.write_text(remediation_content, encoding="utf-8")
+        print(f"Root Remediation Plan updated: {root_plan_path}")
 
     # 3. Write audit/PROPUESTA_EVOLUTIVA.md if strategic items exist
-    completed_strategic = [r for r in strategic_results if r["status"] != "missing"]
+    completed_strategic = [r for r in strategic_results if r["status"] == "complete"]
     if completed_strategic:
         strategic_content = build_strategic_proposal(cwd, completed_strategic)
         propuesta_path = output_path.parent / "PROPUESTA_EVOLUTIVA.md"
         propuesta_path.write_text(strategic_content, encoding="utf-8")
         print(f"Strategic Evolution Proposal written: {propuesta_path}")
-        root_propuesta_path = cwd / "PROPUESTA_EVOLUTIVA.md"
-        root_propuesta_path.write_text(strategic_content, encoding="utf-8")
-        print(f"Root Strategic Evolution Proposal updated: {root_propuesta_path}")
+        if root_copies:
+            root_propuesta_path = cwd / "PROPUESTA_EVOLUTIVA.md"
+            root_propuesta_path.write_text(strategic_content, encoding="utf-8")
+            print(f"Root Strategic Evolution Proposal updated: {root_propuesta_path}")
 
     # 4. Update AUDIT_GAPS.json for orchestrator retry loop
-    blocked = [r for r in defect_results if r["severity"] in ("critical", "high", "missing")]
-    missing_strategic = [r for r in strategic_results if r["status"] == "missing"]
-    if blocked or missing_strategic:
-        gaps_path = cwd / "audit" / "AUDIT_GAPS.json"
+    blocked = [r for r in defect_results if r["severity"] in ("critical", "high")
+               or r in unusable or r in mandatory_unassessed]
+    gaps_path = cwd / "audit" / "AUDIT_GAPS.json"
+    if incomplete or blocked:
         gaps_data = {
             "verdict": verdict,
             "worst_severity": worst,
@@ -421,21 +434,24 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
             ],
             "missing_strategic_items": [
                 {"id": r["id"], "slug": r["slug"]}
-                for r in missing_strategic
+                for r in incomplete_strategic
             ]
         }
         gaps_path.parent.mkdir(exist_ok=True)
         gaps_path.write_text(json.dumps(gaps_data, indent=2, ensure_ascii=False), encoding="utf-8")
         print(f"AUDIT_GAPS.json updated: {gaps_path}")
+    elif gaps_path.exists():
+        gaps_path.unlink()
 
-    return 0 if worst in ("none", "low") else 1
+    return 0 if not incomplete and worst in ("none", "low") else 1
 
 
 def main():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="q-audit-aggregator: Complete Audit Suite (Report, Remediation & Strategy)"
+        description="q-audit-aggregator: Complete Audit Suite (Report, Remediation & Strategy). "
+                    "Checks completion metadata; validate source evidence first with q-audit-runner."
     )
     parser.add_argument("--cwd", default=".", help="Project root directory")
     parser.add_argument(
@@ -451,6 +467,9 @@ def main():
         default=None,
         help="Output path for AUDIT_REPORT.md (default: <cwd>/audit/AUDIT_REPORT.md)",
     )
+    parser.add_argument("--root-copies", action="store_true",
+                        help="Opt in to root PLAN_DE_MEJORA.md / PROPUESTA_EVOLUTIVA.md copies; "
+                             "default writes reports only in audit/ (or explicit --output directory)")
 
     args = parser.parse_args()
     cwd = Path(args.cwd)
@@ -463,7 +482,7 @@ def main():
     output_path = Path(args.output) if args.output else cwd / "audit" / "AUDIT_REPORT.md"
     output_path.parent.mkdir(exist_ok=True)
 
-    sys.exit(generate_report(cwd, manifest_path, args.level, output_path))
+    sys.exit(generate_report(cwd, manifest_path, args.level, output_path, root_copies=args.root_copies))
 
 
 if __name__ == "__main__":
