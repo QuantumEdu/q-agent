@@ -37,7 +37,7 @@ Every log line follows a strict bracketed timestamp and tag structure:
 | `[WORKTREE]` | Isolated git worktree lifecycle | `CREATED`, `REMOVED` |
 | `[REPRODUCTION]` | Red-phase reproduction test verification (SWE-agent pattern) | `RED_FAIL`, `GREEN_PASS` |
 | `[AST_INDEX]` | AST skeleton extraction / context pruning | `EXTRACTED`, `CACHED` |
-| `[ROLLBACK]` | Atomic reset/revert on unrecoverable failure | `EXECUTED`, `ABORTED` |
+| `[ROLLBACK]` | Recoverable withdrawal of a failed attempt with proven ownership and a verified stash commit identity; preserve user changes when ownership is unknown | `STASHED`, `NOT-EXECUTED`, `ABORTED` |
 | `[GITHUB_SYNC]` | Issues or PRs registered via GitHub CLI | `CREATED`, `SKIPPED` |
 
 ---
