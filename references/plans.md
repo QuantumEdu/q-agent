@@ -2,6 +2,13 @@
 > Referencia Operativa del Orquestador q-agent v2.0 (Dual-Engine Architecture)
 > Todas las rutas son relativas al paquete (`q-agent-v02/`).
 
+La [guía normativa de fases](../docs/communication-policy.md) y el
+[contrato de comunicación](communication-contract.md) definen el flujo actual.
+Los números P identifican archivos, no equivalencias universales con pasos.
+La bitácora activa gobierna alcance, estado y aceptación; informes y variantes
+separadas enlazan evidencia sin duplicar estados. Se conservan OpenSpec y A-L
+cuando se invocan explícitamente, identificando su documento de alcance en la bitácora.
+
 ---
 
 ## 🏛️ Matriz de Planes y Pipeline ODD
@@ -43,11 +50,11 @@ Aplicable cuando se crea un proyecto nuevo sin código preexistente.
 |---|---|---|---|
 | **P00** | `templates/CONSTITUTION.md` | `CONSTITUTION.md` (con Artículo ARQ-01 y ADRs base) | Raíz del proyecto / `develop` |
 | **P02** | `prompts/P02_context_engineering.md` | Contexto inicial y límites de módulos | Memoria / Internal |
-| **P03** | `prompts/P03_gate_metaorquestacion.md` | Selección dinámica de Motor (Gentle-AI vs Standalone) | Salida en chat / logs |
+| **P03** | `prompts/P03_gate_metaorquestacion.md` | Selección dinámica de Motor (Gentle-AI vs Standalone) | Registro; chat solo según atención |
 | **P04** | `prompts/P04_odd_feature_log.md` | Bitácora ODD con BMAD User Stories y UAC | `q-tasks/<feature>.md` o `odd/tasks/<feature>.md` |
 | **P05** | `prompts/P05_vertical_slice_apply.md` | Código del Slice (storage, handlers, templates .html) | `features/<modulo>/` |
 | **P06** | `prompts/P06_terminal_evidence_gate.md` | Registro de exit code 0 y evidencia observable | En tabla de la bitácora activa |
-| **P07** | `prompts/P07_hygiene_and_blueprint.md` | Linters limpios (0 tokens) + `BLUEPRINT.md` consolidado | Raíz del proyecto |
+| **P07** | `prompts/P07_hygiene_and_blueprint.md` | Linters comprobados + `BLUEPRINT.md` consolidado | Raíz del proyecto |
 
 ---
 
@@ -59,7 +66,7 @@ Aplicable al agregar funcionalidades o refactorizaciones sobre un repositorio vi
 |---|---|---|---|
 | **P01** | `prompts/P01_auditoria_mab_pc.md` | `BLUEPRINT.md` (por Slices) y `CONSTITUTION.md` inicial | Raíz del proyecto / `develop` |
 | **P02** | `prompts/P02_context_engineering.md` | Análisis de blast radius e impacto | Internal context |
-| **P03** | `prompts/P03_gate_metaorquestacion.md` | Confirmación de Motor y validación ARQ-01 | Salida de gate en chat |
+| **P03** | `prompts/P03_gate_metaorquestacion.md` | Confirmación de Motor y validación ARQ-01 | Registro; chat solo según atención |
 | **P04** | `prompts/P04_odd_feature_log.md` | Bitácora ODD con Historias de Usuario BMAD | `q-tasks/<feature>.md` o `odd/tasks/<feature>.md` |
 | **P05** | `prompts/P05_vertical_slice_apply.md` | Implementación de Slices Verticales (~400 LOC) | `features/<modulo>/` |
 | **P06** | `prompts/P06_terminal_evidence_gate.md` | Verificación terminal obligatoria (cero fakes) | En tabla de la bitácora activa |
@@ -74,7 +81,7 @@ Aplicable para correcciones urgentes, ajustes de configuración o parches peque�
 - **Protocolo Reproduction-First:**
   1. Escribir test que reproduzca la falla (`RED_FAIL` obligatoria).
   2. Aplicar corrección quirúrgica en código fuente (Fase Verde `GREEN_PASS`).
-  3. Ejecutar linters locales (0 tokens si pasa).
+  3. Ejecutar linters locales y registrar resultados; uso del proveedor desconocido sin instrumentación.
   4. Commit atómico: `fix: <descripción del error>`.
 
 ---
@@ -192,7 +199,7 @@ provider reads proceed without a new consent prompt for each lookup.
 Configurables en `.q-agent.json` o seleccionables en el Paso 0:
 
 1. **`supervised` (Supervisado por Compuertas — MODO POR DEFECTO):**
-   - El agente opera de forma fluida pero se detiene obligatoriamente en 3 compuertas clave:
+   - El agente registra y evalúa 3 compuertas clave, sin pedir aprobaciones redundantes:
      - **Gate P03:** Selección del Motor y validación de Constitución.
      - **Gate P04:** Validación del alcance y Criterios de Aceptación UAC con el usuario.
      - **Gate P07/P09:** Validación de cierre e integración a ramas principales.

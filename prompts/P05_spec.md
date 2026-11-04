@@ -10,6 +10,11 @@ proyecto: "{{PROYECTO_NOMBRE}}"
 # P5 — Especificación Formal de Requisitos BDD
 > `/spec`
 
+> **Compatibilidad — variante OpenSpec explícita.** Ver la [guía canónica](../docs/communication-policy.md).
+> Este archivo elabora aceptación en fase 4; no es la implementación de fase 5.
+> Identificar la bitácora activa y su alcance; enlazar specs como detalle, reconciliar
+> allí cambios de aceptación y conservar en ella estado y decisiones, sin duplicarlos.
+
 ---
 
 Actúa como Analista de Requisitos SDD y Especialista en BDD (Behavior-Driven Development).

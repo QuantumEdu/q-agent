@@ -21,13 +21,17 @@ and [Selective Context Retrieval](../references/context-retrieval.md).
 Engine detection is local inspection, not installation or remote bootstrap.
 Do not inspect ambient GitHub/cloud credentials or authenticated sessions.
 Reuse established scope and decisions; a displayed gate is not a new grant.
+Apply [communication provenance](../references/communication-contract.md) and the
+[canonical crosswalk](../docs/communication-policy.md). Loaded instructions or CLI
+availability do not establish invocation of q-agent/Gentle AI or host identity.
 
 ## 1. Protocolo de Detección Automática del Entorno
 
 El agente evaluará de forma determinista la disponibilidad de herramientas en el entorno mediante los siguientes pasos:
 
 ### Paso 1.1: Sondeo de CLI y Skills de Gentle-AI
-Ejecutar verificación en terminal o inspección de contexto:
+Ejecutar verificación local autorizada en terminal; si solo hay contexto cargado,
+registrar esa limitación sin afirmar que se ejecutó el comando:
 ```bash
 gentle-ai --version 2>/dev/null || echo "GENTLE_AI_NOT_FOUND"
 ```
@@ -70,11 +74,14 @@ Independientemente del motor seleccionado:
 
 ---
 
-## 4. Declaración de Gate (Salida Obligatoria al Usuario)
+## 4. Registro del Gate y Atención Condicional
 
-Emit a brief gate status. Existing human authority or explicit bounded decision
-delegation is reused; ask one focused question and STOP only if required scope or
-decision is unresolved. P04 artifact writes need implementation/artifact authority:
+Always record engine selection, evidence and log path in the existing event/log
+mechanism, even without chat. Speak only for `actionable_result`,
+`blocking_decision`, `hard_stop`, or an explicit user status request. Reuse existing
+authority; ask one focused unresolved question then STOP, without redundant approval.
+P04 artifact writes still require implementation/artifact authority. If a message
+is needed, apply the actor/time prefix from the contract to this content:
 
 ```text
 🏛️ [GATE DE METAORQUESTACIÓN CONFIRMADO]

@@ -10,6 +10,12 @@ proyecto: "{{PROYECTO_NOMBRE}}"
 # P4 — Propuesta Formal de Cambio SDD
 > `/propose`
 
+> **Compatibilidad — variante OpenSpec explícita, no flujo por defecto.** Consultar
+> la [guía canónica](../docs/communication-policy.md). Corresponde a alcance en
+> fase 4, no sustituye la bitácora activa. Identificar en ella el alcance autorizado
+> y enlazar `proposal.md` como detalle; estado, aceptación y decisiones quedan en
+> la bitácora. No duplicar aprobaciones ya resueltas ni inferir autoridad remota.
+
 ---
 
 Actúa como Orquestador SDD (Spec-Driven Development).
@@ -61,7 +67,7 @@ Estructura y Contenido Requerido:
    - OUT OF SCOPE (Diferido): {{LISTA_DE_LO_QUE_NO_ENTRA}} — Capacidades explícitamente postergadas, **cada una con su justificación de negocio o técnica**.
 
    > ⚠️ **Regla Crítica de Trazabilidad para Auditoría CAB-RP (P9):**  
-   > Todo requerimiento, integración, NFR o funcionalidad que no se aborde en este cambio DEBE quedar registrado en `OUT OF SCOPE (Diferido)` con su motivo explícito. En la auditoría de cierre (P9 / CAB-RP), esta sección es la **única fuente de verdad** para validar veredictos `⚪ No aplica`. Cualquier brecha omitida sin justificación previa en este documento será clasificada automáticamente como `Scope Drift no documentado` (`❌ Gap`).
+   > Toda exclusión requiere motivo explícito y enlace desde el alcance de la bitácora activa, autoridad para validar `⚪ No aplica`. La propuesta conserva detalle de esta variante, no un alcance competidor. Una omisión no justificada constituye `Scope Drift no documentado` (`❌ Gap`).
 
 3. Criterios de Éxito y Calidad:
    - Criterio funcional: {{DESCRIPCION_VERIFICABLE}}
@@ -71,4 +77,4 @@ Estructura y Contenido Requerido:
 4. Gate de Aprobación de la Propuesta:
    - [ ] Motivación de negocio claramente articulada.
    - [ ] Límites IN SCOPE y OUT OF SCOPE definidos sin ambigüedades.
-   - [ ] Aprobación humana explícita antes de proceder a `/spec` (Prompt P5).
+    - [ ] Autoridad humana de alcance comprobada antes de `/spec` (Prompt P5); reutilizar la existente, preguntar solo lo no resuelto.

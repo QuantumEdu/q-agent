@@ -47,6 +47,11 @@ metadata:
 
 ## 2. Contrato de Ejecución del Ciclo (Pasos 0 a 9)
 
+Aplicar el [contrato de comunicación](references/communication-contract.md) y la
+[guía normativa de fases y compatibilidad](docs/communication-policy.md).
+Registrar actividad rutinaria sin chat redundante; usar prefijo de actor y hora real
+o ausencia visible para mensajes propios. Cargar esta skill no prueba ejecución de CLI.
+
 ```text
 Pasos 0–2 ──► MODO SOCRÁTICO GUIADO (1 pregunta por turno, esperar respuesta)
 Paso 3     ──► GATE DUAL-ENGINE (Gentle-AI ODD vs Standalone ODD)
@@ -91,7 +96,7 @@ Paso 9     ──► BUCLE OPS-TO-ODD (Reproduction-First ante incidentes)
 - [ ] **Fase B (Adversarial)**: Despachar `skills/q-adversarial-review` en subagente aislado (`invoke_subagent`).
   - Auditar diff contra ARQ-01 con protocolo **Review Remembers** (`R-IDs`).
   - Exigir veredicto `APPROVED` antes de autorizar cierre.
-- [ ] **Registro en Bitácora**: Registrar salida exitosa (exit 0) y telemetría de costo/tokens en la tabla `Terminal Evidence Gate`.
+- [ ] **Registro en Bitácora**: Registrar comandos, tests, exit/status/tiempo observados en `Terminal Evidence Gate`; costo/tokens opcionales sin instrumentación, nunca inventados (ver contrato).
 - [ ] Marcar checkbox `[x]` únicamente con evidencia terminal registrada y veredicto `APPROVED`.
 
 ### [Paso 7] Higiene Determinista, Consolidación y Cierre

@@ -17,10 +17,15 @@ fecha: "{{YYYY-MM-DD}}"
 
 ## 1. Reglas Operativas Previas a la Escritura
 
+Aplicar el [contrato de comunicación](../references/communication-contract.md) y la
+[guía canónica](../docs/communication-policy.md). La bitácora activa es autoridad
+de alcance, estado de tareas, aceptación y decisiones. Los informes enlazan evidencia,
+no mantienen estados competidores. Reutilizar decisiones y autoridad ya establecidas.
+
 1. **Exploración con CodeGraph e Impact Gate:** Antes de redactar la bitácora, verificar el índice del repositorio con `test -d .codegraph || codegraph init -y`. Explorar los símbolos existentes vía MCP `codegraph_explore` o CLI (`codegraph explore -p <root> "<query>"`). Evaluar el blast radius del cambio con `codegraph impact <symbol>` para asegurar que el alcance se mantenga como Vertical Slice cohesiva sin efectos colaterales no mapeados. Cero adivinación de rutas o firmas.
 2. **Cero Burocracia Innecesaria:** Si el cambio es una corrección trivial de 1 solo archivo (<50 líneas), resolverla directamente inline sin crear artefactos durables. Si implica 2 o más pasos o componentes, la creación de la bitácora es obligatoria.
 3. **Respeto a la Ruta del Motor:**
-   - Si el Motor es Gentle-AI: Escribir en `odd/tasks/{{FEATURE_NAME}}.md` (y sincronizar con Engram si está disponible).
+   - Si el Motor es Gentle-AI: Escribir en `odd/tasks/{{FEATURE_NAME}}.md`; un espejo externo requiere autorización independiente, no solo disponibilidad.
    - Si el Motor es Standalone: Escribir en `q-tasks/{{FEATURE_NAME}}.md`.
 
 ---
@@ -56,9 +61,13 @@ El archivo generado debe instanciar fielmente [`templates/task-log-template.md`]
 
 ---
 
-## 3. Notificación al Usuario
+## 3. Registro y Atención Condicional
 
-Al crear la bitácora, notificar al usuario en una sola línea clara y directa:
+Always record log creation and its path using the existing log/event mechanism.
+Chat only for `actionable_result`, `blocking_decision`, `hard_stop`, or a user status
+request. Routine creation alone is not a notification. If scope/UAC need a decision,
+ask one focused unresolved question then STOP; do not reopen settled approvals.
+For a warranted message use the contract's actor/time prefix with this content:
 
 ```text
 📋 Bitácora creada en `<ruta-del-archivo>` con N tareas atómicas vinculadas a los criterios UAC.

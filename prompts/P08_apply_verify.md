@@ -10,6 +10,12 @@ proyecto: "{{PROYECTO_NOMBRE}}"
 # P8 — Implementación y Verificación Guiada por Constitución
 > `/apply` + `/verify`
 
+> **Compatibilidad — variante OpenSpec explícita.** Ver la [guía canónica](../docs/communication-policy.md).
+> Ejecuta fases 5–6, no el gate de despliegue de fase 8. Identificar la bitácora
+> activa, autoridad de alcance, aceptación y estado; usar `tasks.md` como detalle
+> enlazado y `verify-report.md` como evidencia, nunca como estados competidores.
+> Conservar aprobaciones independientes; el modo no autoriza merge ni despliegue.
+
 ---
 
 Actúa como Ingeniero de Software Senior (SDD Executor & Verifier).
@@ -60,7 +66,7 @@ la propiedad ambigua impide cualquier retirada automática.
    - Comparar `git rev-parse refs/stash` antes y después (puede no existir antes). Verificar código de salida 0, una nueva identidad de commit de stash y preservación de los archivos ajenos antes de afirmar éxito. Si no hay un stash nuevo, el resultado es desconocido o falla la comprobación, no reintentar: registrar `[ROLLBACK] [NOT-EXECUTED]` con el resultado observado y pedir intervención.
    - Registrar `[STEP-06] [ROLLBACK] [STASHED] Task <task_id> aborted after 3 failed attempts (<stash-commit-id>)` solo con evidencia verificada. El intento se conserva recuperable; mostrar `git stash show <stash-commit-id>` y requerir autorización antes de `git stash apply <stash-commit-id>`. No borrar ni aplicar automáticamente el stash.
    - Notifica el bloqueo al usuario con diagnóstico exacto.
-4. **Validación Inmediata**: No avances a la siguiente tarea hasta que el comando `Verification` de la tarea actual pase al 100%. Solo entonces marca `[X]` en `tasks.md`.
+4. **Validación Inmediata**: No avances a la siguiente tarea hasta que el comando `Verification` de la tarea actual pase al 100%. Registrar evidencia y estado en la bitácora activa; cualquier `[X]` en `tasks.md` enlaza ese estado y respeta el gate de revisión independiente.
 
 ### Fase B: Quality Gates y Auditoría de Cierre (`/verify`)
 Una vez completadas todas las tareas de `tasks.md`, ejecuta el protocolo de verificación global según el **Perfil de Stack** del proyecto:
@@ -80,7 +86,7 @@ Una vez completadas todas las tareas de `tasks.md`, ejecuta el protocolo de veri
 
 Entregable Formal: Genera `openspec/changes/{{CHANGE_ID}}/verify-report.md` con:
 - Veredicto final: `PASS` / `FAIL`.
-- Lista de tareas completadas y archivos modificados (con número de líneas).
+- Enlaces a tareas y estado en la bitácora activa; archivos modificados (con número de líneas).
 - Resumen de ejecución de tests (cobertura y tiempo de corrida).
 - Checklist de cumplimiento de principios constitucionales con evidencia `[OBSERVADO: ruta/línea]`.
 - Estado de sincronización de versión GitHub ↔ App.

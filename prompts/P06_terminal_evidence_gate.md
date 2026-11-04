@@ -79,6 +79,15 @@ Una vez que la máquina confirma verde (`exit code 0`), se activa la revisión d
 
 ## 3. Registro Obligatorio en la Bitácora y Cierre de Slice (Work-Unit Commit)
 
+Aplicar el [contrato de comunicación](../references/communication-contract.md):
+la bitácora activa conserva el estado; los informes enlazan evidencia. Registrar
+comandos, tests, salida, exit/status y tiempo cuando se observaron. No atribuir
+ejecución a una skill cargada ni usar narración como prueba de herramienta nativa.
+Cada métrica lleva status/value/source/basis: `measured` exige fuente real;
+`estimated` exige fuente y supuestos explícitos; `unavailable` usa valor `null`.
+Tokens/costo son opcionales sin instrumentación, incluso en nivel enterprise;
+su ausencia no bloquea la evidencia funcional ni significa ejecución gratuita.
+
 Una vez aprobadas AMBAS fases (Máquina + Adversarial):
 
 1. **Sellar el Slice con un Work-Unit Commit Convencional:**
