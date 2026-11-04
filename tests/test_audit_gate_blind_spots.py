@@ -151,6 +151,8 @@ class AuditGateTests(unittest.TestCase):
         )
         result = self.cli(no_site=True)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        result = self.cli(AGGREGATOR, no_site=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_previous_valid_item_and_technical_cli_remain_supported(self):
         self.source()
@@ -159,6 +161,95 @@ class AuditGateTests(unittest.TestCase):
         result = subprocess.run([sys.executable, str(VALIDATOR), "--cwd", str(ROOT),
                                  "--mode", "technical", "--json"], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def report(self):
+        return (self.root / "audit/AUDIT_REPORT.md").read_text(encoding="utf-8")
+
+    def test_aggregation_missing_invalid_and_pending_items_are_incomplete(self):
+        cases = (None, {"severity": "unexpected"}, {"status": "pending"},
+                 {"status": "not_assessed", "severity": None},
+                 {"status": "not_assessed", "severity": "high"})
+        for options in cases:
+            with self.subTest(options=options):
+                if options is not None:
+                    self.item(**options)
+                result = self.cli(AGGREGATOR)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("**Overall Verdict:** `INCOMPLETE`", self.report())
+                gaps = json.loads((self.root / "audit/AUDIT_GAPS.json").read_text())
+                self.assertEqual(gaps["blocked_defect_items"][0]["id"], "A01")
+
+    def test_aggregation_outputs_version_root_opt_in_and_gap_recovery(self):
+        self.item(status="pending")
+        self.assertEqual(self.cli(AGGREGATOR).returncode, 1)
+        self.item()
+        self.assertEqual(self.cli(AGGREGATOR).returncode, 0)
+        version = json.loads((ROOT / "skill.json").read_text())["version"]
+        self.assertIn(f"q-agent v{version}", self.report())
+        self.assertFalse((self.root / "PLAN_DE_MEJORA.md").exists())
+        self.assertFalse((self.root / "audit/AUDIT_GAPS.json").exists())
+        self.assertEqual(self.cli(AGGREGATOR, "--root-copies").returncode, 0)
+        self.assertEqual((self.root / "PLAN_DE_MEJORA.md").read_bytes(),
+                         (self.root / "audit/PLAN_DE_MEJORA.md").read_bytes())
+
+    def test_aggregation_preserves_severity_verdicts(self):
+        for severity, verdict, code in (("none", "PASS", 0), ("low", "PASS WITH WARNINGS", 0),
+                                        ("medium", "CONDITIONAL", 1), ("high", "BLOCKED", 1)):
+            with self.subTest(severity=severity):
+                self.item(severity=severity)
+                result = self.cli(AGGREGATOR, no_site=True)
+                self.assertEqual(result.returncode, code, result.stdout + result.stderr)
+                self.assertIn(f"**Overall Verdict:** `{verdict}`", self.report())
+
+    def test_optional_unassessed_rejects_explicit_unknown_severity(self):
+        self.manifest.write_text(
+            'items:\n  - id: "A01"\n    slug: "optional"\n    level: 1\n'
+            '    category: "quality"\n    output: "audit/A01-check.md"\n'
+            '  - id: "A02"\n    slug: "assessed"\n    level: 0\n'
+            '    category: "quality"\n    output: "audit/A02-check.md"\n', encoding="utf-8",
+        )
+        self.item()
+        assessed = self.root / "audit/A02-check.md"
+        assessed.write_bytes(self.item_path.read_bytes())
+        for severity, code in ((None, 0), ("unknown", 1)):
+            with self.subTest(severity=severity):
+                self.item(status="not_assessed", severity=severity)
+                inputs = [self.manifest, self.item_path, assessed]
+                before = {path: path.read_bytes() for path in inputs}
+                result = self.cli(AGGREGATOR, "--level", "1", no_site=True)
+                self.assertEqual(result.returncode, code, result.stdout + result.stderr)
+                self.assertEqual(result.stderr, "")
+                self.assertEqual(before, {path: path.read_bytes() for path in inputs})
+                if code:
+                    self.assertIn("**Overall Verdict:** `INCOMPLETE`", self.report())
+                    gaps = json.loads((self.root / "audit/AUDIT_GAPS.json").read_text())
+                    self.assertIn("A01", [item["id"] for item in gaps["blocked_defect_items"]])
+
+    def test_empty_manifest_fails_aggregation(self):
+        self.manifest.write_text("items: []\n", encoding="utf-8")
+        self.assertEqual(self.cli(AGGREGATOR).returncode, 1)
+
+    def test_runner_uses_verdict_header_not_conditional_word_in_body(self):
+        self.item(status="not_assessed", severity=None,
+                  summary="No matching source exists; CONDITIONAL is example wording only.")
+        result = self.cli(RUNNER)
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        state = json.loads((self.root / "audit/AUDIT_RUN_STATE.json").read_text())
+        self.assertEqual(state["state"], "blocked")
+        self.assertFalse(state["conditional"])
+
+    def test_real_runner_preserves_pass_conditional_and_blocked(self):
+        self.source()
+        for severity, code, expected in (("none", 0, "aggregated"),
+                                         ("medium", 0, "aggregated"), ("high", 1, "blocked")):
+            with self.subTest(severity=severity):
+                self.item(severity=severity, violations="[OBSERVED: services/billing.py#L1] risk",
+                          ears="THE SYSTEM SHALL validate input.")
+                result = self.cli(RUNNER)
+                self.assertEqual(result.returncode, code, result.stdout + result.stderr)
+                state = json.loads((self.root / "audit/AUDIT_RUN_STATE.json").read_text())
+                self.assertEqual(state["state"], expected)
+                self.assertEqual(state["conditional"], severity == "medium")
 
 
 if __name__ == "__main__":
