@@ -10,7 +10,10 @@ status: "pending"
 
 ## Summary
 
-<!-- One paragraph: what was inspected, what was found. Be specific about file paths. -->
+<!-- One paragraph (at least 20 characters): what was inspected and found, with source paths.
+     If no scope file exists, use status: "not_assessed", omit severity above, and explain
+     the searches. Alternatively cite inspected source lines to justify widened scope.
+     Generated audit files cannot serve as evidence. Comments do not count as content. -->
 
 ## Violations
 

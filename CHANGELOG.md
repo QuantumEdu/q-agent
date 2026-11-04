@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Audit-item validation rejects empty-scope clean certification without inspected-source
+  evidence, malformed or out-of-project citations, generated audit self-evidence,
+  unfilled templates, fake section headings, and findings without evidence or EARS.
+  Empty scopes may be reported honestly as `not_assessed` with severity omitted.
+- The dependency-free manifest reader keeps fields with their owning item and reads
+  scope patterns, categories, quoted scalars and inline comments. Empty active
+  manifests no longer pass validation.
+
 ## [2.12.0] - 2026-11-03
 
 ### Added
