@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.12.1] - 2026-11-04
+
+### Fixed
+- Audit-item validation rejects empty-scope clean certification without inspected-source
+  evidence, malformed or out-of-project citations, generated audit self-evidence,
+  unfilled templates, fake section headings, and findings without evidence or EARS.
+  Empty scopes may be reported honestly as `not_assessed` with severity omitted.
+- The dependency-free manifest reader keeps fields with their owning item and reads
+  scope patterns, categories, quoted scalars and inline comments. Empty active
+  manifests no longer pass validation.
+- Aggregation fails closed on missing, pending, invalid and mandatory unassessed
+  items, preserves contradictory severities in reports, and refreshes diagnostic
+  gaps. Reports read the framework version from `skill.json`. Root plan copies
+  now require `--root-copies`; the runner reads the actual verdict header rather
+  than accepting the word CONDITIONAL in a finding body.
+- Default level-0 audits now include injection item A09 (six defect items).
+  Secrets and injection scope patterns include non-MVC configuration, scripts and
+  data-access layouts. Empty scopes still require explicit unassessed status or
+  real widened-source evidence; filename patterns are not vulnerability detection.
+- Plan C workflow and reference instructions both limit corrections to two passes
+  per item, preserve the limit across resumes, and surface unresolved audit gaps.
+- P08 requires a per-task recovery baseline and forbids destructive rollback.
+  Ambiguous ownership or pre-existing user changes leave files untouched; an
+  authorized task-only stash is reported only after its new commit identity and
+  preservation of unrelated files are verified.
+
 ## [2.12.0] - 2026-11-03
 
 ### Added

@@ -80,12 +80,13 @@ If severity is "none": "N/A — No remediation required."]
 
 ## Quality constraints
 
-1. **`status` must be `complete`** — never leave it as `pending` or `in-progress`
-2. **`severity` must be one of:** `none`, `low`, `medium`, `high`, `critical`
+1. **`status` must be `complete`**, except for `not_assessed` under rule 6. Never leave it as `pending` or `in-progress`.
+2. **For `complete`, `severity` must be one of:** `none`, `low`, `medium`, `high`, `critical`. For `not_assessed`, omit severity entirely.
 3. **Every violation in "Violations" must have an EARS entry** in "EARS Spec"
 4. **Do not add sections** beyond the four required ones
 5. **Do not report on files outside your scope** — if you find something suspicious in an out-of-scope file, note the path but mark it `[OUT-OF-SCOPE: A{relevant_id}]`
-6. **If no files were provided or scope is empty:** write Summary = "No files in scope were available for analysis." and severity = "none"
+6. **If scope is empty:** search for equivalent implementations under other filenames or layouts. If you inspect them, keep `complete` and cite their source paths and lines. Otherwise use `not_assessed`, omit severity, and explain the searches in Summary. An empty scope is not evidence of compliance; mandatory level-0 and security gaps block a passing report. This explicit scope widening is the exception to rule 5.
+7. **Use real headings and evidence:** comments and fenced examples do not supply sections. Summary must describe the inspection in at least 20 characters. Every `[OBSERVADO: path#L1-L2]` or `[OBSERVED: path#L1]` must cite existing source lines inside the project, never generated `audit/` files or outside-root symlinks. Malformed citations fail validation. Findings above `none` need evidence under Violations and `SHALL`/`DEBERÁ` under EARS Spec.
 
 ---
 

@@ -61,7 +61,7 @@ class TestAuditValidator(unittest.TestCase):
                 gaps = json.load(f)
             self.assertIn("gaps", gaps)
             failed_ids = {g["id"] for g in gaps["gaps"]}
-            self.assertEqual(failed_ids, {"A01", "A02", "A03", "A04", "A05"})
+            self.assertEqual(failed_ids, {"A01", "A02", "A03", "A04", "A05", "A09"})
 
     def test_audit_technical_contracts_on_current_repo(self):
         report = validate_audit.audit_technical_contracts(ROOT_DIR)

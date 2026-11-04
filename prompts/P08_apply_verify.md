@@ -39,6 +39,12 @@ Implementa la Fase {{NUMERO_FASE}} de {{PROYECTO_NOMBRE}} según el calibre asig
 Sigue fielmente `tasks.md`, `design.md` y `specs/{{FEATURE}}.md` cumpliendo el ciclo de 2 fases:
 
 ### Fase A: Ejecución Tarea por Tarea (`/apply`)
+**Línea base de recuperación:** antes de editar cada tarea, capturar `git status --short`,
+los diffs del índice y del árbol de trabajo y la lista de archivos explícitos propiedad
+de esa tarea. Conservar esa evidencia durante los intentos; no sobrescribirla al reintentar.
+Si no se puede establecer la línea base o distinguir cambios posteriores del usuario,
+la propiedad ambigua impide cualquier retirada automática.
+
 1. **Iteración Secuencial Atómica & Filtrado Kiro**: Toma exactamente UNA tarea pendiente de `tasks.md` a la vez, en el orden de capas establecido (`DOMINIO` → `INFRA` → `APPLICACIÓN` → `API` → `UI`).
    - **Regla Kiro:** Ejecuta todas las tareas marcadas como `[CORE]` y aquellas que el usuario haya habilitado explícitamente como `[OPTIONAL:ENABLED]`.
    - **Tareas Deshabilitadas:** Salta e ignora completamente cualquier tarea marcada como `[OPTIONAL:DISABLED]` sin ejecutar código ni fallar.
@@ -48,8 +54,11 @@ Sigue fielmente `tasks.md`, `design.md` y `specs/{{FEATURE}}.md` cumpliendo el c
    - *Refactor*: Limpia el código eliminando duplicaciones y optimizando sin romper los tests.
 3. **Límite de Recuperación y Rollback**: Si una tarea falla en la verificación y no se resuelve tras 3 intentos consecutivos:
    - Detén el ciclo inmediatamente.
-   - Ejecuta rollback atómico del intento actual (`git checkout -- <archivos>`).
-   - Registra en `.q-agent/flight_recorder.log`: `[STEP-06] [ROLLBACK] [EXECUTED] Task <task_id> aborted after 3 failed attempts`.
+   - No descartar trabajo: están prohibidos `git checkout --`, `git restore`, `git reset --hard` y `git clean -f` como recuperación de este intento.
+   - Si falta la línea base, algún archivo objetivo tenía cambios previos (incluidos archivos sin seguimiento), o hay cambios humanos posteriores o propiedad ambigua, dejar todos los archivos intactos y registrar `[STEP-06] [ROLLBACK] [NOT-EXECUTED] <motivo>`.
+   - Solo con propiedad demostrada y autorización aplicable para retirar el intento, usar `git stash push --include-untracked -m "q-agent: <task_id> failed attempt" -- <archivos explícitos>`. Enumerar únicamente archivos de la tarea; nunca usar directorios, comodines ni `.` que puedan incluir trabajo humano. No alterar un índice con cambios previos fuera de la tarea; en ese caso omitir la retirada automática.
+   - Comparar `git rev-parse refs/stash` antes y después (puede no existir antes). Verificar código de salida 0, una nueva identidad de commit de stash y preservación de los archivos ajenos antes de afirmar éxito. Si no hay un stash nuevo, el resultado es desconocido o falla la comprobación, no reintentar: registrar `[ROLLBACK] [NOT-EXECUTED]` con el resultado observado y pedir intervención.
+   - Registrar `[STEP-06] [ROLLBACK] [STASHED] Task <task_id> aborted after 3 failed attempts (<stash-commit-id>)` solo con evidencia verificada. El intento se conserva recuperable; mostrar `git stash show <stash-commit-id>` y requerir autorización antes de `git stash apply <stash-commit-id>`. No borrar ni aplicar automáticamente el stash.
    - Notifica el bloqueo al usuario con diagnóstico exacto.
 4. **Validación Inmediata**: No avances a la siguiente tarea hasta que el comando `Verification` de la tarea actual pase al 100%. Solo entonces marca `[X]` en `tasks.md`.
 
