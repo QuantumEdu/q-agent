@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -66,11 +67,11 @@ def run_audit(root: Path, level: int, manifest: Path, signing_key: Path | None =
 
     report_path = audit_dir / "AUDIT_REPORT.md"
     report_text = report_path.read_text(encoding="utf-8") if report_path.is_file() else ""
-    report_upper = report_text.upper()
+    verdict_header = re.search(r"^> \*\*Overall Verdict:\*\* `([^`]+)`", report_text, re.MULTILINE)
     conditional_report = (
         aggregator_code == 1
-        and "OVERALL VERDICT" in report_upper
-        and "CONDITIONAL" in report_upper
+        and verdict_header is not None
+        and verdict_header.group(1) == "CONDITIONAL"
     )
     aggregation_ok = aggregator_code == 0 or conditional_report
     if aggregation_ok:

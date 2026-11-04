@@ -115,7 +115,7 @@ Para evitar la saturación de la ventana de contexto (*Lost in the Middle*) y op
 | `A06` | `api-contracts-catalog` | API | 2 | ❌ | ✅ | ✅ |
 | `A07` | `ui-design-system` | Frontend | 4 | ❌ | ✅ | ✅ |
 | `A08` | `ui-accessibility` | Frontend | 4 | ❌ | ✅ | ✅ |
-| `A09` | `owasp-injection` | Security | 1 | ❌ | ✅ | ✅ |
+| `A09` | `owasp-injection` | Security | 1 | ✅ | ✅ | ✅ |
 | `A10` | `owasp-auth` | Security | 1 | ❌ | ✅ | ✅ |
 | `A11` | `owasp-ssrf` | Security | 1 | ❌ | ✅ | ✅ |
 | `A12` | `dependency-drift` | Maintenance | 3 | ❌ | ✅ | ✅ |
@@ -125,7 +125,7 @@ Para evitar la saturación de la ventana de contexto (*Lost in the Middle*) y op
 | `A16` | `multi-tenant-isolation` | Architecture | 2 | ❌ | ❌ | ✅ |
 | `A17` | `disaster-recovery` | Infrastructure | 3 | ❌ | ❌ | ✅ |
 
-- **Nivel 0 (MVP/Bootstrap):** 5 ítems esenciales (`A01`–`A05`). Siempre activo en cualquier proyecto.
+- **Nivel 0 (MVP/Bootstrap):** 6 ítems esenciales (`A01`–`A05` y `A09` inyección). Siempre activo en cualquier proyecto. Un ítem obligatorio no evaluado deja el informe `INCOMPLETE`, nunca `PASS`.
 - **Nivel 1 (Growth):** 13 ítems acumulados (`A01`–`A13`) + ítems `E01`–`E05` si se activa evolución estratégica.
 - **Nivel 2 (Maturity):** 17 ítems completos (`A01`–`A17`) para pre-release a producción, auditorías enterprise y SOC2/ISO readiness.
 
@@ -139,9 +139,20 @@ Para evitar la saturación de la ventana de contexto (*Lost in the Middle*) y op
 | **C4. Agregación Determinista** | `tools/q-audit-aggregator/generate_report.py` | `AUDIT_REPORT.md`, `PLAN_DE_MEJORA.md`, `REMEDIATION_ISSUES.md`, `PROPUESTA_EVOLUTIVA.md` | `python3 tools/q-audit-aggregator/generate_report.py --level [0\|1\|2]` |
 | **C5. Cierre** | `skills/q-session-wrap` | Local summary + optional authorized stores + chat report | Chat del orquestador |
 
+The aggregator checks item completion metadata; it does not replace evidence
+validation. Run C3 first, or use `tools/q-audit-runner/run_audit.py` for both stages.
+Missing, invalid, pending, or mandatory level-0/security `not_assessed` items prevent
+a passing report. Reports and plans stay under `audit/` by default; use the explicit
+`--root-copies` option only when root plan copies are wanted. An explicit `--output`
+continues to select a different report directory.
+
 ### ⛔ Regla Dura de la Compuerta Mecánica (Fase C3):
 - Si `validate_audit.py` retorna código de salida `1` (`RESULT: REJECTED — Audit items are incomplete`):
-  El agente tiene **ESTRICTAMENTE PROHIBIDO** interactuar con el usuario o dar por concluida la auditoría. Debe leer `audit/AUDIT_GAPS.json` y regenerar los ítems faltantes hasta obtener `RESULT: PASSED` (Exit Code 0).
+  Leer `audit/AUDIT_GAPS.json` y ejecutar como máximo 2 pasadas de corrección por ítem,
+  conservando el contador al reanudar. No modificar el código auditado. Si persisten
+  gaps o falta acceso/evidencia, detenerse, mostrar el bloqueo y solicitar una decisión
+  concreta; nunca certificar `PASS` ni seguir repitiendo indefinidamente. C4 requiere
+  Exit Code 0 del validador, pero aún puede declarar ítems obligatorios `INCOMPLETE`.
 
 ---
 

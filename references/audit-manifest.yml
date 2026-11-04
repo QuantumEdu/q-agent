@@ -5,8 +5,8 @@ description: >
   Completeness is a filesystem property, not an LLM output property.
 
 levels:
-  0: "MVP/Bootstrap — 5 mandatory items from the first commit"
-  1: "Growth — 8 additional quality and contract items"
+  0: "MVP/Bootstrap — 6 mandatory items (A01–A05 and A09 injection)"
+  1: "Growth — 7 additional quality and contract items"
   2: "Maturity — observability, NFRs, and scalability items"
 
 waves:
@@ -61,6 +61,18 @@ items:
       - "**/*.yml"
       - "**/*.yaml"
       - "**/.github/workflows/**"
+      # Configuration and executable scripts outside MVC layouts.
+      - "**/*.env"
+      - "**/*.ini"
+      - "**/*.cfg"
+      - "**/*.toml"
+      - "**/*.properties"
+      - "**/settings.py"
+      - "**/config.py"
+      - "**/config/**"
+      - "**/*.sh"
+      - "**/*.bat"
+      - "**/*.ps1"
     required_sections:
       - summary
       - violations
@@ -219,7 +231,8 @@ items:
     output: "audit/A08-ui-accessibility.md"
 
   - id: "A09"
-    level: 1
+    # Injection is a P0 release blocker and belongs in the default audit.
+    level: 0
     wave: 1
     slug: "owasp-injection"
     category: "security"
@@ -232,6 +245,20 @@ items:
       - "**/repositories/**"
       - "**/models/**"
       - "**/queries/**"
+      # Data access outside MVC folder conventions.
+      - "**/*.sql"
+      - "**/db/**"
+      - "**/database/**"
+      - "**/dao/**"
+      - "**/api/**"
+      - "**/handlers/**"
+      - "**/*repository*.*"
+      - "**/*_repo.*"
+      - "**/*quer*.*"
+      - "**/*store*.py"
+      - "**/*db*.py"
+      - "**/*sql*.py"
+      - "**/views.py"
     required_sections:
       - summary
       - violations
