@@ -1,0 +1,48 @@
+name: "Bug report (structured)"
+description: "Report a reproducible defect with expected behavior and terminal evidence."
+title: "[FIX] "
+labels: ["type:fix"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: "Problem description"
+      description: "Describe the defect and its impact. Do not include credentials or private data."
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: "Steps to reproduce"
+      description: "List the commands, inputs and conditions needed to reproduce the defect."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Expected behavior"
+      description: "Describe the observable result that should occur."
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: "Observed behavior"
+      description: "Describe the actual output, exit code and affected files."
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: "Terminal evidence"
+      description: "Paste actual command output after removing secrets and private paths."
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: "Environment"
+      description: "Include q-agent version or commit, Python version, operating system and agent runtime."
+    validations:
+      required: true
