@@ -13,6 +13,8 @@ Usage:
 """
 
 from datetime import datetime, timezone
+import fnmatch
+import os
 import sys
 import re
 import json
@@ -50,33 +52,63 @@ def load_manifest(manifest_path: Path) -> dict:
     except ImportError:
         pass
 
-    # Fallback: regex-based extraction of item output paths and IDs
     content = manifest_path.read_text(encoding="utf-8", errors="replace")
+    return {"items": parse_manifest_items(content)}
+
+
+def manifest_scalar(value: str) -> str:
+    """Read the manifest's quoted/plain scalar subset, including inline comments."""
+    value = value.strip()
+    if value.startswith('"'):
+        parsed, end = json.JSONDecoder().raw_decode(value)
+        if value[end:].strip() and not value[end:].lstrip().startswith("#"):
+            raise ValueError("Unsupported manifest scalar suffix")
+        return str(parsed)
+    if value.startswith("'"):
+        match = re.fullmatch(r"'((?:[^']|'')*)'\s*(?:#.*)?", value)
+        if not match:
+            raise ValueError("Invalid single-quoted manifest scalar")
+        return match.group(1).replace("''", "'")
+    return re.split(r"\s+#", value, maxsplit=1)[0].strip()
+
+
+def parse_manifest_items(content: str) -> list[dict]:
+    """Parse each canonical item independently; never zip unrelated field lists."""
     items = []
-    id_pattern = re.compile(r'^\s+- id:\s+"?([AE]\d+)"?', re.MULTILINE)
-    slug_pattern = re.compile(r'^\s+slug:\s+"?([^"\n]+)"?', re.MULTILINE)
-    level_pattern = re.compile(r'^\s+level:\s+(\d+)', re.MULTILINE)
-    wave_pattern = re.compile(r'^\s+wave:\s+(\d+)', re.MULTILINE)
-    output_pattern = re.compile(r'^\s+output:\s+"?([^"\n]+)"?', re.MULTILINE)
-
-    ids = id_pattern.findall(content)
-    slugs = slug_pattern.findall(content)
-    levels = [int(x) for x in level_pattern.findall(content)]
-    waves = [int(x) for x in wave_pattern.findall(content)]
-    outputs = output_pattern.findall(content)
-
-    for i, item_id in enumerate(ids):
+    for block in re.split(r"(?m)^\s+- id:\s*", content)[1:]:
+        lines = block.splitlines()
+        item_id = manifest_scalar(lines[0])
+        fields = {}
+        patterns = []
+        in_scope = False
+        for line in lines[1:]:
+            if not line.strip() or line.lstrip().startswith("#"):
+                continue
+            field = re.match(r"^\s+(\w+):\s*(.*)$", line)
+            if field:
+                key, value = field.groups()
+                in_scope = key == "scope_patterns"
+                if in_scope and value.strip() not in ("", "[]"):
+                    raise ValueError("scope_patterns must be a block list")
+                fields[key] = manifest_scalar(value)
+            elif in_scope:
+                entry = re.match(r"^\s+-\s+(.+)$", line)
+                if not entry:
+                    raise ValueError("Invalid scope_patterns entry")
+                patterns.append(manifest_scalar(entry.group(1)))
         items.append({
             "id": item_id,
-            "slug": slugs[i] if i < len(slugs) else "unknown",
-            "level": levels[i] if i < len(levels) else 0,
-            "wave": waves[i] if i < len(waves) else 0,
-            "output": outputs[i].strip() if i < len(outputs) else f"audit/{item_id}.md",
+            "slug": fields.get("slug", "unknown"),
+            "level": int(fields.get("level", "0")),
+            "wave": int(fields.get("wave", "0")),
+            "category": fields.get("category", "unknown"),
+            "scope_patterns": patterns,
+            "output": fields.get("output", f"audit/{item_id}.md"),
             "required_sections": ["summary", "violations", "severity", "ears_spec"],
             "type": "strategic_evolution" if item_id.startswith("E") else "defect_compliance",
         })
 
-    return {"items": items}
+    return items
 
 
 def parse_frontmatter(content: str) -> dict:
@@ -101,6 +133,94 @@ STRATEGIC_REQUIRED_SECTIONS = [
     "## Expected Impact",
 ]
 
+OBSERVED_OPEN = re.compile(r"\[(?:OBSERVADO|OBSERVED)\b", re.IGNORECASE)
+OBSERVED_TAG = re.compile(
+    r"\[(?:OBSERVADO|OBSERVED)\s*:\s*([^\]#\n]+?)\s*#L(\d+)(?:-L?(\d+))?\s*\]",
+    re.IGNORECASE,
+)
+
+
+def item_sections(content: str) -> tuple[str, dict[str, str]]:
+    """Ignore template comments and fenced examples when finding real headings."""
+    body = re.sub(r"\A---\s*\n.*?\n---[^\n]*\n?", "", content, count=1, flags=re.DOTALL)
+    body = re.sub(r"<!--.*?-->", "", body, flags=re.DOTALL)
+    sections = {}
+    heading = None
+    fence = None
+    visible = []
+    for line in body.splitlines():
+        marker = re.match(r"^\s{0,3}(`{3,}|~{3,})", line)
+        if marker:
+            token = marker.group(1)
+            if fence is None:
+                fence = token
+            elif token[0] == fence[0] and len(token) >= len(fence):
+                fence = None
+            continue
+        if fence:
+            continue
+        visible.append(line)
+        match = re.match(r"^##\s+(.+?)\s*#*\s*$", line)
+        if match:
+            heading = match.group(1).lower()
+            sections.setdefault(heading, [])
+        elif heading is not None:
+            sections[heading].append(line)
+    return "\n".join(visible), {key: "\n".join(value).strip() for key, value in sections.items()}
+
+
+def source_file(path: Path, root: Path) -> bool:
+    """Only real project sources, never generated audits or outside-root aliases."""
+    try:
+        relative = path.resolve().relative_to(root.resolve())
+        return path.is_file() and relative.parts[0] not in (BASE_IGNORED_DIRS | {"audit"})
+    except (ValueError, OSError, RuntimeError):
+        return False
+
+
+def scope_files(cwd: Path, patterns: list[str]) -> list[str]:
+    matches = []
+    for directory, dirs, files in os.walk(cwd):
+        dirs[:] = [name for name in dirs if name not in BASE_IGNORED_DIRS | {"audit"}]
+        for name in files:
+            path = Path(directory) / name
+            relative = path.relative_to(cwd).as_posix()
+            for pattern in patterns:
+                tail = pattern[3:] if pattern.startswith("**/") else pattern
+                candidate = name if "/" not in tail else relative
+                if (fnmatch.fnmatchcase(candidate, tail)
+                        or (pattern.startswith("**/") and fnmatch.fnmatchcase(relative, "*/" + tail))):
+                    if source_file(path, cwd):
+                        matches.append(relative)
+                    break
+    return matches
+
+
+def evidence_errors(body: str, cwd: Path) -> tuple[list[str], int]:
+    errors = []
+    valid = 0
+    for opener in OBSERVED_OPEN.finditer(body):
+        tag = OBSERVED_TAG.match(body, opener.start())
+        if tag is None:
+            errors.append("INVALID EVIDENCE: malformed observed citation.")
+            continue
+        raw, start, end = tag.groups()
+        target = cwd / raw.strip().strip("`")
+        if not source_file(target, cwd):
+            errors.append(f"INVALID EVIDENCE: '{raw}' is not an existing project source file.")
+            continue
+        try:
+            count = len(target.read_text(encoding="utf-8", errors="replace").splitlines())
+        except OSError:
+            errors.append(f"INVALID EVIDENCE: '{raw}' is unreadable.")
+            continue
+        first, last = int(start), int(end or start)
+        if not 1 <= first <= last <= count:
+            errors.append(f"INVALID EVIDENCE: '{raw}' line range is out of range.")
+        else:
+            valid += 1
+    return errors, valid
+
 
 def validate_item_file(item: dict, cwd: Path) -> list[str]:
     """Validate a single audit item file. Returns list of error strings."""
@@ -116,12 +236,16 @@ def validate_item_file(item: dict, cwd: Path) -> list[str]:
 
     content = output_path.read_text(encoding="utf-8", errors="replace")
     fm = parse_frontmatter(content)
+    body, sections = item_sections(content)
+    status = fm.get("status")
+    citation_errors, valid_citations = evidence_errors(body, cwd)
+    errors.extend(citation_errors)
 
     # Frontmatter checks
-    if fm.get("status") != "complete":
+    if status not in ("complete", "not_assessed"):
         errors.append(
             f"INCOMPLETE {item['output']}: frontmatter 'status' is '{fm.get('status', 'missing')}', "
-            f"expected 'complete'."
+            f"expected 'complete' or 'not_assessed' for an empty scope."
         )
 
     # Strategic items (E01-E05) vs Defect items (A01-A17)
@@ -129,11 +253,32 @@ def validate_item_file(item: dict, cwd: Path) -> list[str]:
 
     if is_strategic:
         for section in STRATEGIC_REQUIRED_SECTIONS:
-            if section.lower() not in content.lower():
+            if section[3:].lower() not in sections:
                 errors.append(
                     f"MISSING SECTION '{section}' in strategic item {item['output']}."
                 )
+        if status == "not_assessed":
+            errors.append("INVALID STATUS: strategic items must be complete.")
     else:
+        required = ("summary", "violations", "ears spec")
+        for section in required:
+            if section not in sections:
+                errors.append(f"MISSING SECTION '## {section}' in {item['output']}.")
+        if not ({"severity", "severity justification"} & sections.keys()):
+            errors.append(f"MISSING SECTION '## Severity' in {item['output']}.")
+        if len(sections.get("summary", "")) < 20:
+            errors.append("EMPTY SUMMARY: describe the inspected files (at least 20 characters).")
+
+        patterns = item.get("scope_patterns") or []
+        matched = scope_files(cwd, patterns) if patterns else []
+        if status == "not_assessed":
+            if matched:
+                errors.append("INVALID STATUS: not_assessed is only allowed when scope matches no file.")
+            if "severity" in fm:
+                errors.append("INVALID STATUS: not_assessed must omit severity.")
+            return errors
+        if patterns and not matched and not valid_citations:
+            errors.append("EMPTY SCOPE: cite inspected source files or use not_assessed without severity.")
         severity = fm.get("severity", "").lower()
         if severity not in VALID_SEVERITIES:
             errors.append(
@@ -141,12 +286,13 @@ def validate_item_file(item: dict, cwd: Path) -> list[str]:
                 f"{sorted(VALID_SEVERITIES)}."
             )
 
-        # Required sections check for defect items
-        for section in REQUIRED_SECTIONS:
-            if section.lower() not in content.lower():
-                errors.append(
-                    f"MISSING SECTION '{section}' in {item['output']}."
-                )
+        if severity in VALID_SEVERITIES - {"none"}:
+            violations = sections.get("violations", "")
+            if not re.search(r"\[(?:OBSERVADO|OBSERVED|INFERIDO|INFERRED|CONFLICTO|CONFLICT)\b",
+                             violations, re.IGNORECASE):
+                errors.append("UNSUPPORTED SEVERITY: findings require evidence under ## Violations.")
+            if not re.search(r"\b(?:SHALL|DEBER[AÁ])\b", sections.get("ears spec", ""), re.IGNORECASE):
+                errors.append("MISSING EARS: findings require SHALL or DEBERÁ under ## EARS Spec.")
 
     return errors
 
@@ -251,7 +397,7 @@ def validate_manifest(cwd: Path, manifest_path: Path, level: int) -> int:
 
     if not active_items:
         print(f"[WARNING] No items found for level <= {level} in manifest.")
-        return 0
+        return 1
 
     all_errors = {}
     for item in active_items:
@@ -1034,4 +1180,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
