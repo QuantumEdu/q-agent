@@ -139,6 +139,13 @@ Para evitar la saturación de la ventana de contexto (*Lost in the Middle*) y op
 | **C4. Agregación Determinista** | `tools/q-audit-aggregator/generate_report.py` | `AUDIT_REPORT.md`, `PLAN_DE_MEJORA.md`, `REMEDIATION_ISSUES.md`, `PROPUESTA_EVOLUTIVA.md` | `python3 tools/q-audit-aggregator/generate_report.py --level [0\|1\|2]` |
 | **C5. Cierre** | `skills/q-session-wrap` | Local summary + optional authorized stores + chat report | Chat del orquestador |
 
+The aggregator checks item completion metadata; it does not replace evidence
+validation. Run C3 first, or use `tools/q-audit-runner/run_audit.py` for both stages.
+Missing, invalid, pending, or mandatory level-0/security `not_assessed` items prevent
+a passing report. Reports and plans stay under `audit/` by default; use the explicit
+`--root-copies` option only when root plan copies are wanted. An explicit `--output`
+continues to select a different report directory.
+
 ### ⛔ Regla Dura de la Compuerta Mecánica (Fase C3):
 - Si `validate_audit.py` retorna código de salida `1` (`RESULT: REJECTED — Audit items are incomplete`):
   El agente tiene **ESTRICTAMENTE PROHIBIDO** interactuar con el usuario o dar por concluida la auditoría. Debe leer `audit/AUDIT_GAPS.json` y regenerar los ítems faltantes hasta obtener `RESULT: PASSED` (Exit Code 0).
