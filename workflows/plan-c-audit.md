@@ -26,7 +26,7 @@ Este workflow se ejecuta cuando el usuario selecciona **Plan C (Audit)** en el P
 
 ### Fase C2: Atomic Wave Dispatch (Olas Paralelas y Generación de Archivos Atómicos)
 1. Cargar el manifiesto canónico: `references/audit-manifest.yml`.
-2. Identificar el nivel de madurez exigido (por defecto **Nivel 0: MVP/Bootstrap** [5 ítems], **Nivel 1: Growth** [13 ítems], o **Nivel 2: Maturity** [17 ítems]).
+2. Identificar el nivel de madurez exigido (por defecto **Nivel 0: MVP/Bootstrap** [6 ítems: A01–A05 y A09], **Nivel 1: Growth** [13 ítems], o **Nivel 2: Maturity** [17 ítems]).
 3. **Despacho Concurrente en 4 Olas Paralelas (Parallel Audit Waves):**
    Para evitar la saturación de tokens y el fenómeno *Lost in the Middle*, los ítems se despachan agrupados temáticamente por afinidad de alcance (`scope_patterns`). Cada ola puede ejecutarse mediante subagentes concurrentes (`invoke_subagent`) o llamadas atómicas aisladas en lote:
    - 🌊 **Wave 1: Seguridad & Secretos** (`A02`, `A09`, `A10`, `A11`): Escaneo perimetral sin efectos colaterales (fugas de credenciales, inyecciones, RBAC y SSRF).
@@ -36,8 +36,8 @@ Este workflow se ejecuta cuando el usuario selecciona **Plan C (Audit)** en el P
    - 🌊 **Wave 5: Evolución Estratégica MAB-PC** (`E01` a `E05`, opcional): Latencia asíncrona, UX ergonomía, dominio de negocio, benchmarking competitivo e innovación no contemplada.
 4. **Por cada ítem forense (`A01` a `A17`) del nivel activo:**
    - Invocar `prompts/P01b_audit_item.md` asignando estrictamente sus `scope_patterns`.
-   - Inspeccionar solo los archivos asignados (aislamiento total de contexto; prohíbese inyectar el repositorio completo).
-   - Generar el archivo atómico formal: `audit/A{ID}-{slug}.md` respetando la plantilla `templates/audit-item.md` (frontmatter obligatorio, veredicto `passed|failed`, severidad, tags de evidencia `[OBSERVADO: ...]` y especificación EARS en caso de fallo).
+   - Inspeccionar solo los archivos asignados. Si el alcance está vacío, buscar implementaciones equivalentes bajo otros nombres y citar los archivos inspeccionados, según la regla 6 de P01b; no inyectar el repositorio completo.
+   - Generar `audit/A{ID}-{slug}.md` con la plantilla `templates/audit-item.md`: `status: complete` y severidad válida, o `status: not_assessed` sin severidad cuando no hay fuentes que inspeccionar. Un ítem de nivel 0 o de seguridad no evaluado impide `PASS` en C4.
 5. **Por cada ítem de evolución estratégica MAB-PC (`E01` a `E05`):**
    - Invocar `prompts/P01c_strategic_item.md` con su alcance asignado.
    - Generar el archivo atómico formal: `audit/E{ID}-{slug}.md`.
@@ -49,9 +49,10 @@ python3 tools/q-audit-validator/validate_audit.py --mode manifest --level [0|1|2
 ```
 ⛔ **CANDADO DE BLOQUEO ABSOLUTO:**
 - Si el código de salida es `1` (`RESULT: REJECTED — Audit items are incomplete`):
-  - El agente tiene **ESTRICTAMENTE PROHIBIDO** interactuar con el usuario, dar por terminada la auditoría o proponer soluciones.
-  - El agente DEBE leer `audit/AUDIT_GAPS.json` generado por el validador, identificar los ítems faltantes o con frontmatter inválido, y ejecutar las pasadas necesarias hasta que todos los archivos existan y cumplan la especificación.
-  - Solo cuando el validador retorne código de salida `0` (`RESULT: PASSED`), el agente tiene autorización para proceder a la Fase C4.
+  - Leer `audit/AUDIT_GAPS.json` e identificar los ítems rechazados. Ejecutar como máximo 2 pasadas de corrección por ítem; contar las pasadas durante toda la auditoría, sin reiniciar el límite al retomar la sesión.
+  - Corregir únicamente los entregables de auditoría, nunca el código auditado. Si falta evidencia o acceso, no inventar resultados ni repetir sin posibilidad de avance.
+  - Agotado el límite o ante un bloqueo real, detener las correcciones, mostrar los gaps y pedir la decisión concreta necesaria. No certificar la auditoría ni presentar un resultado parcial como `PASS`.
+  - Continuar a C4 solo con código `0` del validador. El agregador todavía puede devolver `INCOMPLETE` por ítems obligatorios no evaluados; ese resultado tampoco es un pase.
 
 ### Fase C4: Agregación Determinista (Cero Tokens / Cero Alucinación)
 Con el 100% de los archivos atómicos validados en el filesystem, el agente ejecuta:
