@@ -9,6 +9,20 @@
 
 ## 1. Fundamentos & Visión Arquitectónica
 
+### Communication provenance
+
+q-agent-owned messages distinguish their emitter from workflow, executor, host,
+orchestrator and phase. Runtime records carry real timezone-aware timestamps;
+missing historical identity/time and uninstrumented provider usage stay unknown,
+not fabricated. Routine activity is recorded without redundant chat interruptions.
+
+The cockpit exposes bounded recorded activity and a read-only execution view.
+These records are not authenticated identity or authorization, and do not imply
+that a loaded skill or installed backend executed a task. See the
+[communication contract](references/communication-contract.md),
+[lifecycle crosswalk](docs/communication-policy.md), and
+[cockpit API](tools/q-cockpit/README.md#recorded-communication).
+
 ### ¿Qué es q-agent?
 `q-agent` es un **director de orquesta** para el ciclo de vida completo de ingeniería de software asistida por IA. No es un generador de código que escupe archivos sin control (*vibe coding*): es un **árbitro arquitectónico** que guía el contexto mediante preguntas socráticas, delimita fronteras de dominio inmutables, hace cumplir el **Artículo Constitucional ARQ-01** (Vertical Slices) y delega la ejecución a herramientas deterministas y compuertas de calidad no negociables.
 

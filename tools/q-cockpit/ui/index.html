@@ -970,7 +970,7 @@
     <div class="logo-group">
       <span class="badge-tag">q-cockpit</span>
       <span class="project-name" id="proj-title">Cargando proyecto...</span>
-      <span class="badge-tag" id="proj-version" style="color:var(--text-muted); font-size:10px;">v2.5.3</span>
+      <span class="badge-tag" id="proj-version" style="color:var(--text-muted); font-size:10px;">—</span>
       <span id="proj-status-badge" class="status-badge idle">⚪ EN REPOSO (IDLE)</span>
     </div>
 
@@ -1090,6 +1090,9 @@
         <h3 id="local-execution-title" style="font-size:14px; margin-bottom:10px;">Ejecución local</h3>
         <p id="local-execution-summary" style="color:var(--text-muted); margin-bottom:10px;" role="status"></p>
         <div id="local-execution-tasks" class="artifacts-quick-grid"></div>
+        <h4 id="communication-title" style="margin-top:12px;"></h4>
+        <p id="communication-summary" role="status"></p>
+        <div id="communication-events" style="max-height:280px; overflow:auto;"></div>
       </section>
 
       <!-- Real Artifacts Quick Panel in Mission Cockpit -->
@@ -1228,7 +1231,7 @@
   <div class="toast-container" id="toast-container"></div>
 
   <footer>
-    <span id="footer-info">q-cockpit v2.5.3 · Zero-Node Native Python Runtime · Heurística ~400 LOC</span>
+    <span id="footer-info">q-cockpit · —</span>
     <span id="last-sync">Sincronizando...</span>
   </footer>
 
@@ -1247,6 +1250,17 @@
         btn_copy_skill: "📋 Copiar Contenido",
         toast_skill_copied: "¡Contenido del skill copiado al portapapeles!",
         local_title: "Ejecución local",
+        communication_title: "Actividad registrada (no identidad autenticada)",
+        communication_unknown: "desconocido",
+        communication_unavailable: "no disponible",
+        communication_empty: "Sin actividad disponible; origen y hora desconocidos.",
+        communication_executor: "ejecutor",
+        communication_host: "anfitrión",
+        communication_orchestrator: "orquestador",
+        communication_metrics: "tokens/coste",
+        communication_loaded: "cargado", communication_configured: "configurado",
+        communication_invoked: "invocado", communication_executed: "ejecutado",
+        communication_verified: "verificado", communication_unknown_time: "hora no disponible",
         local_absent: "No hay tareas locales registradas.",
         local_unavailable: "No se pudo consultar el registro local. No se ha modificado ni recuperado automáticamente.",
         local_available: "{0} tareas · Verificación técnica y aceptación humana son pasos distintos.",
@@ -1386,7 +1400,7 @@
         preview_chars: "caracteres",
 
         // Footer
-        footer_info: "q-cockpit v2.5.3 · Zero-Node Native Python Runtime · Heurística ~400 LOC",
+        footer_info: "q-cockpit {0} · Zero-Node Native Python Runtime · Heurística ~400 LOC",
         last_sync: "Última sincronización:"
       },
       en: {
@@ -1402,6 +1416,17 @@
         btn_copy_skill: "📋 Copy Content",
         toast_skill_copied: "Skill content copied to clipboard!",
         local_title: "Local execution",
+        communication_title: "Recorded activity (not authenticated identity)",
+        communication_unknown: "unknown",
+        communication_unavailable: "unavailable",
+        communication_empty: "No activity available; origin and time unknown.",
+        communication_executor: "executor",
+        communication_host: "host",
+        communication_orchestrator: "orchestrator",
+        communication_metrics: "tokens/cost",
+        communication_loaded: "loaded", communication_configured: "configured",
+        communication_invoked: "invoked", communication_executed: "executed",
+        communication_verified: "verified", communication_unknown_time: "time unavailable",
         local_absent: "No local tasks registered.",
         local_unavailable: "The local ledger is unavailable. No automatic modification or recovery was performed.",
         local_available: "{0} tasks · Technical verification and human acceptance are separate steps.",
@@ -1541,7 +1566,7 @@
         preview_chars: "characters",
 
         // Footer
-        footer_info: "q-cockpit v2.5.3 · Zero-Node Native Python Runtime · Heuristic ~400 LOC",
+        footer_info: "q-cockpit {0} · Zero-Node Native Python Runtime · Heuristic ~400 LOC",
         last_sync: "Last sync:"
       }
     };
@@ -1677,7 +1702,7 @@
       const modalClose = document.getElementById('modal-default-close-btn');
       if (modalClose) modalClose.textContent = t('btn_close');
       const footerInfo = document.getElementById('footer-info');
-      if (footerInfo) footerInfo.textContent = t('footer_info');
+      if (footerInfo) footerInfo.textContent = t('footer_info', lastDashboardData?.communication?.framework_version || t('communication_unavailable'));
 
       if (selectedArtifact) {
         const prevMeta = document.getElementById('preview-meta');
@@ -1798,7 +1823,7 @@
 
       // Navbar & Meta
       document.getElementById('proj-title').textContent = data.project.name;
-      document.getElementById('proj-version').textContent = `v${data.project.version || '2.5.3'}`;
+      document.getElementById('proj-version').textContent = data.project.version ? `v${data.project.version}` : '—';
       
       const statusBadge = document.getElementById('proj-status-badge');
       if (data.project.status === 'active') {
@@ -1863,6 +1888,7 @@
       currentTasks = data.tasks || [];
       renderKanban(currentTasks, data.project);
       renderLocalExecution(data.local_execution);
+      renderCommunication(data.communication);
 
       // Tab 4: Artifacts & Cockpit Quick Panel
       currentArtifacts = data.artifacts || [];
@@ -1884,7 +1910,7 @@
         const title = document.createElement('strong');
         title.textContent = `${task.id}: ${task.title}`;
         const state = document.createElement('p');
-        state.textContent = t(`local_state_${task.state}`);
+        state.textContent = task.evidence_stale ? t('local_stale') : t(`local_state_${task.state}`);
         const evidence = document.createElement('p');
         evidence.className = 'task-meta';
         evidence.textContent = [task.commit_sha?.slice(0, 12),
@@ -1893,7 +1919,42 @@
         note.textContent = task.evidence_stale ? t('local_stale')
           : ['uncertain', 'failed'].includes(task.state) ? t('local_inspect')
           : task.state === 'verified' ? t('local_verified') : '';
-        card.append(title, state, evidence, note);
+        const provenance = document.createElement('p');
+        provenance.textContent = task.communication?.compact || `[${t('communication_unknown_time')}] [${t('communication_unknown')}]`;
+        card.append(title, state, evidence, note, provenance);
+        container.append(card);
+      }
+    }
+
+    function renderCommunication(communication) {
+      const unknown = t('communication_unknown');
+      document.getElementById('communication-title').textContent = t('communication_title');
+      document.getElementById('footer-info').textContent = t('footer_info', communication?.framework_version || t('communication_unavailable'));
+      const container = document.getElementById('communication-events');
+      container.replaceChildren();
+      const events = (communication?.events || []).slice(-40);
+      document.getElementById('communication-summary').textContent = events.length
+        ? (communication.truncated ? t('local_truncated') : '') : t('communication_empty');
+      for (const event of events) {
+        const actor = event.provenance || {};
+        const card = document.createElement('article');
+        const heading = document.createElement('p');
+        heading.textContent = event.compact || `[${t('communication_unknown_time')}] [${unknown}]`;
+        heading.title = [event.timestamp, event.timestamp_source, event.request_id].filter(Boolean).join(' · ');
+        const details = document.createElement('p');
+        details.textContent = `${t('communication_executor')}: ${actor.executor || unknown} · ${t('communication_' + (actor.lifecycle || 'unknown'))}`;
+        const host = document.createElement('p');
+        host.textContent = `${t('communication_host')}: ${actor.host || unknown}`;
+        const orchestrator = document.createElement('p');
+        orchestrator.textContent = `${t('communication_orchestrator')}: ${actor.orchestrator || unknown}`;
+        const metrics = document.createElement('p');
+        const values = ['tokens', 'cost'].map(key => {
+          const metric = event.telemetry?.[key];
+          if (!metric || metric.status === 'unavailable') return `${key}: ${t('communication_unavailable')}`;
+          return `${key}: ${metric.value} ${metric.currency || ''} (${metric.status}; ${metric.source}; ${metric.basis || '—'})`;
+        });
+        metrics.textContent = values.join(' · ');
+        card.append(heading, details, host, orchestrator, metrics);
         container.append(card);
       }
     }

@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import html
 import http.server
+import importlib.util
 import json
 import os
 import re
@@ -33,6 +34,14 @@ HERE = Path(__file__).resolve().parent
 UI_DIR = HERE / "ui"
 DEFAULT_PORT = 4242
 COCKPIT_HOME = Path(os.environ.get("Q_COCKPIT_HOME") or os.environ.get("GRILL_HOME") or (Path.home() / ".q-cockpit"))
+
+# Keep one module/ContextVar instance across direct-file and enhanced entrypoints.
+_observability = sys.modules.get("cockpit_observability")
+if _observability is None:
+    _spec = importlib.util.spec_from_file_location("cockpit_observability", HERE / "cockpit_observability.py")
+    _observability = importlib.util.module_from_spec(_spec)
+    sys.modules[_spec.name] = _observability
+    _spec.loader.exec_module(_observability)
 
 
 def get_git_root(cwd: Optional[Path] = None) -> Path:
@@ -101,7 +110,9 @@ class SessionManager:
 
     def get_latest_session(self, root: Path) -> Optional[Path]:
         p_key = project_key(root)
-        p_dir = self.get_project_sessions_dir(p_key)
+        p_dir = self.sessions_root / p_key
+        if not p_dir.is_dir():
+            return None
         sessions = sorted([s for s in p_dir.iterdir() if s.is_dir()], reverse=True)
         return sessions[0] if sessions else None
 
@@ -123,10 +134,7 @@ class SessionManager:
     @staticmethod
     def append_event(session_dir: Path, event: Dict[str, Any]) -> None:
         events_file = session_dir / "events.jsonl"
-        event_record = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            **event,
-        }
+        event_record = _observability.native_record(event)
         with open(events_file, "a", encoding="utf-8") as f:
             f.write(json.dumps(event_record, ensure_ascii=False) + "\n")
 
@@ -496,6 +504,8 @@ class CockpitHTTPHandler(http.server.BaseHTTPRequestHandler):
             self.serve_visual()
         elif path == "/api/status":
             self.serve_api_status()
+        elif path == "/api/communication":
+            self.send_json(_observability.communication_snapshot(self.active_session_dir))
         elif path == "/api/diff":
             self.serve_api_diff()
         elif path == "/api/file":
@@ -1232,6 +1242,7 @@ class CockpitHTTPHandler(http.server.BaseHTTPRequestHandler):
             "tasks": tasks,
             "artifacts": artifacts,
             "has_visual": has_visual,
+            "communication": _observability.communication_snapshot(self.active_session_dir),
         }
 
         self.send_json(payload)

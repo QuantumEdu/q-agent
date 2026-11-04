@@ -64,6 +64,7 @@ This blocks until the human clicks **"Enviar Respuestas"** or decides a gate in 
 |---|---|---|
 | `GET` | `/` | Serves the interactive cockpit SPA |
 | `GET` | `/api/status` | Complete JSON snapshot of project, session, tasks, and gates |
+| `GET` | `/api/communication` | Bounded, redacted recorded activity (both server entrypoints) |
 | `GET` | `/api/actions` | Shared action catalog for clients |
 | `GET` | `/health` | Session storage health and writeability |
 | `GET` | `/visual` | Serves `visual.html` or placeholder |
@@ -88,3 +89,68 @@ are distinguished; neither prevents the workflow dashboard from loading.
 The generic file viewer also rejects the private `.cache/q-agent-tasks` directory
 and symlinks resolving into it. Inspect raw task output locally through its
 documented log path rather than the cockpit file API.
+
+## Recorded communication
+
+Both servers add `communication` to `/api/status`; the same object is available
+at `/api/communication` without scanning the project or selecting/creating a
+session. It contains `status` (`absent`, `available`, `unavailable`),
+`framework_version` (the serving package's `skill.json`, or null), `truncated`,
+and at most 40 `events` from the last 256 KiB of the active session's JSONL.
+Only newline-terminated objects are considered. Malformed/nonobject records and
+incomplete head/tail fragments are skipped. Reads reject nonregular files,
+hardlinks and symlinks in the file or any session-directory ancestor; descriptor
+relative opens prevent ancestor-link substitution. GET does not append events,
+create storage, dispatch work, or recover tasks.
+
+Each projected event has only `timestamp`, `timestamp_source`, `request_id`,
+`operation`, `provenance`, `telemetry`, and `compact`. Actor fields follow the
+[communication contract](../../references/communication-contract.md). These are
+**recorded claims, not authenticated identities or authorization**. Native
+cockpit writes protect their runtime clock and attribution from ordinary payload
+overrides. Their emitter is `q-cockpit`; private task diagnostics identify
+`q-tasks`. Writing a receipt does not assert that an action executed. Neither
+writer infers a model, host, orchestrator, phase or workflow from installation.
+Legacy actors remain unknown. Existing private session keys are retained on disk.
+
+`public_event(record)` normalizes the fixed public fields;
+`compact_event(record)` formats `[HH:mm:ss ±HH:mm] [emitter | workflow | phase]
+operation`. Valid historical aware timestamps are preserved. Missing, invalid
+and naive timestamps are unavailable, never replaced with the reader's clock.
+The emitter label preserves both kind and name, for example `tool (q-cockpit)`;
+an unnamed known kind stays distinct, such as `llm (unknown)` or `host (unknown)`.
+Host and orchestrator appear as separately labeled text in the activity list,
+with unknown values left explicit rather than inferred from installation.
+The UI uses text-only DOM nodes and shows executor/lifecycle, full timestamp and
+correlation on hover, plus measured/estimated usage only with source (and basis
+for estimates). No token/cost collector is installed; unavailable is not zero.
+The footer uses the serving framework version, not the audited project version.
+
+The local task panel additionally projects `task.communication`. Current
+commit-bound verification can establish `verified`; stale proof and abandoned
+running records cannot. An observed finished attempt/exit can establish
+`executed`, not acceptance. Historical actor identities remain unknown. Existing
+ledger keys, read-only SQLite mode and private-field exclusions are unchanged.
+Legacy pipeline highlights are navigation hints, not provenance evidence.
+
+### Browser probe with a disposable fixture
+
+The parent verifier should create its own external session via `SessionManager`
+and pass that directory with `serve --session <fixture> --project <fixture-project>`.
+Append newline-terminated JSON objects directly to that fixture's `events.jsonl`
+(not a real user's session). A useful synthetic object is:
+
+```json
+{"type":"probe","timestamp":"2026-11-04T12:34:56+02:00","provenance":{"emitter":{"kind":"tool","name":"<img onerror=alert(1)>"},"workflow":"q-agent","lifecycle":"loaded"},"notes":"PRIVATE","telemetry":{"tokens":{"status":"estimated","value":12,"source":"manual probe","basis":"synthetic fixture"}}}
+```
+
+Open the Cockpit tab in both ES and EN. Confirm the label is literal text (no
+image or alert), time includes `+02:00`, executor is unknown and lifecycle is
+loaded, not executed. Confirm PRIVATE is absent from `/api/communication`, cost
+is unavailable, and the footer matches this serving package's version. Add an
+object with a naive timestamp and no actors: time/origin must stay unavailable.
+Reload/poll and compare fixture bytes to confirm no GET writes. Test the generic
+file viewer separately: private receipt logs and symlinks to them remain 403.
+The broader `/api/status` retains its existing session/project fields for API
+compatibility; it is **not** a newly redacted replacement for that legacy API.
+Do not publish either local server as an authenticated public service.

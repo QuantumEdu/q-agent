@@ -44,7 +44,7 @@ def _load_local(module_name: str, filename: str):
 
 
 _services = _load_local("services", "cockpit_services.py")
-_observability = _load_local("observability", "cockpit_observability.py")
+_observability = legacy._observability
 _recovery = _load_local("recovery", "recovery.py")
 _ledger = _load_local("ledger", "task_ledger.py")
 ProjectSnapshotWorker = _services.ProjectSnapshotWorker
@@ -63,13 +63,12 @@ class EnhancedSessionManager(legacy.SessionManager):
     @staticmethod
     def append_event(session_dir: Path, event: dict[str, Any], *, request_id: str | None = None) -> str:
         correlation_id = request_id or current_request_id() or new_request_id()
-        record = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+        record = _observability.native_record(event)
+        record.update({
             "request_id": correlation_id,
             "operation": event.get("type", "session_event"),
             "outcome": "ok",
-        }
-        record.update({key: value for key, value in event.items() if key not in record})
+        })
         try:
             events_file = Path(session_dir) / "events.jsonl"
             with events_file.open("a", encoding="utf-8") as handle:
@@ -132,6 +131,7 @@ class EnhancedHandler(legacy.CockpitHTTPHandler):
             "has_visual": bool((self.project_root / "visual.html").exists()),
             "snapshot": snapshot["snapshot"],
             "local_execution": _ledger.ledger_snapshot(self.project_root),
+            "communication": _observability.communication_snapshot(self.active_session_dir),
         }
         self.send_json(payload)
 

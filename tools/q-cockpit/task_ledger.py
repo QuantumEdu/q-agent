@@ -4,6 +4,7 @@ import fcntl
 from pathlib import Path
 import sqlite3
 import subprocess
+from cockpit_observability import public_event, compact_event
 
 
 def ledger_snapshot(project: Path, limit: int = 200) -> dict:
@@ -46,6 +47,16 @@ def ledger_snapshot(project: Path, limit: int = 200) -> dict:
             if task["state"] == "running" and not active:
                 task["state"] = "uncertain"
             task["evidence_stale"] = task["state"] == "verified" and (not clean or task["commit_sha"] != head)
+            lifecycle = "unknown"
+            if task["state"] == "verified" and not task["evidence_stale"]:
+                lifecycle = "verified"
+            elif (task["state"] in ("failed", "awaiting_verification")
+                  and task["finished_at"] and task["exit_code"] is not None):
+                lifecycle = "executed"
+            task["communication"] = public_event({
+                "timestamp": task["finished_at"] or task["started_at"],
+                "operation": "local_task", "provenance": {"lifecycle": lifecycle}})
+            task["communication"]["compact"] = compact_event(task["communication"])
             tasks.append(task)
         return {"status": "available", "tasks": tasks, "total": total,
                 "truncated": total > limit, "runner_active": active}

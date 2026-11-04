@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Traceable local communication records and bounded cockpit activity with emitter,
+  workflow, executor, host, orchestrator, lifecycle and real-clock timestamp fields.
+  Legacy identity/time and unavailable provider usage remain visibly unknown.
+- A canonical communication/lifecycle crosswalk, conditional attention rules, honest
+  measured/estimated/unavailable telemetry, and explicit legacy prompt compatibility.
+
+### Changed
+- Cockpit footer version comes from its serving package rather than a fixed label;
+  private event payloads stay out of the new public communication projection.
+
 ## [2.12.1] - 2026-11-04
 
 ### Fixed
