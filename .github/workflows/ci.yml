@@ -17,9 +17,6 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
-    env:
-      Q_COCKPIT_HOME: ${{ runner.temp }}/q-agent-cockpit
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -28,6 +25,9 @@ jobs:
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Configure cockpit home
+        run: echo "Q_COCKPIT_HOME=$RUNNER_TEMP/q-agent-cockpit" >> "$GITHUB_ENV"
 
       - name: Verify Python syntax (py_compile)
         run: |
