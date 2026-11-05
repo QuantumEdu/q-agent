@@ -1,0 +1,35 @@
+name: "Feature Request / Nueva Funcionalidad (estructurada)"
+description: "Sugiere una nueva idea, capacidad o mejora para q-agent."
+title: "[FEATURE] "
+labels: ["type:feature"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: "1. Problema o Caso de Uso"
+      description: "Describe el problema y a quién afecta, sin incluir credenciales ni datos privados."
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: "2. Propuesta de Solución (Vertical Slice)"
+      description: "Describe la solución de extremo a extremo, con mínima indirección y una rebanada vertical."
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: "3. Criterios de Aceptación (EARS Spec / BDD)"
+      description: "Define cuándo se aplica cada regla y qué resultado observable debe producir el sistema."
+      placeholder: "WHEN: ...\nTHE SYSTEM SHALL: ..."
+    validations:
+      required: true
+  - type: checkboxes
+    id: impact
+    attributes:
+      label: "4. Impacto en la Arquitectura y Herramientas"
+      options:
+        - label: "Requiere actualizar `SKILL.md` o documentación maestra."
+        - label: "Afecta CLI tools (`tools/q-cockpit`, `tools/q-checklist`, `tools/audit`)."
+        - label: "Compatible con Zero-Mock Evidence y pruebas sin dependencias externas pesadas."
