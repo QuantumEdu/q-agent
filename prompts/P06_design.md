@@ -10,6 +10,11 @@ proyecto: "{{PROYECTO_NOMBRE}}"
 # P6 — Diseño Técnico Detallado y Contratos
 > `/design`
 
+> **Compatibilidad — variante OpenSpec explícita.** Ver la [guía canónica](../docs/communication-policy.md).
+> Diseño previo a fase 5, no verificación de fase 6. Identificar la bitácora activa
+> como autoridad de alcance, estado y aceptación; enlazar `design.md` como detalle
+> técnico, sin sustituir sus decisiones ni crear otro checklist de estado.
+
 ---
 
 Actúa como Arquitecto de Software Principal.

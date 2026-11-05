@@ -10,6 +10,11 @@ proyecto: "{{PROYECTO_NOMBRE}}"
 # P7 — Desglose de Tareas Ejecutables con TDD
 > `/tasks`
 
+> **Compatibilidad — variante OpenSpec explícita.** Ver la [guía canónica](../docs/communication-policy.md).
+> Planificación de fase 4, no cierre de fase 7. Identificar la bitácora activa como
+> autoridad de alcance, aceptación y estado; `tasks.md` aporta detalle con IDs
+> enlazados. Sus casillas reflejan referencias al estado canónico, no otra autoridad.
+
 ---
 
 Actúa como Líder Técnico de Desarrollo.
@@ -94,4 +99,3 @@ Al generar `tasks.md`, sustituye las variables de verificación por los comandos
 | **Perfil B** | **Python / FastAPI** | `pytest -v tests/path/test_item.py` | `pytest -v && ruff check . && mypy .` | `ruff check . && ruff format --check .` |
 | **Perfil C** | **TypeScript / Bun / Node** | `bun test test/path/item.test.ts` | `bun test && tsc --noEmit && eslint .` | `bun run build` o `npm run build` |
 | **Perfil D** | **Universal / Genérico** | `{{CMD_TEST_SINGLE}}` | `{{CMD_TESTS}} && {{CMD_TYPECHECK}} && {{CMD_LINT}}` | `{{CMD_BUILD}}` |
-

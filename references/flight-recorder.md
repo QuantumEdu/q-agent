@@ -15,7 +15,15 @@ It serves as a deterministic "black box" audit trail to detect bottlenecks, brok
 
 ## 2. Event Format Specification
 
-Every log line follows a strict bracketed timestamp and tag structure:
+Apply the [communication contract](communication-contract.md). Reuse existing
+writers/stores; this text stream does not replace native event JSONL or task state.
+New owned entries use the real host/tool clock with timezone; if absent, label
+`time-unavailable`. Never turn receipt time into execution time. Legacy entries
+remain unchanged; absent actor metadata stays unknown, not inferred from tags.
+Keep emitter separate from workflow, executor, host and orchestrator. A loaded
+skill is not an invoked CLI; a recorded line alone proves no execution.
+
+The legacy bracketed format remains readable (Z denotes UTC):
 
 ```text
 [YYYY-MM-DDTHH:MM:SSZ] [STEP_ID] [EVENT_TYPE] [STATUS] Details / Evidence
@@ -31,7 +39,7 @@ Every log line follows a strict bracketed timestamp and tag structure:
 | `[SKILL_CALL]` | Invocation of auxiliary sub-skills (`q-deliberate`, `q-ci-fixer`, etc.) | `INVOKED`, `COMPLETED`, `FAIL` |
 | `[GATE]` | Human-in-the-loop checkpoints (Step 0, Step 3, Scope gate, Tradeoffs) | `PENDING`, `APPROVED`, `REJECTED` |
 | `[INTERACTION]` | Interactive prompt/question to user at phase gates | `PROMPT`, `ANSWERED`, `SKIPPED` |
-| `[LINTER]` | Local linter/testing verification runs | `PASS (0 tokens)`, `FAIL` |
+| `[LINTER]` | Local linter/testing verification runs | `PASS`, `FAIL` |
 | `[ERROR]` | File not found, permission error, command failure | `BLOCKED`, `RECOVERED` |
 | `[MERGE]` | Branch integration completed | `OK`, `CONFLICT` |
 | `[WORKTREE]` | Isolated git worktree lifecycle | `CREATED`, `REMOVED` |
@@ -61,7 +69,14 @@ Configurable en `.q-agent.json` vía `observability.eval_level`:
 ### Niveles de Madurez de Evaluación:
 - **`minimal`**: Mide únicamente `final outcome` y `policy compliance`. Ideal para micro-parches rápidos (Fast Path) y prototipos de 1 persona.
 - **`standard` (Por Defecto)**: Agrega `decision`, `evidence`, `tools`, `routing` y `retries`. Mantiene alta calidad de ingeniería sin sobrecarga de medición.
-- **`enterprise`**: Activa las 9 dimensiones completas sumando `cost` y `latency` para contabilidad estricta y SLAs corporativos.
+- **`enterprise`**: Incluye las 9 dimensiones; solicita `cost` y `latency` cuando existe instrumentación. No obliga a inventar métricas ni habilita un colector de facturación.
+
+### Metric availability
+Each metric has status/value/source/basis: `measured` requires an actual source;
+`estimated` requires a source and explicit assumptions in basis; `unavailable`
+uses value `null`, never a claim of free execution. Provider tokens/cost remain
+optional without instrumentation even at enterprise level. Keep observed command,
+test, exit/status and timing evidence regardless of provider metric availability.
 
 ## 3. Reference Log Stream Example
 
@@ -74,7 +89,7 @@ Configurable en `.q-agent.json` vía `observability.eval_level`:
 [2026-09-13T18:00:45Z] [STEP-03] [GATE] [APPROVED] Runtime gate confirmed: single-agent antigravity tier1=gemini-3.8-flash
 [2026-09-13T18:01:00Z] [STEP-04] [PREFLIGHT] [OK] Private GitHub repository initialized and CONSTITUTION.md committed
 [2026-09-13T18:02:10Z] [STEP-05] [GATE] [APPROVED] P04 /propose scope confirmed by user
-[2026-09-13T18:03:00Z] [STEP-06] [LINTER] [PASS] local pytest exit code 0 (0 LLM tokens spent)
+[2026-09-13T18:03:00Z] [STEP-06] [LINTER] [PASS] local pytest exit code 0; tokens=unavailable value=null
 [2026-09-13T18:04:15Z] [STEP-07] [SKILL_CALL] [COMPLETED] P09 CAB-RP Compliance Audit: 0 drift, 100% contracts validated
 ```
 

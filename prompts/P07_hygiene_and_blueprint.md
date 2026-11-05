@@ -11,7 +11,11 @@ fecha: "{{YYYY-MM-DD}}"
 
 # P7 — Higiene Determinista y Consolidación de Blueprint
 
-> **Misión:** Garantizar que todo el código entregado cumpla con los estándares de estilo y linters deterministas (sin consumir tokens innecesarios) y actualizar el mapa vivo del sistema (`BLUEPRINT.md`) para reflejar los nuevos Slices Verticales entregados.
+> **Misión:** Comprobar estándares de estilo y linters deterministas y actualizar `BLUEPRINT.md` con los Slices Verticales entregados, sin inferir consumo del proveedor.
+
+Aplicar el [contrato de comunicación](../references/communication-contract.md) y la
+[guía canónica](../docs/communication-policy.md). La bitácora gobierna estado y
+aceptación; BLUEPRINT.md describe arquitectura y enlaza evidencia, sin duplicar tareas.
 
 ---
 
@@ -28,8 +32,8 @@ presupuesto compartido ANTES de editar, excluye tests congelados y obliga a repe
 E2E, regresiones y revisión independiente. Sin presupuesto, declarar BLOCKED.
 Un cambio posterior invalida el APPROVED anterior aunque el linter quede limpio.
 
-### 1.2 Regla de Cero Tokens y Candado Bounded Turns (Máximo 2 Pasadas)
-- **Si el linter reporta cero errores:** Avanzar de inmediato a la Sección 2 sin redactar explicaciones superfluas. Cero consumo de tokens cuando el código está limpio.
+### 1.2 Atención y Candado Bounded Turns (Máximo 2 Pasadas)
+- **Si el linter reporta cero errores:** Registrar el resultado y avanzar a la Sección 2 sin chat superfluo. Tokens/costo quedan no disponibles sin instrumentación; no inferirlos del linter.
 - **Si el linter o compilador reporta errores:**
   - Invocar `q-ci-fixer` para aplicar correcciones quirúrgicas estrictamente sobre los archivos y líneas señalados.
   - **Límite Estricto:** Máximo 2 pasadas de corrección. En modo autónomo se comparte el presupuesto por tarea de [E2E desatendido](../references/unattended-e2e.md), incluyendo P06 y revisión; P07 no reinicia el contador. Quedan prohibidos los ciclos infinitos de ajustes cosméticos. Si tras 2 pasadas persiste un error de fondo, reportarlo explícitamente al usuario.
@@ -64,11 +68,18 @@ Todo sistema vivo debe mantener su mapa de arquitectura actualizado. Al entregar
 
 ## 4. Reporte de Cierre al Usuario
 
-Presentar un resumen conciso de 3 a 5 líneas con los hechos comprobados:
+Entregar siempre un `actionable_result` conciso con hechos comprobados y limitaciones
+pendientes, usando el prefijo de actor/hora del contrato (o ausencia visible).
+Enlazar evidencia de la bitácora, no reproducir un segundo estado. No certificar
+éxito con checks pendientes; declarar BLOCKED/FAILED si corresponde. Si falta una
+decisión, una pregunta concreta y STOP. No solicitar aprobación redundante ni
+convertir este cierre en autoridad de merge, publicación o despliegue.
+Ejemplo de contenido para una entrega comprobada:
 ```text
 ✅ [FEATURE COMPLETADA Y CERTIFICADA]
 - Slice Vertical: [Nombre del Slice / Módulo]
 - Criterios de Aceptación: [UAC-01, UAC-02 verificados con salida 0]
 - Higiene: Linters en verde (0 errores)
 - Documentación: BLUEPRINT.md actualizado en Sección 3.1
+- Evidencia y limitaciones: [enlace a bitácora; pendientes o ninguna observada]
 ```

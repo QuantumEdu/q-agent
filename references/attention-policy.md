@@ -11,6 +11,15 @@ it stops interrupting for everything else.
 Silence is the default. q-agent speaks only when a person must act, or when a result
 is ready to be used. Everything else is recorded and stays quiet.
 
+Apply the [communication contract](communication-contract.md) and the
+[normative lifecycle crosswalk](../docs/communication-policy.md) to owned messages.
+Explicit user status requests are pull responses, not unsolicited interruptions.
+P03/P04 always record routine gates/log creation; chat requires a class below or
+a status request. P07 always delivers a concise `actionable_result` with checked
+facts, linked evidence and limitations. Ask one focused unresolved question, then
+STOP; never ask again for already authorized work. Host-owned notices and provider
+consent envelopes remain unchanged; this policy cannot intercept external output.
+
 An interruption is legal only in one of three classes. `q_tickets.request_attention`
 refuses every other value at the code level, so the policy is not a convention that
 depends on a model remembering it:
@@ -34,10 +43,11 @@ message.
 
 ## 3. What this changes in practice
 
-**3.1 The event log becomes the source of truth.** When chat is no longer the audit
-trail, `events` in the ticket store is. It must be durable (SQLite WAL, synchronous
-FULL) and greppable by ticket. Consequence: never let a report exist only as a
-message; write it, then decide whether it also deserves an interruption.
+**3.1 The event log is the audit trail, not a competing task plan.** Record ticket
+events through the existing store (SQLite WAL, synchronous FULL), greppable by
+ticket. The active living log owns scope, task state and acceptance; reports and
+events link evidence to it. Never let a report exist only as a message; write it,
+then decide whether it also deserves an interruption.
 
 **3.2 The human role moves from operator to judge.** You stop supervising execution
 and start resolving the two things a machine cannot: taste and authority. The failure

@@ -1,6 +1,8 @@
 # Bitácora de Feature ODD: {{FEATURE_NAME}}
 > Documento vivo unificado de desarrollo — Gobernado por el protocolo Organic Driven Development (ODD).
 > Ruta canónica: `q-tasks/{{FEATURE_NAME}}.md` (Modo Standalone) o `odd/tasks/{{FEATURE_NAME}}.md` (Modo Gentle-AI).
+> Autoridad de alcance, estado de tareas, aceptación y decisiones; informes enlazan evidencia, no duplican estados.
+> Aplicar [comunicación y procedencia](../references/communication-contract.md) y la [guía de fases](../docs/communication-policy.md).
 
 | Metadato | Valor |
 |---|---|
@@ -92,12 +94,17 @@
 
 | Wave | Tarea ID | Comando Ejecutado en Terminal | Código de Salida (Exit Code) | Resultado Observado / Evidencia | Telemetría (Tokens / Costo USD) | Estado |
 |---|---|---|---|---|---|---|
-| `W1` | `TASK-01` | `[ej. go test ./features/reuniones -v]` | `0` | `PASS: TestCreateReunion (0.02s)` | `~12k tok / $0.01` | `[VERIFICADO]` |
-| `W2` | `TASK-02` | `[ej. curl -I -s http://localhost:8080/reuniones]` | `0` | `HTTP/1.1 200 OK - Content-Type: text/html` | `~24k tok / $0.02` | `[VERIFICADO]` |
-| `W3` | `TASK-03` | `[ej. go vet ./... && golangci-lint run]` | `0` | `Clean - 0 warnings, 0 errors` | `~8k tok / $0.005` | `[VERIFICADO]` |
+
+Tabla inicialmente vacía; registrar únicamente ejecuciones observadas, con tests,
+exit/status/tiempo disponibles y enlaces a evidencia, nunca filas de ejemplo como resultados.
 
 ### 💰 Telemetría y Presupuesto Económico de Ejecución
-- **Gasto acumulado del feature:** `{{$USD / Tokens}}` across `{{N}}` waves.
+- Cada métrica usa status/value/source/basis: `measured` requiere fuente real;
+  `estimated` requiere fuente y supuestos explícitos; `unavailable` usa valor `null`.
+- Tokens/costo opcionales sin instrumentación, incluso enterprise; desconocido no
+  significa cero ni gratuito. Totales parciales deben identificar lo no disponible.
+- Registrar actor, fase y hora real con zona o ausencia visible conforme al contrato;
+  un mensaje del LLM no prueba ejecución de CLI ni reemplaza evidencia nativa.
 - **Eficiencia de Corrección (Zero-Waste):** [Indicar número de rondas de corrección consumidas, ej. 0/2 en verde a la primera pasada].
 
 ---
