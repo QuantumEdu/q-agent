@@ -135,6 +135,10 @@ class SessionManager:
     def append_event(session_dir: Path, event: Dict[str, Any]) -> None:
         events_file = session_dir / "events.jsonl"
         event_record = _observability.native_record(event)
+        # Legacy callers own these event fields, not native receipt attribution.
+        for key in ("operation", "outcome", "request_id"):
+            if key in event:
+                event_record[key] = event[key]
         with open(events_file, "a", encoding="utf-8") as f:
             f.write(json.dumps(event_record, ensure_ascii=False) + "\n")
 

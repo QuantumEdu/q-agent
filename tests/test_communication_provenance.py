@@ -63,6 +63,22 @@ class CommunicationTests(unittest.TestCase):
             self.assertIn('unknown', obs.compact_event(public))
         self.assertIsNone(obs.public_event([]))
 
+    def test_legacy_writer_preserves_existing_event_fields(self):
+        event = {'type': 'task_result', 'operation': 'task_run',
+                 'outcome': 'failed', 'request_id': 'caller-correlation',
+                 'timestamp': 'spoof', 'provenance': {'emitter': {'name': 'fake'}}}
+        with obs.request_context('handler-correlation'):
+            result = cockpit.legacy.SessionManager.append_event(self.root, event)
+        record = json.loads((self.root / 'events.jsonl').read_text())
+        self.assertIsNone(result)
+        for key in ('type', 'operation', 'outcome', 'request_id'):
+            with self.subTest(key=key):
+                self.assertEqual(record.get(key), event[key])
+        self.assertEqual(record['timestamp_source'], 'runtime_clock')
+        self.assertNotEqual(record['timestamp'], 'spoof')
+        self.assertEqual(record['provenance']['emitter']['name'], 'q-cockpit')
+        self.assertEqual(event['timestamp'], 'spoof')
+
     def test_measurements_require_sources_and_estimate_basis(self):
         for measurement, expected in (({'status': 'measured', 'value': 0}, 'unavailable'),
                 ({'status': 'estimated', 'value': 4, 'source': 'manual'}, 'unavailable'),
