@@ -1,13 +1,27 @@
 # q-agent — Master Project Orchestrator
-> **Hermetic deployment package v2.12.1 (Dual Engine, Vertical Slices & Wave Execution)** · Tool-agnostic · Greenfield · Brownfield · Fast-Track · Audit
+> **Hermetic deployment package v2.13.0 (Dual Engine, Vertical Slices & Wave Execution)** · Tool-agnostic · Greenfield · Brownfield · Fast-Track · Audit
 
 [![CI Pipeline](https://github.com/QuantumEdu/q-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/QuantumEdu/q-agent/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.12.1-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.13.0-green.svg)](CHANGELOG.md)
 
 ---
 
 ## 1. Fundamentos & Visión Arquitectónica
+
+### Communication provenance
+
+q-agent-owned messages distinguish their emitter from workflow, executor, host,
+orchestrator and phase. Runtime records carry real timezone-aware timestamps;
+missing historical identity/time and uninstrumented provider usage stay unknown,
+not fabricated. Routine activity is recorded without redundant chat interruptions.
+
+The cockpit exposes bounded recorded activity and a read-only execution view.
+These records are not authenticated identity or authorization, and do not imply
+that a loaded skill or installed backend executed a task. See the
+[communication contract](references/communication-contract.md),
+[lifecycle crosswalk](docs/communication-policy.md), and
+[cockpit API](tools/q-cockpit/README.md#recorded-communication).
 
 ### ¿Qué es q-agent?
 `q-agent` es un **director de orquesta** para el ciclo de vida completo de ingeniería de software asistida por IA. No es un generador de código que escupe archivos sin control (*vibe coding*): es un **árbitro arquitectónico** que guía el contexto mediante preguntas socráticas, delimita fronteras de dominio inmutables, hace cumplir el **Artículo Constitucional ARQ-01** (Vertical Slices) y delega la ejecución a herramientas deterministas y compuertas de calidad no negociables.
@@ -24,7 +38,7 @@ Los frameworks contemporáneos de agentes autónomos fallan en producción debid
 
 ### Matriz Comparativa de Capacidades
 
-| Capacidad | GitHub Spec-Kit | OpenSpec | BMAD Method | Superpowers | **q-agent v2.12.1** |
+| Capacidad | GitHub Spec-Kit | OpenSpec | BMAD Method | Superpowers | **q-agent v2.13.0** |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Arquitectura de Ejecución** | Cascada BDUF (Riesgo alto de *Context Rot*) | Modular, sin compuertas deterministas | Enjambre conversacional (3x–5x costo tokens) | Prompt chain estático, soporte débil Brownfield | **Director Tier-1 + Workers Tier-2 acotados** |
 | **Aislamiento de Espacio** | Árbol de trabajo local (colisión de ramas) | Checkout manual | Dependiente del harness | Checkout manual | **Git Worktrees Mandatorios (`.q-worktrees/task-<ID>`)** |

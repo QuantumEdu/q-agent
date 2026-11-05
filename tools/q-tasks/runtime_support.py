@@ -104,7 +104,11 @@ def prune_logs(directory, recorded_paths, keep=7):
 
 def diagnostic(directory, fields, limit=256 * 1024):
     # Intentionally omit task titles, IDs, arguments, raw output, paths and error strings.
-    record = {'timestamp': datetime.now(timezone.utc).isoformat()}
+    record = {'timestamp': datetime.now(timezone.utc).isoformat(),
+              'timestamp_source': 'runtime_clock',
+              'provenance': {'emitter': {'kind': 'tool', 'name': 'q-tasks'},
+                             'workflow': None, 'executor': None, 'host': None,
+                             'orchestrator': None, 'phase': None, 'lifecycle': 'unknown'}}
     for key, choices in {'operation': {'run', 'verify'}, 'state': {
             'failed', 'uncertain', 'awaiting_verification', 'verified'}}.items():
         if fields.get(key) in choices:
