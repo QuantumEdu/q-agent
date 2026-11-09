@@ -11,6 +11,12 @@ __pycache__/
 .cache/
 *.tmp*
 
+# q-fuzz generated runtime state (seed inputs stay tracked)
+tests/fuzz/corpus/**/run-*.jsonl
+tests/fuzz/corpus/**/crash-*.txt
+tests/fuzz/repro/*
+!tests/fuzz/repro/.gitkeep
+
 # OS / Editor files
 .DS_Store
 Thumbs.db
