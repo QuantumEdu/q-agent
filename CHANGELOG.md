@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   lists it in `may_call`; `README.md` lists it in the canonical directory tree.
 
 ### Changed
-- Repository version bumped to 2.14.1 (2.14.0 skipped at maintainer request).
+- Repository version 2.14.1: minor bump 2.13.0 → 2.14.0 for the EGM features merged in PR #34 (not versioned then) plus patch bump 2.14.0 → 2.14.1 for this change. Nothing is skipped.
 
 ## [2.13.0] - 2026-11-05
 
