@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `skills/q-design-review/`: revisión de diseño con ojos frescos (idea Goldfish adaptada de EGM de Google) en el Paso 3. Un subagente aislado audita el diseño con tres lentes (crítica de diseño, estructura, preparación para implementar) y hallazgos con R-IDs de Review Remembers. Falla con `[ABORTED - no fresh-subagent support]` si el runtime no puede crear subagentes con contexto limpio, en vez de simular la revisión.
+- `skills/q-fuzz/` + `tools/q-fuzz/q_fuzz.py`: fuzz acotado con semilla (stdlib, sin dependencias) para funciones puras registradas. Primer objetivo: `parse_shortstat()` de `q-merge-gate` (extraído como función pura). Presupuesto fijo, semilla registrada, corpus persistido en `tests/fuzz/corpus/<objetivo>/`, crashes deduplicados por firma y test reproductor en ROJO por crash. Paso consultivo en Fase A; fuente de tests RED_FAIL en Paso 9.
+- `tools/q-drift/q_drift.py`: reporte de deriva entre documentos checkeados (`BLUEPRINT.md`, `docs/designs/*.md`) y el árbol real; reporta archivos referenciados que no existen o están vacíos. Detector, nunca editor.
+- Atribución en `ATTRIBUTION.md` (punto 10) de las ideas adaptadas de EGM, con nota explícita de lo que no se portó.
+- Recetas `just fuzz`, `just fuzz-targets` y `just drift`.
+
 ## [2.13.0] - 2026-11-05
 
 ### Added

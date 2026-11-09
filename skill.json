@@ -37,6 +37,8 @@
     "q-ci-fixer",
     "q-audit-readonly",
     "q-adversarial-review",
+    "q-design-review",
+    "q-fuzz",
     "q-session-wrap",
     "q-skill-doctor",
     "q-superagent"

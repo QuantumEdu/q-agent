@@ -111,6 +111,7 @@ flowchart TD
    - **Una sola pregunta por turno:** El agente escucha y valida antes de asumir.
    - **Selección de Plan:** **Plan A** (Greenfield), **Plan B** (Brownfield), **Plan F** (Fast-Track quirúrgico ≤3 archivos) o **Plan C** (Auditoría Forense CAB-RP 2.0).
    - **Elicitación y Deliberación:** `q-deliberate` resuelve bifurcaciones dialécticas y genera ADRs; `q-grill-me` desafía supuestos frágiles antes de escribir especificaciones.
+   - **Revisión de Diseño con Ojos Frescos (Paso 3):** `skills/q-design-review/` audita el diseño con un subagente aislado que recibe solo el documento + el código referenciado, sin el historial (idea Goldfish adaptada de EGM). Si el runtime no puede crear subagentes con contexto fresco, la revisión se aborta con mensaje claro: nunca se simula.
 
 2. **Fase II: Meta-Orquestación & Dual Engine (Pasos 3 y 4):**
    - **Detección Dinámica:** Detecta automáticamente si opera bajo Gentle-AI ODD (`odd/tasks/`) o en modo Standalone (`q-tasks/`).
@@ -121,7 +122,7 @@ flowchart TD
    - **Aislamiento en Worktrees:** Cada tarea corre en `.q-worktrees/task-<ID>` mediante `q_worktree.py`, protegiendo la rama de trabajo principal de colisiones.
    - **Slices Verticales Cohesivos:** Persistencia pragmática (SQLite WAL con `busy_timeout=10000`, transacciones atómicas Compare-and-Swap, timestamps UTC) y separación de vistas `.html` empaquetadas.
    - **Compuerta Dual de Verificación (Paso 6):**
-     * **Fase A (Máquina):** Compilación estricta, tests automatizados, linters y validación estructural de entregables vía `tools/q-inspect/q_inspect.py` (código, documentos `.docx` y hojas de cálculo `.xlsx` sin dependencias externas).
+     * **Fase A (Máquina):** Compilación estricta, tests automatizados, linters y validación estructural de entregables vía `tools/q-inspect/q_inspect.py` (código, documentos `.docx` y hojas de cálculo `.xlsx` sin dependencias externas). Paso consultivo de fuzz: `tools/q-fuzz/q_fuzz.py` intenta romper funciones puras con entradas generadas por semilla (presupuesto fijo, nunca bloqueante por "no encontró nada").
      * **Fase B (Adversarial):** Subagente aislado audita el `git diff` contra ARQ-01 mediante el protocolo *Review Remembers* (`R-01`, `R-02`), exigiendo veredicto `APPROVED`. Si se agota el presupuesto de 2 rondas, la rama se aísla automáticamente a `quarantine/<task_id>`.
    - **Terminal Evidence Gate:** Registro obligatorio de comandos reales, códigos de salida 0 y telemetría de costos/tokens por tarea en la bitácora viva.
    - **Paso 7 Higiene:** Consolidación de nuevos slices en `BLUEPRINT.md`.
@@ -129,7 +130,7 @@ flowchart TD
 4. **Fase IV: Gobernanza de Fusión, Deploy Gate y Operaciones (Pasos 8 y 9):**
    - **Merge Gate Determinista (`q-merge-gate`):** Evalúa el radio de impacto (*blast radius*). Si el cambio supera 500 LOC o toca dominios críticos (`money`, `auth`, esquemas DDL), detiene la automatización y exige aprobación humana (`Exit 7/8`).
    - **Paso 8 Deploy Gate:** Generación de `REVIEW.md` con matriz de evidencia. **Bloqueo absoluto:** Prohibido desplegar a producción sin firma humana explícita.
-   - **Paso 9 Bucle Ops-to-ODD:** Los fallos o logs en producción (Sentry/telemetría) se inyectan como tests reproductores en rojo (`RED_FAIL`) antes de autorizar cualquier reparación.
+   - **Paso 9 Bucle Ops-to-ODD:** Los fallos o logs en producción (Sentry/telemetría) se inyectan como tests reproductores en rojo (`RED_FAIL`) antes de autorizar cualquier reparación. Los crashes de `q-fuzz` alimentan el mismo bucle: cada crash se convierte en un test reproductor en ROJO antes del fix.
 
 ---
 
@@ -284,6 +285,20 @@ just skill-doctor-report
 ```
 Agrega transcripts reales (Codex, Antigravity, OpenCode o cualquier JSONL) a un corpus local y los puntúa con una rúbrica fija — eficiencia, calidad, cobertura — para emitir propuestas con evidencia. **Nunca escribe un `SKILL.md`**: un scorer con permiso de escritura sobre lo que puntúa es un lazo auto-confirmatorio sin control externo.
 
+### 10. `skills/q-design-review/` (Revisión de Diseño con Ojos Frescos — idea Goldfish)
+Audita un documento de diseño con un subagente aislado que recibe **solo** el diseño + el código que referencia, sin el historial de la conversación. Tres lentes adaptadas de EGM: crítica de diseño (supuestos sin justificar, riesgos), estructura (secciones obligatorias, jerarquía) y preparación para implementar (cada paso accionable). Hallazgos con R-IDs de Review Remembers. Enganche: Paso 3 (gate de meta-orquestación). Si el runtime no puede crear subagentes con contexto fresco, la skill falla con `[ABORTED - no fresh-subagent support]` y no emite veredicto.
+
+### 11. `tools/q-fuzz/` (Fuzz Acotado con Semilla) & `tools/q-drift/` (Reporte de Deriva)
+```bash
+python3 tools/q-fuzz/q_fuzz.py run --target merge-gate-shortstat --seed 1 --budget 60 --json
+python3 tools/q-fuzz/q_fuzz.py list-targets
+python3 tools/q-drift/q_drift.py --root . --docs README.md
+just fuzz TARGET=merge-gate-shortstat SEED=1 BUDGET=60
+just drift
+```
+- **`q-fuzz`:** genera entradas con semilla determinista para intentar romper funciones puras registradas; cada crash se deduplica por firma, se guarda en el corpus (`tests/fuzz/corpus/<objetivo>/`) y emite un test reproductor en ROJO (`tests/fuzz/repro/`, exit 2 mientras el bug existe). Paso consultivo en Fase A; fuente de tests RED_FAIL en Paso 9. Exit 0 sin crashes, 2 con crash, 1 error de uso. Fuzzing nativo de Go documentado como trabajo futuro.
+- **`q-drift`:** compara las rutas referenciadas en `BLUEPRINT.md` (y `docs/designs/*.md` si existe) contra el árbol real y reporta solo las diferencias: archivos referenciados que no existen o están vacíos. Detector, nunca editor. Exit 0 sin deriva, 2 con hallazgos, 1 error.
+
 El contrato del router que usa estas piezas está en [`skills/q-superagent/`](skills/q-superagent/SKILL.md), y la política de interrupción humana — tres clases, silencio por defecto — en [`references/attention-policy.md`](references/attention-policy.md).
 
 ---
@@ -332,6 +347,8 @@ q-agent/
 ├── skills/                           # Ecosistema de skills modulares (≤200 líneas c/u)
 │   ├── INDEX.md                      # Catálogo central de descubrimiento y dependencias
 │   ├── q-adversarial-review/         # Review Remembers con matriz R-IDs y Completion Gate
+│   ├── q-design-review/              # Revisión de diseño con ojos frescos (Goldfish, Paso 3)
+│   ├── q-fuzz/                       # Fuzz acotado con semilla (Paso 6 Fase A, Paso 9 RED_FAIL)
 │   ├── q-audit-readonly/             # Auditoría forense con zero-mutation gate
 │   ├── q-delegate-context/           # Delegación agnóstica de contexto
 │   ├── q-gbrain-assistant/           # Gateway de memoria GBrain
@@ -348,6 +365,8 @@ q-agent/
 │   └── harness2/                     # Evaluación contrastiva: Base, Stress y Context Recovery
 ├── tools/                            # Herramientas de gobernanza CLI
 │   ├── q-worktree/                   # Aislamiento en Git Worktrees
+│   ├── q-fuzz/                       # Fuzz acotado con semilla + corpus y reproductores RED
+│   ├── q-drift/                      # Reporte de deriva docs-vs-código
 │   ├── q-merge-gate/                 # Compuerta determinista de políticas de merge
 │   ├── q-checklist/                  # Validador determinista de checklists ODD
 │   ├── q-cockpit/                    # Cockpit visual e inspectores de salud
@@ -389,6 +408,7 @@ Detalles y trazas completas en [`docs/validation/harness2-evaluation.md`](docs/v
 - **BMAD Method:** Visión de Product Manager y taxonomía de user stories.
 - **SWE-agent:** Principio de *Reproduction-First TDD* (fase roja demostrable antes de implementar código).
 - **Harness² (Google Research):** Metodología de evaluación contrastiva de arneses con tests inmutables, evidencia terminal real y contraste de comportamiento en tareas de mundo abierto.
+- **Elephant-Goldfish Model (Google):** Idea de revisión de diseño con sesiones frescas sin historial (Goldfish) y de reporte de deriva docs-vs-código, adaptadas en `skills/q-design-review/` y `tools/q-drift/`. Solo ideas; el plugin EGM no se portó (ver `ATTRIBUTION.md`).
 
 ---
 

@@ -69,6 +69,18 @@ cockpit-health:
 merge-gate BASE="main" MAX_LOC="500":
     python3 tools/q-merge-gate/q_merge_gate.py --base {{BASE}} --max-loc {{MAX_LOC}}
 
+# Run bounded seed-driven fuzz on a registered target (advisory; never blocks on "no crash found")
+fuzz TARGET="merge-gate-shortstat" SEED="1" BUDGET="60":
+    python3 tools/q-fuzz/q_fuzz.py run --target {{TARGET}} --seed {{SEED}} --budget {{BUDGET}}
+
+# List registered fuzz targets
+fuzz-targets:
+    python3 tools/q-fuzz/q_fuzz.py list-targets
+
+# Report drift between checked-in docs (BLUEPRINT.md, docs/designs) and the real tree
+drift:
+    python3 tools/q-drift/q_drift.py --root .
+
 # List active subagent git worktrees
 worktrees:
     python3 tools/q-worktree/q_worktree.py list

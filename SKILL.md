@@ -19,6 +19,8 @@ metadata:
     - "skills/q-deliberate"
     - "skills/q-grill-me"
     - "skills/q-adversarial-review"
+    - "skills/q-design-review"
+    - "skills/q-fuzz"
     - "skills/q-ci-fixer"
     - "skills/q-audit-readonly"
     - "skills/q-delegate-context"

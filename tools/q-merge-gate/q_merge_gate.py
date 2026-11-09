@@ -36,6 +36,24 @@ PATTERNS = {
 }
 
 
+def parse_shortstat(out_stat):
+    """Parse `git diff --shortstat` output into (insertions, deletions).
+
+    Pure function: no I/O, never raises on arbitrary input. Malformed or
+    missing counters yield 0. Kept separate so it can serve as a fuzz
+    target (see tools/q-fuzz/q_fuzz.py, target ``merge-gate-shortstat``).
+    """
+    added = 0
+    deleted = 0
+    match_add = re.search(r"(\d+) insertion", out_stat or "")
+    match_del = re.search(r"(\d+) deletion", out_stat or "")
+    if match_add:
+        added = int(match_add.group(1))
+    if match_del:
+        deleted = int(match_del.group(1))
+    return added, deleted
+
+
 def run_git(args, cwd=None):
     """Run a git command and return (returncode, stdout, stderr)."""
     cmd = ["git"] + args
@@ -62,19 +80,12 @@ def analyze_diff(base="main", head="HEAD", max_loc=500, cwd=None):
 
     changed_files = [f for f in out.splitlines() if f.strip()]
 
-    # Check stat for lines added/removed
+    # Check stat for lines added/removed (pure parser; see parse_shortstat).
     code, out_stat, _ = run_git(["diff", "--shortstat", f"{base}...{head}"], cwd=cwd)
     if code != 0:
         code, out_stat, _ = run_git(["diff", "--shortstat", base, head], cwd=cwd)
 
-    added = 0
-    deleted = 0
-    match_add = re.search(r"(\d+) insertion", out_stat)
-    match_del = re.search(r"(\d+) deletion", out_stat)
-    if match_add:
-        added = int(match_add.group(1))
-    if match_del:
-        deleted = int(match_del.group(1))
+    added, deleted = parse_shortstat(out_stat)
     total_loc = added + deleted
 
     # Evaluate patterns

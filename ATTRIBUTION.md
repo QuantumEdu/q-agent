@@ -67,6 +67,10 @@ El proyecto **`q-agent`** ha sido concebido, diseñado y orquestado por **Gabrie
 9. **Evaluación Contrastiva de Arneses (Harness²):**
    - **Autor / Referente:** Google Research ([arXiv:2610.14224](https://arxiv.org/abs/2610.14224), *Harness²: Recursive Agent Harnessing for an Open World*).
    - **Contribución:** Metodología experimental para evaluar y contrastar sistemas de arnés para LLMs mediante pruebas inmutables, evidencia observable en terminal sin mocks, y contraste de comportamiento en tareas de mundo abierto. Integrado en la suite `evals/harness2/`.
+10. **Elephant-Goldfish Model — revisión con ojos frescos y reporte de deriva (ideas adaptadas, no código):**
+   - **Autor / Referente:** Google — Elephant-Goldfish Model (EGM), https://github.com/google/elephant-goldfish-model, Apache License 2.0.
+   - **Contribución:** La idea de revisar un diseño con sesiones frescas sin historial (Goldfish: el Elefante escribe el diseño con todo el contexto; el Pez Dorado lo revisa sin memoria previa) y la idea de detectar deriva comparando documentos checkeados contra el código real. Adaptadas en q-agent como `skills/q-design-review/` (tres lentes de revisor: crítica de diseño, estructura, preparación para implementar) y `tools/q-drift/q_drift.py`, ambas reescritas para los protocolos propios de q-agent (Review Remembers con R-IDs, stdlib sin dependencias, evidencia terminal).
+   - **Qué NO se tomó:** no se copió ni se instaló el plugin EGM, ni sus skills de draft/bootstrap, ni su instalador, ni sus prompts textuales. El diseño de q-agent (descubrimiento socrático, planes A/B/C/F, compuertas deterministas) no fue reemplazado: EGM aporta ideas puntuales en los puntos donde q-agent no tenía equivalente.
 
 ---
 
