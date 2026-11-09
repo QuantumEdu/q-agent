@@ -14,6 +14,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Atribución en `ATTRIBUTION.md` (punto 10) de las ideas adaptadas de EGM, con nota explícita de lo que no se portó.
 - Recetas `just fuzz`, `just fuzz-targets` y `just drift`.
 
+## [2.14.1] - 2026-11-08
+
+### Added
+- `skills/q-improve-loop` (v1.2.0): restores the skill referenced by `q-skill-doctor`,
+  `CHANGELOG.md` and `tools/q-skill-doctor/skill_doctor.py` but missing from the
+  repository. Iterative audit, semantic compression and rewrite of skills under a
+  1–5 rubric (max 8 iterations), with a mandatory external verification gate
+  before persisting: the loop's own score ≥ 4 is necessary but not sufficient —
+  `q-skill-doctor score` must not regress against the pre-rewrite baseline and,
+  for behavior-touching changes, the applicable harness2 evaluator must pass
+  without `tampered`. Otherwise the state is `[BLOCKED: external-check]` and the
+  draft is kept as a proposal. Removed instructions are recorded with original
+  text, location and reason for later ablation testing (baseline vs pruned).
+- `skills/INDEX.md` and `skill.json` register `q-improve-loop`; root `SKILL.md`
+  lists it in `may_call`; `README.md` lists it in the canonical directory tree.
+
+### Changed
+- Repository version 2.14.1: minor bump 2.13.0 → 2.14.0 for the EGM features merged in PR #34 (not versioned then) plus patch bump 2.14.0 → 2.14.1 for this change. Nothing is skipped.
+
 ## [2.13.0] - 2026-11-05
 
 ### Added

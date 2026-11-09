@@ -101,7 +101,7 @@ class CommunicationPolicyTests(unittest.TestCase):
     def test_preserve_version_size_and_previous_gate_invariants(self):
         skill = read("SKILL.md")
         self.assertLessEqual(len(skill.splitlines()), 200)
-        self.assertIn("version: 2.13.0", skill.split("---", 2)[1])
+        self.assertIn("version: 2.14.1", skill.split("---", 2)[1])
         for name in PRIMARY + LEGACY:
             self.assertTrue(read("prompts/" + name).startswith("---\n"))
         self.assertIn("APPROVED", read("prompts/P06_terminal_evidence_gate.md"))
