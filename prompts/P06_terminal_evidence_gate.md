@@ -64,6 +64,12 @@ Si la tarea especifica múltiples artefactos o reportes:
 - **Higiene de Sandbox CLI:** Todo script o binario temporal de prueba o inspección debe crearse en `.scratch/` local del proyecto y ser limpiado al terminar, nunca en `/tmp`.
 - **Citación Estricta de Claves Primarias:** Verificar que afirmaciones de compatibilidad, incidentes o configuración tengan respaldo observable citando el ID formal (`config_id`, `ticket_id`, `clause_number`, `cve_id`, timestamps) extraído de bases de datos o logs reales, nunca en suposiciones del modelo.
 
+#### A.5 Spec-Derived Probes e Invariantes de Estado
+Los tests escritos por el implementador no son evidencia suficiente de corrección por sí solos (un test propio puede perpetuar un sesgo o bug).
+- **Probes Independientes:** Formular pruebas adicionales directamente a partir de las especificaciones (`S#`): casos frontera (valores límite, arrays vacíos, strings nulos o malformados) y respuestas de error con códigos de salida exactos.
+- **Invariantes de Estado (State Hashing):** Ante comandos rechazados o inputs inválidos, verificar que los datos persistidos se mantengan byte a byte idénticos (calcular hash SHA-256 de la base de datos SQLite antes y después de la ejecución rechazada).
+- **Aporte de Tests Duraderos:** Ejecutar los probes en un entorno o copia aislada (`mktemp -d` o `.scratch/`) y transferirlos como tests de regresión permanentes a la suite del proyecto.
+
 ---
 
 ### 2.2 Fase B: Compuerta de Revisión Adversarial Aislada (`skills/q-adversarial-review`)

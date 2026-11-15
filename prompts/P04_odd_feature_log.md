@@ -23,7 +23,7 @@ de alcance, estado de tareas, aceptación y decisiones. Los informes enlazan evi
 no mantienen estados competidores. Reutilizar decisiones y autoridad ya establecidas.
 
 1. **Exploración con CodeGraph e Impact Gate:** Antes de redactar la bitácora, verificar el índice del repositorio con `test -d .codegraph || codegraph init -y`. Explorar los símbolos existentes vía MCP `codegraph_explore` o CLI (`codegraph explore -p <root> "<query>"`). Evaluar el blast radius del cambio con `codegraph impact <symbol>` para asegurar que el alcance se mantenga como Vertical Slice cohesiva sin efectos colaterales no mapeados. Cero adivinación de rutas o firmas.
-2. **Cero Burocracia Innecesaria:** Si el cambio es una corrección trivial de 1 solo archivo (<50 líneas), resolverla directamente inline sin crear artefactos durables. Si implica 2 o más pasos o componentes, la creación de la bitácora es obligatoria.
+2. **Criterio de Sizing (Resume Test):** Si el cambio es una corrección o adición entendida dentro del presupuesto de evidencia inline (≤3 llamadas / ~10k tokens), con riesgo acotado (sin DDL, dinero ni auth compleja) y que un desarrollador podría terminar únicamente viendo el pedido y el `git diff` si la sesión se corta, resolverla directamente inline vía Fast-Track (Plan F) sin crear bitácora. La bitácora viva es obligatoria solo para tareas GRANDES que fallan el Resume Test.
 3. **Respeto a la Ruta del Motor:**
    - Si el Motor es Gentle-AI: Escribir en `odd/tasks/{{FEATURE_NAME}}.md`; un espejo externo requiere autorización independiente, no solo disponibilidad.
    - Si el Motor es Standalone: Escribir en `q-tasks/{{FEATURE_NAME}}.md`.
@@ -34,13 +34,18 @@ no mantienen estados competidores. Reutilizar decisiones y autoridad ya establec
 
 El archivo generado debe instanciar fielmente [`templates/task-log-template.md`](../templates/task-log-template.md) con las siguientes secciones:
 
-### 2.1 Perspectiva de Product Manager (Lente BMAD / Squad Path)
+### 2.1 Especificaciones Constitucionales (S# — Mandato Spec by Reference)
+- Transcribir de forma textual y numerada (`S-01`, `S-02`) los requerimientos, strings exactos y códigos de error del usuario sin parafrasear.
+- Al delegar a subagentes o worktrees aislados, el handoff cita esta fuente directa (`Spec: q-tasks/{{FEATURE_NAME}}.md, TASK-XX, S-01`).
+- Los subagentes leen la bitácora directamente hasta `## Log`, eliminando el sesgo de reinterpretación.
+
+### 2.2 Perspectiva de Product Manager (Lente BMAD / Squad Path)
 - **User Persona & Dolor Actual:** ¿Quién sufre el problema hoy y cuál es el impacto de no resolverlo?
 - **Historias de Usuario Ágiles (`US-01`, `US-02`):**
   - Formato: *Como [rol], quiero [acción], para [beneficio].*
-  - **Criterio de Aceptación Observable (`UAC-01`, `UAC-02`):** La condición exacta, verificable desde la interfaz o el protocolo HTTP, que define el éxito de la historia.
+  - **Criterio de Aceptación Observable (`UAC-01`, `UAC-02`):** La condición exacta, verificable desde la interfaz o el protocolo HTTP, que define el éxito de la historia (vinculada a `S#`).
 
-### 2.2 Alcance y Restricciones Constitucionales (Artículo ARQ-01)
+### 2.3 Alcance y Restricciones Constitucionales (Artículo ARQ-01)
 - Declarar explícitamente lo que entra en el cambio (**In Scope**) y lo que se difiere deliberadamente (**Out of Scope**).
 - Confirmar el cumplimiento de las cláusulas aplicables:
   - *Cláusula 1:* Diseño en **Vertical Slice** autónomo.
@@ -48,16 +53,23 @@ El archivo generado debe instanciar fielmente [`templates/task-log-template.md`]
   - *Cláusula 4:* Higiene estricta; vistas en archivos `.html` independientes empaquetados (`//go:embed` o templates nativos). Cero HTML en strings de código.
   - *Cláusula 5:* 100% SQL parametrizado y escape XSS activo.
 
-### 2.3 Desglose de Tareas Atómicas en Oleadas (~400 líneas / slice)
+### 2.4 Desglose de Tareas Atómicas en Oleadas (~400 líneas / slice)
 - Dividir la implementación en tareas coherentes acotadas a la heurística de ~400 líneas, organizadas en **Oleadas (Waves)**:
   - **Wave 1 (Sin dependencias):** Esquemas, contratos, entidades de dominio y tests en rojo (`RED_FAIL`).
   - **Wave 2 (Dependientes de W1):** Casos de uso, servicios de aplicación y adaptadores.
   - **Wave 3 (Dependientes de W2):** Controladores HTTP, endpoints, vistas `.html` empaquetadas e integración UI.
-- Cada tarea debe tener un identificador estable (`TASK-01`, `TASK-02`), estar asociada directamente a un `UAC` y declarar su Wave.
-- Detallar los archivos a crear o modificar (handlers, queries/storage, plantillas).
+- Cada tarea debe tener un identificador estable (`TASK-01`), estar asociada a `S#` y `UAC`, declarar su Wave y **declarar su Ruta de ejecución**:
+  - `Ruta: inline` (ejecutada en hilo principal por el orquestador).
+  - `Ruta: delegated` (aislada en `.q-worktrees/task-XX` justificada por paralelismo de superficies disjuntas o backstop de sesión).
+- Al ser completada y verificada, cada tarea se sella vinculando su commit convencional atómico: `- [x] TASK-01 (Commit: <sha>) ...`.
 
-### 2.4 Terminal Evidence Gate (Vacío Inicialmente)
+### 2.5 Terminal Evidence Gate & Spec-Derived Probes (Vacío Inicialmente)
 - Incluir la tabla de verificación (con columna `Wave`) donde se registrarán obligatoriamente los comandos, códigos de salida y resultados observados en P06 antes de dar cualquier tarea por completada.
+- Exigir **Spec-Derived Probes**: formulación de pruebas independientes basadas en `S#` ejecutadas en aislamiento para comprobar casos frontera e invariantes de estado.
+
+### 2.6 Log de Cambios y Correcciones (L#)
+- Sección final que registra el requerimiento inicial del usuario de forma textual (`L1`).
+- Cualquier ajuste, corrección o aclaración del usuario durante el ciclo se anexa como `L2...`, actualizando solo el `S#` afectado sin destruir el documento.
 
 ---
 
