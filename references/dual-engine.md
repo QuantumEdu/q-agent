@@ -21,11 +21,15 @@ Un orquestador de nivel Senior no puede depender ciegamente de un solo runtime o
 |---|---|---|
 | **Condición de Activación** | `gentle-ai --version` responde en el host. | `gentle-ai` no detectado / entorno estándar. |
 | **Ruta de Bitácora Viva** | `odd/tasks/{{FEATURE_NAME}}.md` | `q-tasks/{{FEATURE_NAME}}.md` |
+| **Sizing de Tareas** | Resume Test (Git diff solo) / SDD retirado | Resume Test (Git diff solo) / Fast-Track Plan F |
+| **Especificación de Handoff** | Spec by Reference (`S#` y `## Log` verbatim) | Spec by Reference (`S#` y `## Log` verbatim) |
+| **Declaración de Ruta** | `Route: inline | delegated` por disparador | `Ruta: inline | delegated` por oleada y worktree |
 | **Memoria Persistente** | Memoria Engram (`mem_current_project`, `mem_save`) | SkillVault (`vault_mem_save`, `vault_mem_search`, `vault_mem_context`) o Engram-compat (`skillvault mcp --compat-engram`) |
 | **Exploración de Código** | MCP `codegraph_explore` / `codegraph` CLI prioritario | `codegraph` CLI prioritario si está en host; fallback a `ripgrep`/`fd` |
-| **Revisión de Calidad** | Switch de usuario `gentle-ai review mode` | `q-audit-readonly` + `q-ci-fixer` interno |
+| **Revisión de Calidad** | Switch de usuario `gentle-ai review mode` + RDD | `q-adversarial-review` + `q-ci-fixer` interno |
 | **Heurística de Tareas** | ~400 líneas / unidad coherente | ~400 líneas / unidad coherente |
-| **Gate de Verificación** | Terminal Evidence Gate obligatorio | Terminal Evidence Gate obligatorio |
+| **Gate de Verificación** | Terminal Evidence Gate + Spec-Derived Probes | Terminal Evidence Gate + Spec-Derived Probes |
+| **Trazabilidad de Commits** | `- [x] TASK-XX (Commit: <sha>)` | `- [x] TASK-XX (Commit: <sha>)` |
 | **Gobernanza Suprema** | **CONSTITUTION.md (Artículo ARQ-01)** | **CONSTITUTION.md (Artículo ARQ-01)** |
 
 ---

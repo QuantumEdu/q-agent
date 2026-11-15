@@ -66,6 +66,7 @@ Paso 9     ──► BUCLE OPS-TO-ODD (Reproduction-First ante incidentes)
 ### [Paso 0] Selección de Plan y Onboarding
 - [ ] Preguntar únicamente si el plan no fue resuelto:
   - `[A] Greenfield` (nuevo sistema) | `[B] Brownfield` (evolución) | `[F] Fast-Track` (patch ≤3 archivos) | `[C] Audit` (forense CAB-RP 2.0).
+- [ ] **Sizing y Resume Test:** Si el cambio está entendido dentro del presupuesto inline (≤3 llamadas / ~10k tokens de evidencia), con riesgo acotado (sin DDL, dinero ni auth compleja) y pasa el **Resume Test** (un desarrollador podría terminarlo desde el pedido y el `git diff` solo si la sesión se corta), despachar directamente en línea vía Plan F sin bitácora. Solo tareas que fallan el Resume Test abren bitácora viva.
 
 ### [Paso 1] Contexto Inicial (1 Pregunta por Turno, luego STOP)
 - [ ] Indagar datos faltantes: Nombre/módulo, problema central que resuelve y restricciones (stack, BD, integraciones).
@@ -84,6 +85,11 @@ Paso 9     ──► BUCLE OPS-TO-ODD (Reproduction-First ante incidentes)
 
 ### [Paso 4] Apertura de Bitácora Única ODD
 - [ ] Crear bitácora viva instanciando `templates/task-log-template.md`.
+- [ ] **Mandato Spec by Reference (`S#` y `## Log`)**:
+  - Transcribir requerimientos exactos del usuario, errores reportados y strings literales en especificaciones numeradas `S-01`, `S-02`.
+  - Registrar el requerimiento original textual en `## Log` (`L1`). Las correcciones posteriores se anexan como `L2...`, actualizando solo el `S#` afectado.
+  - Al delegar en subagentes o worktrees aislados, el handoff cita la especificación por referencia directa: `Spec: q-tasks/<feature>.md, TASK-XX, S1-S2`. **Queda prohibido parafrasear requerimientos**.
+- [ ] **Declaración de Ruta por Tarea**: Cada tarea declara explícitamente `Ruta: inline` (orquestador en hilo principal) o `Ruta: delegated` (worktree aislado `.q-worktrees/task-XX` justificado por paralelismo de superficies disjuntas o backstop de sesión).
 - [ ] Definir User Stories (`US-xx`) y Acceptance Criteria (`UAC-xx`). Tabla `Terminal Evidence Gate` inicialmente vacía.
 - [ ] **Durable unattended execution**: Register a versioned workflow with `q-agent task workflow start` before autonomous E2E; follow [Durable workflow controller](references/durable-workflow.md). Read the current sequence with `workflow show`; execute repairs through the runner so its transaction consumes the correction budget. Resume by inspection, reconcile uncertain effects, and preserve the independent review gate. This controller does not launch a model or grant remote authority.
 - [ ] For resumable local execution, use [Local task recovery](references/local-task-recovery.md): register task IDs, run authorized finite commands, and record verification after committing. On a resumed session inspect `q-agent resume`; never replay uncertain work without inspecting effects and explicit retry authority. Machine verification does not replace acceptance or human gates.
@@ -91,16 +97,22 @@ Paso 9     ──► BUCLE OPS-TO-ODD (Reproduction-First ante incidentes)
 ### [Paso 5] Implementación por Slices Verticales
 - [ ] Construir slice por slice (Storage ──► Handler ──► Template `.html`).
 - [ ] Aislar en Git Worktree si hay concurrencia: `python3 tools/q-worktree/q_worktree.py create --task TASK-XX`.
+- [ ] Despachar a workers siempre por referencia (`Spec: q-tasks/<feature>.md, TASK-XX, S-XX`), indicándoles que lean la bitácora directamente hasta `## Log`.
 - [ ] ⛔ **BLOQUEO**: Prohibido marcar tareas como completadas (`[x]`) en este paso.
 
 ### [Paso 6] Dual Verification Gate (Terminal Evidence + Adversarial Review)
 - [ ] **Autonomous E2E**: Follow [Hosted unattended E2E repair](references/unattended-e2e.md). Freeze tests, run real E2E, triage transient flakiness with a single clean rerun (flakes do not consume budget), diagnose deterministic failures and invoke q-ci-fixer for at most TWO total correction rounds per task (initial run + up to two reruns). Persist the shared counter across P06/review/P07; exhausted budget means BLOCKED, never a reset. Si se agota el presupuesto en un worktree aislado, aislar la rama mediante `python3 tools/q-worktree/q_worktree.py quarantine --task TASK-XX --reason "<motivo>"`. Require regressions and independent APPROVED review before completion.
 - [ ] **Fase A (Máquina)**: Compilación, linters, tests reales y smoke HTTP.
+- [ ] **Fase A.5 (Spec-Derived Probes & Invariantes)**:
+  - Los tests del escritor no bastan por sí solos. La compuerta formula **probes ciegos derivados de `S#`** (casos límite, entradas vacías/malformadas, salidas de error exactas) y verifica **invariantes de estado** (el hash de BD queda idéntico antes y después de comandos rechazados).
+  - Ejecutar probes en aislamiento (`mktemp -d` o `.scratch/`) y aportarlos como tests de regresión permanentes a la suite.
 - [ ] **Fase B (Adversarial)**: Despachar `skills/q-adversarial-review` en subagente aislado (`invoke_subagent`).
   - Auditar diff contra ARQ-01 con protocolo **Review Remembers** (`R-IDs`).
   - Exigir veredicto `APPROVED` antes de autorizar cierre.
-- [ ] **Registro en Bitácora**: Registrar comandos, tests, exit/status/tiempo observados en `Terminal Evidence Gate`; costo/tokens opcionales sin instrumentación, nunca inventados (ver contrato).
-- [ ] Marcar checkbox `[x]` únicamente con evidencia terminal registrada y veredicto `APPROVED`.
+- [ ] **Registro en Bitácora y Sello de Tarea**:
+  - Registrar comandos, tests, exit/status/tiempo observados en `Terminal Evidence Gate`; costo/tokens opcionales sin instrumentación, nunca inventados (ver contrato).
+  - Marcar checkbox vinculando obligatoriamente el commit convencional atómico: `- [x] TASK-XX (Commit: <sha>) [Wave X] [S-XX] [Ruta: ...] — ...`.
+  - Queda prohibido marcar `[x]` sin evidencia terminal registrada, probes de spec y veredicto `APPROVED`.
 
 ### [Paso 7] Higiene Determinista, Consolidación y Cierre
 - [ ] Ejecutar linters oficiales. Si falla: invocar `skills/q-ci-fixer` (máximo 2 pasadas).
