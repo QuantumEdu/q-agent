@@ -57,6 +57,7 @@ o ausencia visible para mensajes propios. Cargar esta skill no prueba ejecución
 
 ```text
 Pasos 0–2 ──► MODO SOCRÁTICO GUIADO (1 pregunta por turno, esperar respuesta)
+Paso 2.5   ──► COMPUERTA DE ARQUITECTURA EJECUTIVA (Plan, Grafo y Riesgos en Plan A)
 Paso 3     ──► GATE DUAL-ENGINE (Gentle-AI ODD vs Standalone ODD)
 Pasos 4–7  ──► EJECUCIÓN ODD (Bitácora viva, Slices ~400 LOC, Evidencia Terminal + Adversarial)
 Paso 8     ──► DEPLOY GATE (REVIEW.md compilado, firma humana obligatoria)
@@ -75,6 +76,12 @@ Paso 9     ──► BUCLE OPS-TO-ODD (Reproduction-First ante incidentes)
 - [ ] **2a (Arquitectura incierta)**: Invocar `skills/q-deliberate` solo ante disyuntivas reales no delegadas.
 - [ ] **2b (Memorias persistentes)**: Cargar `references/context-retrieval.md` solo para hechos faltantes concretos.
 - [ ] **2c (Plan A Supuestos)**: Invocar `skills/q-grill-me` para desafiar supuestos no validados antes de diseñar specs.
+
+### [Paso 2.5] Compuerta de Arquitectura Ejecutiva (Executive Brief)
+- [ ] **Mandatorio en Plan A (Greenfield / Plan A-L)** antes de abrir bitácora o tocar código:
+  - Generar el **Executive Architecture Brief** (`templates/EXECUTIVE_BRIEF.md`, `prompts/P02b_executive_brief.md`).
+  - Presentar consolidado: (1) Plan por Olas/Slices, (2) Grafo de Procesos y Topología (Mermaid DAG), y (3) Matriz de Riesgos & Modos de Fallo (The 3 AM Test).
+  - ⛔ **BLOQUEO**: Prohibido inicializar P03/P04 sin confirmación humana explícita de este panorama macro.
 
 ### [Paso 3] Gate de Metaorquestación (Dual Engine)
 - [ ] Sondear: `gentle-ai --version 2>/dev/null || echo "GENTLE_AI_NOT_FOUND"`.

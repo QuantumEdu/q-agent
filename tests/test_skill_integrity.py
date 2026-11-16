@@ -162,6 +162,29 @@ class TestSkillIntegrity(unittest.TestCase):
         self.assertIn("codegraph init -y", p04)
         self.assertIn("codegraph impact", p04)
 
+    def test_executive_brief_template_and_prompt_contract(self):
+        brief_template_path = ROOT_DIR / "templates" / "EXECUTIVE_BRIEF.md"
+        self.assertTrue(brief_template_path.exists(), "templates/EXECUTIVE_BRIEF.md must exist")
+        brief_content = brief_template_path.read_text(encoding="utf-8")
+        self.assertIn("CORE VALUE LOOP", brief_content)
+        self.assertIn("HOJA DE RUTA POR OLAS", brief_content)
+        self.assertIn("GRAFO DE PROCESOS Y TOPOLOGÍA", brief_content)
+        self.assertIn("THE 3 AM TEST", brief_content)
+        self.assertIn("COMPUERTA DE APROBACIÓN HUMANA", brief_content)
+
+        brief_prompt_path = ROOT_DIR / "prompts" / "P02b_executive_brief.md"
+        self.assertTrue(brief_prompt_path.exists(), "prompts/P02b_executive_brief.md must exist")
+        prompt_content = brief_prompt_path.read_text(encoding="utf-8")
+        self.assertIn("id: P02b_EXECUTIVE_BRIEF", prompt_content)
+        self.assertIn("templates/EXECUTIVE_BRIEF.md", prompt_content)
+
+        skill_md = (ROOT_DIR / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("[Paso 2.5] Compuerta de Arquitectura Ejecutiva", skill_md)
+
+        plans_md = (ROOT_DIR / "references" / "plans.md").read_text(encoding="utf-8")
+        self.assertIn("P02b_executive_brief.md", plans_md)
+        self.assertIn("Step 2.5: Compuerta de Arquitectura Ejecutiva", plans_md)
+
 
 if __name__ == "__main__":
     unittest.main()

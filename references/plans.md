@@ -22,6 +22,9 @@ q-agent v2.0 unifica la rigurosidad de negocio con la agilidad técnica eliminan
 [Step 1-2: Contexto Guiado, Elicitación e Investigación]
                   │
                   ▼
+[Step 2.5: Compuerta de Arquitectura Ejecutiva (Plan A)]
+                  │
+                  ▼
 [P03: Gate de Metaorquestación (Detección Gentle-AI vs Standalone)]
                   │
                   ▼
@@ -50,6 +53,7 @@ Aplicable cuando se crea un proyecto nuevo sin código preexistente.
 |---|---|---|---|
 | **P00** | `templates/CONSTITUTION.md` | `CONSTITUTION.md` (con Artículo ARQ-01 y ADRs base) | Raíz del proyecto / `develop` |
 | **P02** | `prompts/P02_context_engineering.md` | Contexto inicial y límites de módulos | Memoria / Internal |
+| **P02b** | `prompts/P02b_executive_brief.md` | Executive Architecture Brief (Plan, Grafo Mermaid, Riesgos) | Chat / `EXECUTIVE_BRIEF.md` |
 | **P03** | `prompts/P03_gate_metaorquestacion.md` | Selección dinámica de Motor (Gentle-AI vs Standalone) | Registro; chat solo según atención |
 | **P04** | `prompts/P04_odd_feature_log.md` | Bitácora ODD con BMAD User Stories y UAC | `q-tasks/<feature>.md` o `odd/tasks/<feature>.md` |
 | **P05** | `prompts/P05_vertical_slice_apply.md` | Código del Slice (storage, handlers, templates .html) | `features/<modulo>/` |
@@ -165,10 +169,11 @@ continues to select a different report directory.
 
 ## Plan A-L — Greenfield Large (Features extensos con artefactos separados)
 
-Variante opcional de Plan A para proyectos que superan **20 tareas** o **2 semanas de duración**, donde la frecuencia de cambio del *intent* difiere sustancialmente del avance diario de tareas.
+Variante opcional de Plan A para proyectos que superan **20 tareas** o **2 semanas de duración**, donde la frecuencia de cambio del *intent* difiere sustancialmente del avance diario de tareas. En Plan A-L, el **Executive Architecture Brief (P02b)** es obligatorio previo a la apertura de artefactos para fijar el mapa de dependencias y el análisis de riesgos.
 
 | Artefacto | Frecuencia de Cambio | Propósito | Audiencia |
 |---|---|---|---|
+| `EXECUTIVE_BRIEF.md` | Muy baja (fundacional) | Hoja de ruta en olas, grafo Mermaid de procesos y matriz de riesgos 3 AM | Stakeholders y Arquitecto |
 | `intent.md` | Muy baja (estable) | Objetivos de negocio, restricciones, personas y UAC base | Stakeholders y Agente |
 | `spec.md` | Media (diseño) | Contratos de API, esquemas SQLite WAL, arquitectura de Slices | Desarrolladores y Agente |
 | `odd/tasks/<feature>.md` | Alta (diaria) | Lista atómica de tareas vivas y tabla Terminal Evidence Gate | Agente ejecutor y Reviewer |
