@@ -397,6 +397,30 @@ class TestCockpitScanner(unittest.TestCase):
             self.assertEqual(len(data_enabled["skills"]), 1)
             self.assertEqual(data_enabled["skills"][0]["name"], "sample-agent")
 
+    def test_scan_skillvault_prefers_skill_explorer(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_root = Path(tmp_dir)
+            cfg_file = tmp_root / ".q-agent.json"
+            cfg_file.write_text(json.dumps({
+                "context_retrieval": {
+                    "skill_explorer": {"enabled": True, "path": "explorer_skills"},
+                    "providers": {"skillvault": {"enabled": False}},
+                }
+            }), encoding="utf-8")
+
+            explorer = tmp_root / "explorer_skills" / "sample-agent"
+            explorer.mkdir(parents=True)
+            (explorer / "SKILL.md").write_text(
+                "---\nname: sample-agent\ndescription: A sample skill\n---\n# Content\n",
+                encoding="utf-8"
+            )
+
+            data = q_cockpit.ProjectScanner.scan_skillvault(tmp_root)
+            self.assertTrue(data["enabled"])
+            self.assertEqual(data["status"], "active")
+            self.assertEqual(len(data["skills"]), 1)
+            self.assertEqual(data["skills"][0]["name"], "sample-agent")
+
 
 if __name__ == "__main__":
     unittest.main()

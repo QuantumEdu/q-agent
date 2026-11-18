@@ -70,6 +70,9 @@ Los tests escritos por el implementador no son evidencia suficiente de correcci�
 - **Invariantes de Estado (State Hashing):** Ante comandos rechazados o inputs inválidos, verificar que los datos persistidos se mantengan byte a byte idénticos (calcular hash SHA-256 de la base de datos SQLite antes y después de la ejecución rechazada).
 - **Aporte de Tests Duraderos:** Ejecutar los probes en un entorno o copia aislada (`mktemp -d` o `.scratch/`) y transferirlos como tests de regresión permanentes a la suite del proyecto.
 
+#### A.6 Decisiones de Memoria Aplicables (consultar ≠ aplicar)
+Si el proyecto tiene un backend de memoria habilitado (SkillVault, GBrain, Engram), la compuerta consulta el vault sobre el alcance del diff (`skillvault context` / `skillvault find` vía `skills/q-skillvault-assistant`, o la skill asistente correspondiente) y verifica que cada decisión aplicable quede **reflejada en el diff**, **codificada como test de regresión** o **declarada no aplicable con motivo** en la bitácora. Ejemplos de codificación: una decisión de UUID en vez de `SERIAL` → test que rechaza `SERIAL`; un timeout de 20 s → test que aserta el valor. Una decisión consultada e ignorada en silencio bloquea el cierre, igual que un test en rojo.
+
 ---
 
 ### 2.2 Fase B: Compuerta de Revisión Adversarial Aislada (`skills/q-adversarial-review`)
@@ -77,7 +80,7 @@ Los tests escritos por el implementador no son evidencia suficiente de correcci�
 Una vez que la máquina confirma verde (`exit code 0`), se activa la revisión de arquitectura y diseño:
 
 1. **Aislamiento de Contexto:** Despachar un subagente independiente (`invoke_subagent`) invocando `skills/q-adversarial-review`.
-2. **Auditoría del Diff:** El revisor evalúa el `git diff` contra el **Artículo ARQ-01** (mínima indirección, higiene de plantillas `.html`, 100% queries parametrizadas y cero mocks simulados).
+2. **Auditoría del Diff:** El revisor evalúa el `git diff` contra el **Artículo ARQ-01** (mínima indirección, higiene de plantillas `.html`, 100% queries parametrizadas y cero mocks simulados) y aplica el **Eje 7 (Decisiones de memoria aplicadas)** cuando el proyecto tiene un backend de memoria habilitado.
 3. **Condición de Paso:** Veredicto explícito `APPROVED`.
    - Si emite `REJECTED`: Corregir y repetir ambas fases solo si queda presupuesto. En modo autónomo cada ronda consume el contador compartido; sin presupuesto, declarar BLOCKED.
 

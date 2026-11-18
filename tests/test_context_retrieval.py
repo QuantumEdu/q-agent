@@ -5,6 +5,7 @@ import re
 from pathlib import Path
 import tempfile
 import unittest
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("q_checklist", ROOT / "tools/q-checklist/q_checklist.py")
@@ -33,6 +34,45 @@ class ContextRetrievalTests(unittest.TestCase):
         self.assertEqual(context["budget"]["max_chars"], 6000)
         self.assertEqual(context["budget"]["max_tokens_estimate"], 1500)
         self.assertEqual(context["persistence"], {"local_first": True, "external_write": False, "sqlite_backup": False})
+        # SkillVault backend fields (template 1.3): the memory backend only;
+        # the local skills directory moved to skill_explorer.
+        skillvault = context["providers"]["skillvault"]
+        self.assertNotIn("path", skillvault)
+        self.assertEqual(skillvault["binary"], "skillvault")
+        self.assertEqual(skillvault["vault_path"], "~/.skillvault/vault.db")
+        self.assertIsNone(skillvault["project_slug"])
+        self.assertIsNone(skillvault["mcp_server"])
+        explorer = context["skill_explorer"]
+        self.assertFalse(explorer["enabled"])
+        self.assertEqual(explorer["path"], "skills/")
+        self.assertFalse(self.template["integrations"]["skillvault_mcp"])
+
+    def test_skillvault_enabled_generation_links_marker(self):
+        selections = {key: value["options"][0] for key, value in checklist.DECISION_OPTIONS.items()}
+        selections["skillvault"] = checklist.DECISION_OPTIONS["skillvault"]["options"][1]
+        with mock.patch.object(checklist.shutil, "which", return_value=None):
+            with tempfile.TemporaryDirectory() as directory:
+                checklist.generate_artifacts(Path(directory), "Sample Project", selections)
+                generated = json.loads((Path(directory) / ".q-agent.json").read_text(encoding="utf-8"))
+                marker = (Path(directory) / "AGENTS.md").read_text(encoding="utf-8")
+        provider = generated["context_retrieval"]["providers"]["skillvault"]
+        self.assertTrue(provider["enabled"])
+        self.assertEqual(provider["authorization"], "read")
+        self.assertEqual(provider["project_slug"], "sample-project")
+        self.assertEqual(provider["project_scope"], "sample-project")
+        self.assertEqual(generated["context_retrieval"]["project_id"], "sample-project")
+        self.assertIn("<!-- skillvault:start -->", marker)
+        self.assertIn("<!-- skillvault:end -->", marker)
+        self.assertIn('skillvault find "<topic>" --project sample-project', marker)
+        self.assertIn("skillvault context --project sample-project", marker)
+
+    def test_skillvault_disabled_by_default_writes_no_marker(self):
+        selections = {key: value["options"][0] for key, value in checklist.DECISION_OPTIONS.items()}
+        with tempfile.TemporaryDirectory() as directory:
+            checklist.generate_artifacts(Path(directory), "sample-project", selections)
+            self.assertFalse((Path(directory) / "AGENTS.md").exists())
+            generated = json.loads((Path(directory) / ".q-agent.json").read_text(encoding="utf-8"))
+        self.assertFalse(generated["context_retrieval"]["providers"]["skillvault"]["enabled"])
 
     def test_generated_configuration_matches_template(self):
         selections = {key: value["options"][0] for key, value in checklist.DECISION_OPTIONS.items()}
@@ -104,7 +144,7 @@ class ContextRetrievalTests(unittest.TestCase):
         contract = (ROOT / "references/context-retrieval.md").read_text(encoding="utf-8")
         for term in ("configured", "available", "authorized", "aggregate", "No query", "legacy", "untrusted", "HTML"):
             self.assertIn(term, contract)
-        for path in ("SKILL.md", "skills/q-gbrain-assistant/SKILL.md", "skills/q-session-wrap/SKILL.md", "README.md"):
+        for path in ("SKILL.md", "skills/q-gbrain-assistant/SKILL.md", "skills/q-skillvault-assistant/SKILL.md", "skills/q-session-wrap/SKILL.md", "README.md"):
             self.assertIn("context-retrieval.md", (ROOT / path).read_text(encoding="utf-8"))
 
 

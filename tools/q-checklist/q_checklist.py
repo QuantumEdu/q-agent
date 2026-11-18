@@ -4,6 +4,9 @@ q-checklist: Interactive Pre-Flight Architectural Decision Matrix for q-agent.
 Zero external dependencies. Generates CONSTITUTION.md, ADR-0001, and .q-agent.json.
 """
 
+import re
+import shutil
+import subprocess
 import sys
 import json
 import os
@@ -51,6 +54,13 @@ DECISION_OPTIONS = {
         "options": [
             ("worktree", "Git Worktrees en Directorio Hermano (Zero-Interference con IDE)", True),
             ("inline", "Ramas Git Locales Inline (git checkout -b tradicional)", False),
+        ],
+    },
+    "skillvault": {
+        "title": "Memoria de Proyecto con SkillVault",
+        "options": [
+            ("disabled", "Sin memoria SkillVault (backend deshabilitado por defecto)", True),
+            ("enabled", "Habilitar SkillVault como memoria del proyecto (escribe el marcador en AGENTS.md)", False),
         ],
     },
 }
@@ -108,6 +118,82 @@ def prompt_choice(category_key: str) -> tuple:
         except (KeyboardInterrupt, EOFError):
             print("\nOperación cancelada por el usuario.")
             sys.exit(0)
+
+
+MARKER_START = "<!-- skillvault:start -->"
+MARKER_END = "<!-- skillvault:end -->"
+
+
+def slugify_project_name(name: str) -> str:
+    slug = "".join(ch.lower() if ch.isalnum() else "-" for ch in name.strip())
+    return re.sub(r"-+", "-", slug).strip("-") or "project"
+
+
+def skillvault_marker_section(project_name: str, slug: str) -> str:
+    # Same marked section `skillvault link-project` writes (q-skillvault
+    # internal/cli/handlers_context.go). The fallback below uses id = slug;
+    # re-running link-project refreshes it with the real vault project id.
+    return (
+        f"{MARKER_START}\n"
+        "## SkillVault (project memory)\n"
+        "\n"
+        "This project keeps its decisions in SkillVault, a local knowledge vault.\n"
+        "\n"
+        "- Vault: `~/.skillvault/vault.db` (binary: `skillvault`)\n"
+        f"- Project: {project_name} (slug `{slug}`, id `{slug}`)\n"
+        f"- Before answering about project conventions or changing code, check the vault first: `skillvault find \"<topic>\" --project {slug}`\n"
+        f"- For a full context pack: `skillvault context --project {slug}`\n"
+        f"{MARKER_END}"
+    )
+
+
+def upsert_marker_section(existing: str, section: str) -> str:
+    start = existing.find(MARKER_START)
+    end = existing.find(MARKER_END)
+    if start != -1 and end != -1 and end > start:
+        return existing[:start] + section + existing[end + len(MARKER_END):]
+    if not existing.strip():
+        return section + "\n"
+    return existing.rstrip() + "\n\n" + section + "\n"
+
+
+def link_skillvault_marker(project_root: Path, project_name: str, slug: str) -> str:
+    """Write the SkillVault marker into <project_root>/AGENTS.md.
+
+    Prefers `skillvault link-project` when the binary is available (it
+    resolves the real vault project id); if the project is not in the vault
+    yet, creates it first with `add-project`. Falls back to writing the
+    marked section verbatim when the binary is missing or the CLI fails.
+    Returns "cli" or "verbatim".
+    """
+    binary = shutil.which("skillvault")
+    if binary:
+        try:
+            linked = subprocess.run(
+                [binary, "link-project", "--project", slug, "--path", str(project_root)],
+                capture_output=True, text=True, timeout=30,
+            )
+            if linked.returncode != 0:
+                created = subprocess.run(
+                    [binary, "add-project", "--name", project_name],
+                    capture_output=True, text=True, timeout=30,
+                )
+                if created.returncode == 0:
+                    linked = subprocess.run(
+                        [binary, "link-project", "--project", slug, "--path", str(project_root)],
+                        capture_output=True, text=True, timeout=30,
+                    )
+            if linked.returncode == 0:
+                return "cli"
+        except (OSError, subprocess.SubprocessError):
+            pass
+    agents_md = project_root / "AGENTS.md"
+    existing = agents_md.read_text(encoding="utf-8") if agents_md.exists() else ""
+    agents_md.write_text(
+        upsert_marker_section(existing, skillvault_marker_section(project_name, slug)),
+        encoding="utf-8",
+    )
+    return "verbatim"
 
 
 def generate_artifacts(project_root: Path, project_name: str, selections: dict):
@@ -176,9 +262,31 @@ Se requiere establecer las bases arquitectónicas de {project_name} para garanti
     template_path = Path(__file__).resolve().parents[2] / "templates" / "q-agent.json"
     configuration = json.loads(template_path.read_text(encoding="utf-8"))
     configuration["workspace"]["isolation"] = selections["isolation"][0]
+    # 4. SkillVault memory backend (optional; disabled by default). Enabling
+    # it here is the operator's human authorization for read lookups on this
+    # project; the marker makes the vault discoverable to the host agent.
+    skillvault_enabled = selections.get("skillvault", ("disabled",))[0] == "enabled"
+    if skillvault_enabled:
+        slug = slugify_project_name(project_name)
+        provider = configuration["context_retrieval"]["providers"]["skillvault"]
+        provider["enabled"] = True
+        provider["project_slug"] = slug
+        provider["authorization"] = "read"
+        provider["authorization_evidence"] = {
+            "source_ref": "q-checklist interactive selection (operator)",
+            "operations": ["search", "read"],
+            "destination": "local SkillVault vault",
+            "credential_session": None,
+            "expires_at": None,
+            "revoked": False,
+        }
+        provider["project_scope"] = slug
+        configuration["context_retrieval"]["project_id"] = slug
     (project_root / ".q-agent.json").write_text(
         json.dumps(configuration, indent=2) + "\n", encoding="utf-8"
     )
+    if skillvault_enabled:
+        link_skillvault_marker(project_root, project_name, slug)
 
 
 def main():
@@ -218,6 +326,8 @@ def main():
         print("  - CONSTITUTION.md")
         print("  - docs/adr/0001-stack-decisions.md")
         print("  - .q-agent.json")
+        if selections["skillvault"][0] == "enabled":
+            print("  - AGENTS.md (marcador SkillVault para descubrir el vault)")
         print("  [PENDIENTE] Configura runtime.executor y models con valores verificados en tu entorno.")
         print("\n¡Listo para entrar a P04 (/propose) con tu arquitectura pre-configurada!")
     else:

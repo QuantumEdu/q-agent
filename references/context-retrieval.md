@@ -2,10 +2,14 @@
 
 ## Scope and baseline
 q-agent is instruction-driven orchestration, not an executing provider router.
-This contract guides the host agent. Configuration and tests do not implement
-remote adapters, retrieval middleware, ingestion or enforceable token quotas.
-Without any external provider, use the request and relevant project files;
-continue development and persist progress locally. No query for self-contained tasks.
+This contract guides the host agent. The repository ships no executing
+router, retrieval middleware, ingestion pipeline or enforceable token quotas:
+the adapter for a provider is the corresponding assistant skill
+(`q-gbrain-assistant` for GBrain, `q-skillvault-assistant` for SkillVault),
+executed by the host agent through the provider CLI/MCP only when that
+provider is enabled, available and authorized. Without any external provider,
+use the request and relevant project files; continue development and persist
+progress locally. No query for self-contained tasks.
 Read only relevant sections, never inject the whole repository or library.
 
 ## Provider admission
@@ -48,8 +52,26 @@ Configuration allow_cross_project alone is not authorization.
 HTML tutorials may remain originals. Read relevant text/sections and preserve
 source locators; derived indexes are optional. Obsidian and Markdown conversion
 are not prerequisites. No HTML ingestion implementation is shipped here.
-GBrain is an optional specialized provider. Engram and SkillVault are optional
-configuration slots, not implementations of a universal three-store bridge.
+GBrain and SkillVault are optional specialized providers; each is wired by
+its assistant skill when enabled, available and authorized
+(`skills/q-gbrain-assistant`, `skills/q-skillvault-assistant`). Engram remains
+an optional configuration slot with no assistant skill wired in this
+repository. None of the three is an implementation of a universal
+three-store bridge.
+
+## SkillVault backend vs skills explorer
+Do not confuse the two meanings that used to share one name. The memory
+backend is `providers.skillvault`: the `skillvault` CLI (or its MCP server),
+bound to a project by `project_slug`/`project_scope`, and executed through
+`skills/q-skillvault-assistant`. The skills explorer is
+`context_retrieval.skill_explorer`: a local directory of `SKILL.md` files
+scanned by q-cockpit (`/api/skillvault`) so the host can reuse skills without
+polluting context. The explorer never reads the vault, never invokes the
+binary and never enables the memory backend; the backend never scans the
+skills directory. A project that enables the backend must also carry the
+SkillVault marker section in its `AGENTS.md` (written by
+`skillvault link-project`, see the assistant skill), otherwise the host agent
+never discovers the vault.
 
 ## Persistence and maintenance
 Save session summary and recovery state locally first.
@@ -98,6 +120,12 @@ answer. If a named source is unavailable, disclose that gap.
 - capabilities: an array of search | read | write; check actual tool support.
 - scope_class: public-web | general-reference | private-project.
 - project_scope: null when disabled, otherwise a nonempty bounded scope string.
+- SkillVault-only optional fields (see `templates/q-agent.json`): binary
+  (CLI name, default "skillvault"), vault_path (default
+  "~/.skillvault/vault.db"), project_slug (null, or the vault slug the marker
+  and the CLI use), mcp_server (null, or the registered MCP server name).
+  `skill_explorer` (enabled, path) is not a provider: it only names the local
+  skills directory for q-cockpit and never enables the memory backend.
 
 Configured evidence does not establish consent by itself. Refuse affected reads
 or writes when evidence is missing, revoked, expired or does not cover the
@@ -128,6 +156,39 @@ The host must verify the referenced human instruction and available tool first.
           "operations": ["search", "read"],
           "destination": "operator-selected GBrain endpoint",
           "credential_session": "human-selected session",
+          "expires_at": null,
+          "revoked": false
+        },
+        "scope_class": "private-project",
+        "capabilities": ["search", "read"],
+        "project_scope": "sample-project"
+      }
+    }
+  }
+}
+```
+
+SkillVault activation follows the same shape, with its backend fields:
+
+```json
+{
+  "context_retrieval": {
+    "project_id": "sample-project",
+    "project_slug": "sample-project",
+    "providers": {
+      "skillvault": {
+        "enabled": true,
+        "binary": "skillvault",
+        "vault_path": "~/.skillvault/vault.db",
+        "project_slug": "sample-project",
+        "mcp_server": null,
+        "availability": "available",
+        "authorization": "read",
+        "authorization_evidence": {
+          "source_ref": "human instruction authorizing sample-project lookup",
+          "operations": ["search", "read"],
+          "destination": "local SkillVault vault",
+          "credential_session": null,
           "expires_at": null,
           "revoked": false
         },

@@ -399,13 +399,19 @@ class ProjectScanner:
                 except Exception:
                     continue
 
+        # Skills explorer: prefer context_retrieval.skill_explorer (the local
+        # skills directory). Legacy fallback: providers.skillvault.enabled/path
+        # from .q-agent.json files written before the split (template 1.2),
+        # where the explorer directory shared the memory-backend slot.
+        # Neither key enables the SkillVault memory backend; the explorer only
+        # scans local SKILL.md files and never reads the vault.
+        explorer_cfg = cfg.get("context_retrieval", {}).get("skill_explorer", {})
         sv_cfg = cfg.get("context_retrieval", {}).get("providers", {}).get("skillvault", {})
-        enabled_val = sv_cfg.get("enabled")
-        configured_path = sv_cfg.get("path")
-
-        if enabled_val is not None:
-            is_enabled = bool(enabled_val)
-        elif configured_path:
+        if "enabled" in explorer_cfg:
+            is_enabled = bool(explorer_cfg.get("enabled"))
+        elif sv_cfg.get("enabled") is not None:
+            is_enabled = bool(sv_cfg.get("enabled"))
+        elif explorer_cfg.get("path") or sv_cfg.get("path"):
             is_enabled = True
         else:
             is_enabled = False
@@ -414,6 +420,7 @@ class ProjectScanner:
         skills: List[Dict[str, Any]] = []
 
         if is_enabled:
+            configured_path = explorer_cfg.get("path") or sv_cfg.get("path")
             rel_dir = configured_path if configured_path else "skills"
             skills_dir = (root / rel_dir).resolve()
             if skills_dir.exists() and skills_dir.is_dir():
