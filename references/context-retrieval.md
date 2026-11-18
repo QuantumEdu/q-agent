@@ -124,6 +124,9 @@ answer. If a named source is unavailable, disclose that gap.
   (CLI name, default "skillvault"), vault_path (default
   "~/.skillvault/vault.db"), project_slug (null, or the vault slug the marker
   and the CLI use), mcp_server (null, or the registered MCP server name).
+  When q-checklist enables the provider it resolves binary and vault_path
+  to absolute paths from PATH and SKILLVAULT_HOME, so the generated config
+  and the AGENTS.md marker name the same binary and vault.
   `skill_explorer` (enabled, path) is not a provider: it only names the local
   skills directory for q-cockpit and never enables the memory backend.
 

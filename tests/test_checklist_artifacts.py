@@ -10,14 +10,46 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "tools/q-checklist/q_checklist.py"
 
+FAKE_SKILLVAULT = '''#!/usr/bin/python3
+"""Fake `skillvault` CLI for checklist e2e tests: link-project writes the marker."""
+import sys
+from pathlib import Path
+
+args = sys.argv[1:]
+if args and args[0] == "link-project":
+    path = args[args.index("--path") + 1]
+    slug = args[args.index("--project") + 1]
+    (Path(path) / "AGENTS.md").write_text(
+        "<!-- skillvault:start -->\\n## SkillVault (project memory)\\n\\n"
+        "- Vault: `~/.skillvault/vault.db` (binary: `skillvault`)\\n"
+        f"- Project: Fake (slug `{slug}`, id `proj-fake123`)\\n"
+        f"- Before answering about project conventions or changing code, check the vault first: `skillvault find \\"<topic>\\" --project {slug}`\\n"
+        f"- For a full context pack: `skillvault context --project {slug}`\\n"
+        "<!-- skillvault:end -->\\n",
+        encoding="utf-8",
+    )
+sys.exit(0)
+'''
+
 
 class ChecklistArtifactsTests(unittest.TestCase):
-    def generate(self, architecture=4, isolation=2, skillvault=1):
+    def generate(self, architecture=4, isolation=2, skillvault=1, skillvault_home=None, fake_binary=False):
         with tempfile.TemporaryDirectory() as directory:
             # Empty PATH keeps the run hermetic: no `skillvault` binary is
             # picked up, so the marker is written verbatim, never via the
-            # CLI against a real vault.
+            # CLI against a real vault. A fake binary on PATH exercises the
+            # CLI path instead.
             env = {**os.environ, "PATH": ""}
+            env.pop("SKILLVAULT_HOME", None)
+            if fake_binary:
+                bin_dir = Path(directory) / "bin"
+                bin_dir.mkdir()
+                fake = bin_dir / "skillvault"
+                fake.write_text(FAKE_SKILLVAULT, encoding="utf-8")
+                fake.chmod(0o755)
+                env["PATH"] = str(bin_dir)
+            if skillvault_home is not None:
+                env["SKILLVAULT_HOME"] = skillvault_home
             result = subprocess.run(
                 [sys.executable, str(SCRIPT)], cwd=directory,
                 input=f'Medical "appointments"\n\n{architecture}\n1\n2\n1\n{isolation}\n{skillvault}\ny\n',
@@ -99,6 +131,22 @@ class ChecklistArtifactsTests(unittest.TestCase):
         self.assertIn("<!-- skillvault:end -->", agents_md)
         self.assertIn('skillvault find "<topic>" --project medical-appointments', agents_md)
         self.assertIn("skillvault context --project medical-appointments", agents_md)
+
+    def test_skillvault_enabled_with_cli_records_resolved_paths(self):
+        with tempfile.TemporaryDirectory() as vault_home:
+            _, _, generated, agents_md = self.generate(
+                skillvault=2, skillvault_home=vault_home, fake_binary=True,
+            )
+        provider = generated["context_retrieval"]["providers"]["skillvault"]
+        self.assertTrue(provider["enabled"])
+        self.assertTrue(os.path.isabs(provider["binary"]))
+        self.assertTrue(provider["binary"].endswith("/bin/skillvault"))
+        self.assertEqual(provider["vault_path"], os.path.join(vault_home, "vault.db"))
+        self.assertEqual(provider["availability"], "available")
+        self.assertEqual(provider["capabilities"], ["search", "read"])
+        # The marker was written by the CLI (the fake project id proves it),
+        # while the config records the same resolved binary and vault.
+        self.assertIn("proj-fake123", agents_md)
 
 
 if __name__ == "__main__":

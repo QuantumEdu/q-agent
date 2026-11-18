@@ -1,6 +1,9 @@
 """Configuration and instruction contracts; no live provider integration."""
+import contextlib
 import importlib.util
+import io
 import json
+import os
 import re
 from pathlib import Path
 import tempfile
@@ -65,6 +68,83 @@ class ContextRetrievalTests(unittest.TestCase):
         self.assertIn("<!-- skillvault:end -->", marker)
         self.assertIn('skillvault find "<topic>" --project sample-project', marker)
         self.assertIn("skillvault context --project sample-project", marker)
+
+    def test_resolve_skillvault_paths(self):
+        fake_binary = "/opt/fakebin/skillvault"
+        with mock.patch.object(checklist.shutil, "which", return_value=fake_binary):
+            with mock.patch.dict(os.environ, {"SKILLVAULT_HOME": "/tmp/vault-home"}):
+                self.assertEqual(
+                    checklist.resolve_skillvault_paths(),
+                    (fake_binary, "/tmp/vault-home/vault.db"),
+                )
+            with mock.patch.dict(os.environ, {}, clear=False):
+                os.environ.pop("SKILLVAULT_HOME", None)
+                binary, vault_path = checklist.resolve_skillvault_paths()
+                self.assertEqual(binary, fake_binary)
+                self.assertEqual(vault_path, os.path.join(os.path.expanduser("~"), ".skillvault", "vault.db"))
+        with mock.patch.object(checklist.shutil, "which", return_value=None):
+            with mock.patch.dict(os.environ, {"SKILLVAULT_HOME": "/tmp/vault-home"}):
+                self.assertEqual(
+                    checklist.resolve_skillvault_paths(),
+                    (None, "/tmp/vault-home/vault.db"),
+                )
+
+    def test_skillvault_enabled_generation_writes_resolved_paths(self):
+        selections = {key: value["options"][0] for key, value in checklist.DECISION_OPTIONS.items()}
+        selections["skillvault"] = checklist.DECISION_OPTIONS["skillvault"]["options"][1]
+        fake_binary = "/tmp/fakebin/skillvault"
+        with mock.patch.object(checklist.shutil, "which", return_value=fake_binary):
+            with tempfile.TemporaryDirectory() as directory:
+                vault_home = os.path.join(directory, "vault")
+                with mock.patch.dict(os.environ, {"SKILLVAULT_HOME": vault_home}):
+                    checklist.generate_artifacts(Path(directory), "Sample Project", selections)
+                    generated = json.loads((Path(directory) / ".q-agent.json").read_text(encoding="utf-8"))
+                    marker = (Path(directory) / "AGENTS.md").read_text(encoding="utf-8")
+        provider = generated["context_retrieval"]["providers"]["skillvault"]
+        self.assertTrue(provider["enabled"])
+        # The fake binary does not exist, so link-project cannot run and the
+        # marker falls back to verbatim — but the config must still record
+        # the resolved paths, and the marker must agree with them.
+        self.assertEqual(provider["binary"], fake_binary)
+        self.assertEqual(provider["vault_path"], os.path.join(vault_home, "vault.db"))
+        self.assertEqual(provider["availability"], "available")
+        self.assertEqual(provider["capabilities"], ["search", "read"])
+        self.assertIn(f"- Vault: `{vault_home}/vault.db` (binary: `{fake_binary}`)", marker)
+        self.assertIn(f'`{fake_binary} find "<topic>" --project sample-project', marker)
+
+    def test_skillvault_enabled_without_binary_keeps_template_binary(self):
+        selections = {key: value["options"][0] for key, value in checklist.DECISION_OPTIONS.items()}
+        selections["skillvault"] = checklist.DECISION_OPTIONS["skillvault"]["options"][1]
+        with mock.patch.object(checklist.shutil, "which", return_value=None):
+            with tempfile.TemporaryDirectory() as directory:
+                vault_home = os.path.join(directory, "vault")
+                with mock.patch.dict(os.environ, {"SKILLVAULT_HOME": vault_home}):
+                    checklist.generate_artifacts(Path(directory), "Sample Project", selections)
+                    generated = json.loads((Path(directory) / ".q-agent.json").read_text(encoding="utf-8"))
+                    marker = (Path(directory) / "AGENTS.md").read_text(encoding="utf-8")
+        provider = generated["context_retrieval"]["providers"]["skillvault"]
+        self.assertTrue(provider["enabled"])
+        self.assertEqual(provider["binary"], "skillvault")
+        self.assertEqual(provider["vault_path"], os.path.join(vault_home, "vault.db"))
+        self.assertEqual(provider["availability"], "unknown")
+        self.assertEqual(provider["capabilities"], [])
+        self.assertIn(f"- Vault: `{vault_home}/vault.db` (binary: `skillvault`)", marker)
+        self.assertIn('skillvault find "<topic>" --project sample-project', marker)
+
+    def test_skillvault_link_failure_warns_on_stderr(self):
+        selections = {key: value["options"][0] for key, value in checklist.DECISION_OPTIONS.items()}
+        selections["skillvault"] = checklist.DECISION_OPTIONS["skillvault"]["options"][1]
+        # Mocked binary path does not exist, so the CLI cannot run and the
+        # marker falls back to verbatim — the pre-flight must say so.
+        with mock.patch.object(checklist.shutil, "which", return_value="/tmp/fakebin/skillvault"):
+            with tempfile.TemporaryDirectory() as directory:
+                err = io.StringIO()
+                with contextlib.redirect_stderr(err):
+                    checklist.generate_artifacts(Path(directory), "Sample Project", selections)
+                marker = (Path(directory) / "AGENTS.md").read_text(encoding="utf-8")
+        self.assertIn("link-project", err.getvalue())
+        self.assertIn("verbatim", err.getvalue())
+        self.assertIn("id `sample-project`", marker)
 
     def test_skillvault_disabled_by_default_writes_no_marker(self):
         selections = {key: value["options"][0] for key, value in checklist.DECISION_OPTIONS.items()}
