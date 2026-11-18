@@ -28,6 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Atribución en `ATTRIBUTION.md` (punto 10) de las ideas adaptadas de EGM, con nota explícita de lo que no se portó.
 - Recetas `just fuzz`, `just fuzz-targets` y `just drift`.
 
+## [2.14.2] - 2026-11-18
+
+### Fixed
+- `tools/q-checklist/q_checklist.py`: al habilitar SkillVault, el pre-flight resuelve y escribe la ruta absoluta del binario (`binary`) y del vault (`vault_path`) en `.q-agent.json` (desde PATH y `SKILLVAULT_HOME`), con `availability: available` y `capabilities: ["search", "read"]` cuando el binario existe; el marcador verbatim de `AGENTS.md` usa las mismas rutas, así que marcador y config apuntan al mismo binario y vault. Sin binario se conservan los valores por defecto del template. Además advierte por stderr cuando `link-project` falla y el marcador cae a verbatim con `id = slug`.
+
 ## [2.14.1] - 2026-11-08
 
 ### Added

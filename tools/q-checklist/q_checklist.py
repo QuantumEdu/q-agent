@@ -129,20 +129,40 @@ def slugify_project_name(name: str) -> str:
     return re.sub(r"-+", "-", slug).strip("-") or "project"
 
 
-def skillvault_marker_section(project_name: str, slug: str) -> str:
+def resolve_skillvault_paths() -> tuple:
+    """Resolve the SkillVault binary and vault paths from the environment.
+
+    Returns (binary, vault_path): binary is the absolute path of the
+    `skillvault` binary found via PATH (None when no binary is available);
+    vault_path is the absolute path of the vault database,
+    <SKILLVAULT_HOME>/vault.db, or ~/.skillvault/vault.db by default.
+    The generated .q-agent.json provider and the verbatim AGENTS.md marker
+    both use these resolved paths, so the two agree (same binary, same
+    vault) instead of the config pointing at the default vault while the
+    marker names the binary by short name.
+    """
+    binary = shutil.which("skillvault")
+    vault_home = os.environ.get("SKILLVAULT_HOME") or "~/.skillvault"
+    vault_path = os.path.join(os.path.abspath(os.path.expanduser(vault_home)), "vault.db")
+    return (os.path.abspath(binary) if binary else None, vault_path)
+
+
+def skillvault_marker_section(project_name: str, slug: str, binary: str = "skillvault", vault_path: str = "~/.skillvault/vault.db") -> str:
     # Same marked section `skillvault link-project` writes (q-skillvault
     # internal/cli/handlers_context.go). The fallback below uses id = slug;
     # re-running link-project refreshes it with the real vault project id.
+    # binary/vault_path are the resolved paths from resolve_skillvault_paths,
+    # so the marker agrees with the generated .q-agent.json provider.
     return (
         f"{MARKER_START}\n"
         "## SkillVault (project memory)\n"
         "\n"
         "This project keeps its decisions in SkillVault, a local knowledge vault.\n"
         "\n"
-        "- Vault: `~/.skillvault/vault.db` (binary: `skillvault`)\n"
+        f"- Vault: `{vault_path}` (binary: `{binary}`)\n"
         f"- Project: {project_name} (slug `{slug}`, id `{slug}`)\n"
-        f"- Before answering about project conventions or changing code, check the vault first: `skillvault find \"<topic>\" --project {slug}`\n"
-        f"- For a full context pack: `skillvault context --project {slug}`\n"
+        f"- Before answering about project conventions or changing code, check the vault first: `{binary} find \"<topic>\" --project {slug}`\n"
+        f"- For a full context pack: `{binary} context --project {slug}`\n"
         f"{MARKER_END}"
     )
 
@@ -157,17 +177,23 @@ def upsert_marker_section(existing: str, section: str) -> str:
     return existing.rstrip() + "\n\n" + section + "\n"
 
 
-def link_skillvault_marker(project_root: Path, project_name: str, slug: str) -> str:
+def link_skillvault_marker(project_root: Path, project_name: str, slug: str, binary=None, vault_path=None) -> str:
     """Write the SkillVault marker into <project_root>/AGENTS.md.
 
     Prefers `skillvault link-project` when the binary is available (it
     resolves the real vault project id); if the project is not in the vault
     yet, creates it first with `add-project`. Falls back to writing the
     marked section verbatim when the binary is missing or the CLI fails.
+    binary/vault_path default to resolve_skillvault_paths(); passing them
+    in keeps the marker and the generated .q-agent.json in agreement.
     Returns "cli" or "verbatim".
     """
-    binary = shutil.which("skillvault")
+    resolved_binary, resolved_vault = resolve_skillvault_paths()
+    binary = binary if binary is not None else resolved_binary
+    vault_path = vault_path or resolved_vault
+    cli_attempted = False
     if binary:
+        cli_attempted = True
         try:
             linked = subprocess.run(
                 [binary, "link-project", "--project", slug, "--path", str(project_root)],
@@ -187,10 +213,25 @@ def link_skillvault_marker(project_root: Path, project_name: str, slug: str) -> 
                 return "cli"
         except (OSError, subprocess.SubprocessError):
             pass
+    if cli_attempted:
+        # The CLI was available but linking failed: the verbatim marker
+        # below carries id = slug, which may not match the vault project.
+        # Say so instead of failing silently.
+        print(
+            "[WARN] `skillvault link-project` falló; el marcador se escribió "
+            "verbatim con id = slug. Si el proyecto se creó ahora, su slug en "
+            "el vault puede diferir del slug de q-agent: revisa "
+            "`skillvault list-projects` y re-ejecuta link-project con el "
+            "id/slug real del vault.",
+            file=sys.stderr,
+        )
     agents_md = project_root / "AGENTS.md"
     existing = agents_md.read_text(encoding="utf-8") if agents_md.exists() else ""
     agents_md.write_text(
-        upsert_marker_section(existing, skillvault_marker_section(project_name, slug)),
+        upsert_marker_section(
+            existing,
+            skillvault_marker_section(project_name, slug, binary=binary or "skillvault", vault_path=vault_path),
+        ),
         encoding="utf-8",
     )
     return "verbatim"
@@ -266,11 +307,24 @@ Se requiere establecer las bases arquitectónicas de {project_name} para garanti
     # it here is the operator's human authorization for read lookups on this
     # project; the marker makes the vault discoverable to the host agent.
     skillvault_enabled = selections.get("skillvault", ("disabled",))[0] == "enabled"
+    binary = vault_path = None
     if skillvault_enabled:
         slug = slugify_project_name(project_name)
         provider = configuration["context_retrieval"]["providers"]["skillvault"]
+        # Resolve the real binary and vault once, from the environment
+        # (PATH + SKILLVAULT_HOME), and write them into the provider so the
+        # generated config is usable without hand-editing: the pilot
+        # (e2e-pilot) needed exactly this correction by hand. When no
+        # binary is found the template defaults stand (short name,
+        # availability unknown, no capabilities).
+        binary, vault_path = resolve_skillvault_paths()
         provider["enabled"] = True
         provider["project_slug"] = slug
+        if binary is not None:
+            provider["binary"] = binary
+            provider["availability"] = "available"
+            provider["capabilities"] = ["search", "read"]
+        provider["vault_path"] = vault_path
         provider["authorization"] = "read"
         provider["authorization_evidence"] = {
             "source_ref": "q-checklist interactive selection (operator)",
@@ -286,7 +340,7 @@ Se requiere establecer las bases arquitectónicas de {project_name} para garanti
         json.dumps(configuration, indent=2) + "\n", encoding="utf-8"
     )
     if skillvault_enabled:
-        link_skillvault_marker(project_root, project_name, slug)
+        link_skillvault_marker(project_root, project_name, slug, binary=binary, vault_path=vault_path)
 
 
 def main():

@@ -8,7 +8,7 @@ description: >
   Enforces Article ARQ-01: Vertical Slices by default, template hygiene (.html embed),
   zero-mock terminal evidence, and minimal indirection. Tool-agnostic.
 author: Gabriel Magallón Sánchez / QuantumEdu (Quantum)
-version: 2.14.1
+version: 2.14.2
 license: Apache-2.0
 sources: [chat]
 aliases: [agente, /q-agent, iniciar agente, dev agent, orchestrator]
@@ -32,7 +32,7 @@ metadata:
     - "skills/q-superagent"
 ---
 
-# q-agent v2.14.1 — Master Project Orchestrator
+# q-agent v2.14.2 — Master Project Orchestrator
 
 > **Filosofía Fundamental:** **CONCEPTS > CODE • DUAL-ENGINE RESILIENCE • MINIMAL INDIRECTION • TERMINAL EVIDENCE GATE • DEPLOY GOVERNANCE • VERTICAL SLICES**  
 > Director de Orquesta Senior (GDE & MVP). Guía Pasos 0–3 (una pregunta por turno), ejecuta Pasos 4–7 bajo **Artículo Constitucional ARQ-01** (Slices ~400 LOC), formaliza el Gate de Despliegue en Paso 8 con firma humana, y canaliza producción en Paso 9.
@@ -90,7 +90,7 @@ Paso 9     ──► BUCLE OPS-TO-ODD (Reproduction-First ante incidentes)
   - **Motor B (Standalone ODD)**: Si falta. Bitácora en `q-tasks/<feature>.md`, CodeGraph CLI / herramientas locales.
 - [ ] **CodeGraph Auto-Init**: Si falta índice en repo: `test -d .codegraph || codegraph init -y`. Exploración obligatoria vía MCP `codegraph_explore` o CLI upstream (`codegraph explore/impact`) antes de búsquedas ciegas.
 - [ ] Verificar `CONSTITUTION.md` (Artículo ARQ-01: Slices por defecto, SQLite WAL, higiene HTML, SQL parametrizado, cero mocks). En proyectos nuevos sin constitución, inicializar con `python3 tools/q-checklist/q_checklist.py`.
-- [ ] **Vincular la memoria del proyecto (SkillVault)**: si el proyecto habilita el backend de memoria SkillVault en `q-checklist`, este escribe la sección marcada en `AGENTS.md` (vía `skillvault link-project`, o con el mismo formato si el binario no está disponible). Sin ese marcador el agente nunca descubre el vault (ver `skills/q-skillvault-assistant`). En proyectos existentes, correr `skillvault link-project --project <slug>` a mano.
+- [ ] **Vincular la memoria del proyecto (SkillVault)**: si el proyecto habilita el backend de memoria SkillVault en `q-checklist`, este escribe la sección marcada en `AGENTS.md` (vía `skillvault link-project`, o con el mismo formato si el binario no está disponible) y deja `binary`/`vault_path` resueltos (absolutos, desde PATH y `SKILLVAULT_HOME`) en el provider de `.q-agent.json`, para que marcador y config apunten al mismo binario y vault. Sin ese marcador el agente nunca descubre el vault (ver `skills/q-skillvault-assistant`). En proyectos existentes, correr `skillvault link-project --project <slug>` a mano.
 
 ### [Paso 4] Apertura de Bitácora Única ODD
 - [ ] Crear bitácora viva instanciando `templates/task-log-template.md`.
