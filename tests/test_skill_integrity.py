@@ -117,6 +117,20 @@ class TestSkillIntegrity(unittest.TestCase):
         skill_json = json.loads((ROOT_DIR / "skill.json").read_text(encoding="utf-8"))
         self.assertIn("q-adversarial-review", skill_json.get("skills", []))
 
+    def test_q_skillvault_assistant_exists_and_registered(self):
+        skill_path = ROOT_DIR / "skills" / "q-skillvault-assistant" / "SKILL.md"
+        self.assertTrue(skill_path.exists(), "skills/q-skillvault-assistant/SKILL.md must exist")
+        content = skill_path.read_text(encoding="utf-8")
+        self.assertIn("name: q:skillvault-assistant", content)
+        self.assertIn("context-retrieval.md", content)
+        self.assertIn("link-project", content)
+
+        skill_json = json.loads((ROOT_DIR / "skill.json").read_text(encoding="utf-8"))
+        self.assertIn("q-skillvault-assistant", skill_json.get("skills", []))
+
+        index = (ROOT_DIR / "skills" / "INDEX.md").read_text(encoding="utf-8")
+        self.assertIn("q-skillvault-assistant", index)
+
     def test_install_script_runtimes_include_copilot(self):
         install_sh_path = ROOT_DIR / "install.sh"
         self.assertTrue(install_sh_path.exists(), "install.sh must exist in project root")

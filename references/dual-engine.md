@@ -105,7 +105,12 @@ Si un proyecto iniciado en modo Standalone se traslada a un entorno con `gentle-
 
 ## 7. Protocolo de Memoria Persistente con SkillVault (`vault_mem_*`)
 
-Cuando se utiliza SkillVault como backend de memoria para `q-agent`:
+Cuando se utiliza SkillVault como backend de memoria para `q-agent`, el
+protocolo se ejecuta a través de `skills/q-skillvault-assistant` (CLI/MCP);
+`vault_mem_*` son los nombres conceptuales de las operaciones, no un
+adaptador ejecutable separado. El explorador de skills de q-cockpit
+(`/api/skillvault`) no es este backend: escanea un directorio local de
+`SKILL.md` y nunca toca el vault.
 1. **Suite Nativa:** Emplear `vault_mem_save`, `vault_mem_search`, `vault_mem_context`, `vault_mem_get`, `vault_mem_timeline`.
 2. **Deduplicación Automática:** SkillVault calcula el hash SHA-256 normalizado del contenido (`trim` + `lowercase`) para evitar registros redundantes en bucles de agentes y sesiones prolongadas.
 3. **Modo Compatibilidad Engram:** Al iniciar con `skillvault mcp --compat-engram`, SkillVault registra alias directos `mem_save`, `mem_search`, `mem_context`, `mem_get_observation`, permitiendo una transición transparente sin modificar agentes legacy.

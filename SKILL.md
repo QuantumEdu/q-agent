@@ -26,6 +26,7 @@ metadata:
     - "skills/q-delegate-context"
     - "skills/q-session-wrap"
     - "skills/q-gbrain-assistant"
+    - "skills/q-skillvault-assistant"
     - "skills/q-skill-doctor"
     - "skills/q-improve-loop"
     - "skills/q-superagent"
@@ -89,6 +90,7 @@ Paso 9     ──► BUCLE OPS-TO-ODD (Reproduction-First ante incidentes)
   - **Motor B (Standalone ODD)**: Si falta. Bitácora en `q-tasks/<feature>.md`, CodeGraph CLI / herramientas locales.
 - [ ] **CodeGraph Auto-Init**: Si falta índice en repo: `test -d .codegraph || codegraph init -y`. Exploración obligatoria vía MCP `codegraph_explore` o CLI upstream (`codegraph explore/impact`) antes de búsquedas ciegas.
 - [ ] Verificar `CONSTITUTION.md` (Artículo ARQ-01: Slices por defecto, SQLite WAL, higiene HTML, SQL parametrizado, cero mocks). En proyectos nuevos sin constitución, inicializar con `python3 tools/q-checklist/q_checklist.py`.
+- [ ] **Vincular la memoria del proyecto (SkillVault)**: si el proyecto habilita el backend de memoria SkillVault en `q-checklist`, este escribe la sección marcada en `AGENTS.md` (vía `skillvault link-project`, o con el mismo formato si el binario no está disponible). Sin ese marcador el agente nunca descubre el vault (ver `skills/q-skillvault-assistant`). En proyectos existentes, correr `skillvault link-project --project <slug>` a mano.
 
 ### [Paso 4] Apertura de Bitácora Única ODD
 - [ ] Crear bitácora viva instanciando `templates/task-log-template.md`.
@@ -113,8 +115,12 @@ Paso 9     ──► BUCLE OPS-TO-ODD (Reproduction-First ante incidentes)
 - [ ] **Fase A.5 (Spec-Derived Probes & Invariantes)**:
   - Los tests del escritor no bastan por sí solos. La compuerta formula **probes ciegos derivados de `S#`** (casos límite, entradas vacías/malformadas, salidas de error exactas) y verifica **invariantes de estado** (el hash de BD queda idéntico antes y después de comandos rechazados).
   - Ejecutar probes en aislamiento (`mktemp -d` o `.scratch/`) y aportarlos como tests de regresión permanentes a la suite.
+- [ ] **Fase A.6 (Decisiones de memoria aplicables — consultar ≠ aplicar)**:
+  - Si un backend de memoria está habilitado (SkillVault, GBrain, Engram), la compuerta consulta el vault sobre el alcance del diff (`skillvault context/find` vía `skills/q-skillvault-assistant`, o la skill asistente correspondiente).
+  - Cada decisión aplicable debe quedar **reflejada en el diff**, **codificada como test de regresión** (ej. D01 → test que rechaza `SERIAL`; D04 → test del timeout), o **declarada no aplicable con motivo** en la bitácora. Una decisión consultada e ignorada en silencio bloquea el cierre.
 - [ ] **Fase B (Adversarial)**: Despachar `skills/q-adversarial-review` en subagente aislado (`invoke_subagent`).
   - Auditar diff contra ARQ-01 con protocolo **Review Remembers** (`R-IDs`).
+  - El revisor aplica el **Eje 7 (Decisiones de memoria aplicadas)** cuando el proyecto tiene un backend de memoria habilitado.
   - Exigir veredicto `APPROVED` antes de autorizar cierre.
 - [ ] **Registro en Bitácora y Sello de Tarea**:
   - Registrar comandos, tests, exit/status/tiempo observados en `Terminal Evidence Gate`; costo/tokens opcionales sin instrumentación, nunca inventados (ver contrato).

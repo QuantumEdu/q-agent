@@ -24,7 +24,7 @@ metadata:
   - ⛔ **PROHIBIDO escribir o editar código**: El auditor es estrictamente de solo lectura; no implementa fixes.
   - ⛔ **PROHIBIDO correr en el mismo hilo**: Jamás ejecutar en la sesión del agente escritor; requiere despacho aislado (`invoke_subagent`).
   - No usar si no hay `git diff` o código modificado para auditar.
-- **Política de Contexto**: `FULL`. El auditor debe leer y evaluar los 5 ejes y la matriz de `R-IDs` completos antes de dictaminar.
+- **Política de Contexto**: `FULL`. El auditor debe leer y evaluar los 7 ejes y la matriz de `R-IDs` completos antes de dictaminar.
 
 ## 2. Invariantes Operativos No Negociables
 1. **Aislamiento Absoluto de Contexto (Context Isolation)**: Despachar vía `invoke_subagent` con rol `"Adversarial Architecture Reviewer"` inyectando únicamente: diff, criterios UAC, reglas constitucionales y reporte previo (si existe).
@@ -35,7 +35,7 @@ metadata:
    - Veredicto `APPROVED` requiere 100% de los `R-IDs` en `[FIXED]` o `[NO_LONGER_APPLIES]`.
 4. **Bloqueo Vinculante de Tarea**: Con `REJECTED`, el escritor tiene **prohibido** marcar la tarea como completada (`[x]`).
 
-## 3. Matriz de Verificación Adversarial (6 Ejes Críticos)
+## 3. Matriz de Verificación Adversarial (7 Ejes Críticos)
 
 | Eje | Qué busca el Auditor | Criterio de Rechazo Inmediato (REJECTED) |
 | :--- | :--- | :--- |
@@ -45,11 +45,12 @@ metadata:
 | **4. Anti-Mocking, Tests & Spec-Derived Probes** | Aserciones reales sobre comportamiento de dominio o endpoints contra infraestructura real o emuladores herméticos de contrato (WireMock, LocalStack, sandbox SQLite). Cobertura de casos límite, entradas malformadas e invariantes de estado derivados de la especificación (`S#`), previniendo autovalidaciones circulares. | Mocks sintéticos que falseen lógica interna, stubs en memoria que evadan persistencia, tests vacíos, o ausencia de validación de casos frontera y errores exactos requeridos por `S#`. |
 | **5. Manejo de Errores** | Errores manejados explícitamente y propagados con contexto. | Errores silenciados con `_ = err`, `except: pass` o fallbacks silenciosos. |
 | **6. Manifiesto & Grounding Empírico** | Todos los entregables especificados creados en disco (`test -s`). Afirmaciones de compatibilidad/negocio contrastadas contra DB o logs reales. | Entregables referenciados en texto pero no creados físicamente; suposiciones heurísticas sin evidencia de consulta a la base de datos o logs. |
+| **7. Decisiones de Memoria Aplicadas** | Cuando el proyecto tiene un backend de memoria habilitado (SkillVault, GBrain, Engram), el auditor consulta el vault en solo lectura (vía la skill asistente correspondiente) sobre el alcance del diff y verifica que cada decisión aplicable esté reflejada en el diff, codificada como test, o declarada no aplicable con motivo en la bitácora. | Decisión aplicable consultada (o consultable) e ignorada en silencio: no aparece en el diff, no hay test que la codifique ni declaración de no aplicabilidad. |
 
 ## 4. Contrato de Ejecución & Despacho
 - [ ] **M1 (Extracción)**: El orquestador extrae el diff (`git diff origin/main..HEAD` o `git diff HEAD~1..HEAD`) y carga reporte previo si existe.
 - [ ] **M2 (Despacho)**: Invocar `invoke_subagent(role="Adversarial Architecture Reviewer", prompt="...")`.
-- [ ] **M3 (Evaluación Remembers)**: El subagente evalúa los `R-IDs` previos y escanea los 5 ejes contra regresiones.
+- [ ] **M3 (Evaluación Remembers)**: El subagente evalúa los `R-IDs` previos y escanea los 7 ejes contra regresiones.
 - [ ] **M4 (Emisión de Reporte)**: Emitir veredicto estructurado con tabla de hallazgos.
 
 ## 5. Completion Gate
