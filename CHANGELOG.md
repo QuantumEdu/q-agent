@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.15.0] - 2026-11-21
+
 ### Added
 - **`skills/q-researcher/` (v1.0.0)**: investigador dedicado (rol Researcher del Bot Team; hueco del comparativo PStack/Bot Team). Envuelve `references/context-retrieval.md` + búsqueda web del host + contrato de citación (fuente, localizador, frescura); entrega una Research Synthesis (hallazgos citados, contradicciones resueltas, lista de no verificado) que alimenta Paso 2a (`q-deliberate`) y Paso 2.5 (Executive Brief). Se invoca en Paso 1/2 solo ante un hecho faltante concreto; nunca en tareas autocontenidas. No escribe código ni sustituye a `context-retrieval.md` ni a `q-deliberate`.
 - **Compuerta de Arquitectura Ejecutiva P02b (PR #37)**: En `SKILL.md` (Paso 2.5), `templates/EXECUTIVE_BRIEF.md` y `prompts/P02b_executive_brief.md`. En Plan A (greenfield) el orquestador genera el Executive Architecture Brief antes de abrir bitácora o tocar código: plan por olas/slices, grafo de procesos y topología (Mermaid DAG) y matriz de riesgos y modos de fallo (The 3 AM Test). Bloqueo: prohibido inicializar P03/P04 sin confirmación humana explícita del panorama macro.
