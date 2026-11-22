@@ -224,7 +224,7 @@ class ContextRetrievalTests(unittest.TestCase):
         contract = (ROOT / "references/context-retrieval.md").read_text(encoding="utf-8")
         for term in ("configured", "available", "authorized", "aggregate", "No query", "legacy", "untrusted", "HTML"):
             self.assertIn(term, contract)
-        for path in ("SKILL.md", "skills/q-gbrain-assistant/SKILL.md", "skills/q-skillvault-assistant/SKILL.md", "skills/q-session-wrap/SKILL.md", "README.md"):
+        for path in ("SKILL.md", "skills/q-gbrain-assistant/SKILL.md", "skills/q-skillvault-assistant/SKILL.md", "skills/q-researcher/SKILL.md", "skills/q-session-wrap/SKILL.md", "README.md"):
             self.assertIn("context-retrieval.md", (ROOT / path).read_text(encoding="utf-8"))
 
 

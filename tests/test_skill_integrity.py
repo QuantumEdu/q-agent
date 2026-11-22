@@ -38,20 +38,20 @@ class TestSkillIntegrity(unittest.TestCase):
         frontmatter = parts[1]
         self.assertIn("name: q-agent", frontmatter)
         self.assertIn("description:", frontmatter)
-        self.assertIn("version: 2.14.2", frontmatter)
+        self.assertIn("version: 2.15.0", frontmatter)
 
     def test_version_consistency(self):
         skill_json = json.loads((ROOT_DIR / "skill.json").read_text(encoding="utf-8"))
         skill_md = (ROOT_DIR / "SKILL.md").read_text(encoding="utf-8")
         version = skill_json["version"]
-        self.assertEqual(version, "2.14.2")
+        self.assertEqual(version, "2.15.0")
         self.assertIn(f"version: {version}", skill_md)
         self.assertIn(f"# q-agent v{version} —", skill_md)
         readme = (ROOT_DIR / "README.md").read_text(encoding="utf-8")
         self.assertIn(f"package v{version}", readme)
         self.assertIn(f"badge/version-{version}-green.svg", readme)
         changelog = (ROOT_DIR / "CHANGELOG.md").read_text(encoding="utf-8")
-        self.assertIn(f"## [{version}] - 2026-11-18", changelog)
+        self.assertIn(f"## [{version}] - 2026-11-21", changelog)
         self.assertIn("## [2.12.1] - 2026-11-04", changelog)
 
     def test_audit_manifest_reference_exists(self):
@@ -130,6 +130,26 @@ class TestSkillIntegrity(unittest.TestCase):
 
         index = (ROOT_DIR / "skills" / "INDEX.md").read_text(encoding="utf-8")
         self.assertIn("q-skillvault-assistant", index)
+
+    def test_q_researcher_exists_and_registered(self):
+        skill_path = ROOT_DIR / "skills" / "q-researcher" / "SKILL.md"
+        self.assertTrue(skill_path.exists(), "skills/q-researcher/SKILL.md must exist")
+        content = skill_path.read_text(encoding="utf-8")
+        self.assertIn("name: q:researcher", content)
+        self.assertIn("context-retrieval.md", content)
+        self.assertIn("Research Synthesis", content)
+        self.assertIn("no-lookup-needed", content)
+        self.assertIn("q-deliberate", content)
+
+        skill_json = json.loads((ROOT_DIR / "skill.json").read_text(encoding="utf-8"))
+        self.assertIn("q-researcher", skill_json.get("skills", []))
+
+        index = (ROOT_DIR / "skills" / "INDEX.md").read_text(encoding="utf-8")
+        self.assertIn("q-researcher", index)
+
+        skill_md = (ROOT_DIR / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("skills/q-researcher", skill_md)
+        self.assertIn("2d (Hecho faltante concreto)", skill_md)
 
     def test_install_script_runtimes_include_copilot(self):
         install_sh_path = ROOT_DIR / "install.sh"

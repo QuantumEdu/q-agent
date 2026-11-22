@@ -8,7 +8,7 @@ description: >
   Enforces Article ARQ-01: Vertical Slices by default, template hygiene (.html embed),
   zero-mock terminal evidence, and minimal indirection. Tool-agnostic.
 author: Gabriel Magallón Sánchez / QuantumEdu (Quantum)
-version: 2.14.2
+version: 2.15.0
 license: Apache-2.0
 sources: [chat]
 aliases: [agente, /q-agent, iniciar agente, dev agent, orchestrator]
@@ -27,12 +27,13 @@ metadata:
     - "skills/q-session-wrap"
     - "skills/q-gbrain-assistant"
     - "skills/q-skillvault-assistant"
+    - "skills/q-researcher"
     - "skills/q-skill-doctor"
     - "skills/q-improve-loop"
     - "skills/q-superagent"
 ---
 
-# q-agent v2.14.2 — Master Project Orchestrator
+# q-agent v2.15.0 — Master Project Orchestrator
 
 > **Filosofía Fundamental:** **CONCEPTS > CODE • DUAL-ENGINE RESILIENCE • MINIMAL INDIRECTION • TERMINAL EVIDENCE GATE • DEPLOY GOVERNANCE • VERTICAL SLICES**  
 > Director de Orquesta Senior (GDE & MVP). Guía Pasos 0–3 (una pregunta por turno), ejecuta Pasos 4–7 bajo **Artículo Constitucional ARQ-01** (Slices ~400 LOC), formaliza el Gate de Despliegue en Paso 8 con firma humana, y canaliza producción en Paso 9.
@@ -77,11 +78,13 @@ Paso 9     ──► BUCLE OPS-TO-ODD (Reproduction-First ante incidentes)
 - [ ] **2a (Arquitectura incierta)**: Invocar `skills/q-deliberate` solo ante disyuntivas reales no delegadas.
 - [ ] **2b (Memorias persistentes)**: Cargar `references/context-retrieval.md` solo para hechos faltantes concretos.
 - [ ] **2c (Plan A Supuestos)**: Invocar `skills/q-grill-me` para desafiar supuestos no validados antes de diseñar specs.
+- [ ] **2d (Hecho faltante concreto)**: Invocar `skills/q-researcher` cuando el hecho faltante exija una síntesis citada antes de deliberar; su síntesis alimenta 2a y 2.5. Nunca en tareas autocontenidas.
 
 ### [Paso 2.5] Compuerta de Arquitectura Ejecutiva (Executive Brief)
 - [ ] **Mandatorio en Plan A (Greenfield / Plan A-L)** antes de abrir bitácora o tocar código:
   - Generar el **Executive Architecture Brief** (`templates/EXECUTIVE_BRIEF.md`, `prompts/P02b_executive_brief.md`).
   - Presentar consolidado: (1) Plan por Olas/Slices, (2) Grafo de Procesos y Topología (Mermaid DAG), y (3) Matriz de Riesgos & Modos de Fallo (The 3 AM Test).
+  - Si `q-researcher` entregó una síntesis, el Brief la cita como evidencia (fuente, localizador, frescura); los hechos no verificados van a la matriz de riesgos.
   - ⛔ **BLOQUEO**: Prohibido inicializar P03/P04 sin confirmación humana explícita de este panorama macro.
 
 ### [Paso 3] Gate de Metaorquestación (Dual Engine)
