@@ -353,6 +353,7 @@ q-agent/
 │   ├── q-delegate-context/           # Delegación agnóstica de contexto
 │   ├── q-gbrain-assistant/           # Gateway de memoria GBrain
 │   ├── q-skillvault-assistant/       # Gateway de memoria SkillVault (Paso 2b, Paso 6)
+│   ├── q-researcher/               # Investigador dedicado con síntesis citada (Paso 1/2)
 │   ├── q-deliberate/                 # Deliberación dialéctica multi-agente
 │   ├── q-ci-fixer/                   # Corrección de pipelines CI (≤2 passes)
 │   ├── q-grill-me/                   # Entrevista socrática de alineación

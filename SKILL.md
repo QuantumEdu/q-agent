@@ -27,6 +27,7 @@ metadata:
     - "skills/q-session-wrap"
     - "skills/q-gbrain-assistant"
     - "skills/q-skillvault-assistant"
+    - "skills/q-researcher"
     - "skills/q-skill-doctor"
     - "skills/q-improve-loop"
     - "skills/q-superagent"
@@ -77,11 +78,13 @@ Paso 9     ──► BUCLE OPS-TO-ODD (Reproduction-First ante incidentes)
 - [ ] **2a (Arquitectura incierta)**: Invocar `skills/q-deliberate` solo ante disyuntivas reales no delegadas.
 - [ ] **2b (Memorias persistentes)**: Cargar `references/context-retrieval.md` solo para hechos faltantes concretos.
 - [ ] **2c (Plan A Supuestos)**: Invocar `skills/q-grill-me` para desafiar supuestos no validados antes de diseñar specs.
+- [ ] **2d (Hecho faltante concreto)**: Invocar `skills/q-researcher` cuando el hecho faltante exija una síntesis citada antes de deliberar; su síntesis alimenta 2a y 2.5. Nunca en tareas autocontenidas.
 
 ### [Paso 2.5] Compuerta de Arquitectura Ejecutiva (Executive Brief)
 - [ ] **Mandatorio en Plan A (Greenfield / Plan A-L)** antes de abrir bitácora o tocar código:
   - Generar el **Executive Architecture Brief** (`templates/EXECUTIVE_BRIEF.md`, `prompts/P02b_executive_brief.md`).
   - Presentar consolidado: (1) Plan por Olas/Slices, (2) Grafo de Procesos y Topología (Mermaid DAG), y (3) Matriz de Riesgos & Modos de Fallo (The 3 AM Test).
+  - Si `q-researcher` entregó una síntesis, el Brief la cita como evidencia (fuente, localizador, frescura); los hechos no verificados van a la matriz de riesgos.
   - ⛔ **BLOQUEO**: Prohibido inicializar P03/P04 sin confirmación humana explícita de este panorama macro.
 
 ### [Paso 3] Gate de Metaorquestación (Dual Engine)

@@ -131,6 +131,26 @@ class TestSkillIntegrity(unittest.TestCase):
         index = (ROOT_DIR / "skills" / "INDEX.md").read_text(encoding="utf-8")
         self.assertIn("q-skillvault-assistant", index)
 
+    def test_q_researcher_exists_and_registered(self):
+        skill_path = ROOT_DIR / "skills" / "q-researcher" / "SKILL.md"
+        self.assertTrue(skill_path.exists(), "skills/q-researcher/SKILL.md must exist")
+        content = skill_path.read_text(encoding="utf-8")
+        self.assertIn("name: q:researcher", content)
+        self.assertIn("context-retrieval.md", content)
+        self.assertIn("Research Synthesis", content)
+        self.assertIn("no-lookup-needed", content)
+        self.assertIn("q-deliberate", content)
+
+        skill_json = json.loads((ROOT_DIR / "skill.json").read_text(encoding="utf-8"))
+        self.assertIn("q-researcher", skill_json.get("skills", []))
+
+        index = (ROOT_DIR / "skills" / "INDEX.md").read_text(encoding="utf-8")
+        self.assertIn("q-researcher", index)
+
+        skill_md = (ROOT_DIR / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("skills/q-researcher", skill_md)
+        self.assertIn("2d (Hecho faltante concreto)", skill_md)
+
     def test_install_script_runtimes_include_copilot(self):
         install_sh_path = ROOT_DIR / "install.sh"
         self.assertTrue(install_sh_path.exists(), "install.sh must exist in project root")
