@@ -27,6 +27,7 @@ from datetime import datetime, timezone
 _validator_spec = importlib.util.spec_from_file_location(
     "audit_report_validator", Path(__file__).resolve().parents[1] / "q-audit-validator/validate_audit.py"
 )
+assert _validator_spec is not None and _validator_spec.loader is not None
 _validator = importlib.util.module_from_spec(_validator_spec)
 _validator_spec.loader.exec_module(_validator)
 
@@ -76,7 +77,7 @@ def load_manifest(manifest_path: Path) -> list[dict]:
 
 
 def parse_frontmatter(content: str) -> dict:
-    fm = {}
+    fm: dict = {}
     lines = content.splitlines()
     if not lines or lines[0].strip() != "---":
         return fm
@@ -112,18 +113,18 @@ def build_remediation_plan(cwd: Path, defect_results: list[dict], verdict: str) 
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     lines = [
         f"# 🛠️ Plan de Mejora Accionable y Remediación Técnica — {cwd.name}",
-        f"",
+        "",
         f"> **Framework:** {FRAMEWORK_LABEL} — Generación Determinista de Remediación (CAB-RP)  ",
         f"> **Fecha:** {now}  ",
         f"> **Veredicto General:** `{verdict}`  ",
-        f"> **Objetivo:** Hoja de ruta priorizada para subsanar los defectos y deudas identificados en la auditoría.  ",
-        f"",
-        f"---",
-        f"",
-        f"## 📌 Matriz de Priorización de Correcciones",
-        f"",
-        f"| Prioridad | ID | Categoría | Ítem | Foco de Remediación |",
-        f"| :---: | :---: | :--- | :--- | :--- |",
+        "> **Objetivo:** Hoja de ruta priorizada para subsanar los defectos y deudas identificados en la auditoría.  ",
+        "",
+        "---",
+        "",
+        "## 📌 Matriz de Priorización de Correcciones",
+        "",
+        "| Prioridad | ID | Categoría | Ítem | Foco de Remediación |",
+        "| :---: | :---: | :--- | :--- | :--- |",
     ]
 
     actionable = [r for r in defect_results if r["severity"] in ("critical", "high", "medium", "low")]
@@ -137,11 +138,11 @@ def build_remediation_plan(cwd: Path, defect_results: list[dict], verdict: str) 
         )
 
     lines += [
-        f"",
-        f"---",
-        f"",
-        f"## 🚀 Desglose de Fases de Ejecución",
-        f"",
+        "",
+        "---",
+        "",
+        "## 🚀 Desglose de Fases de Ejecución",
+        "",
     ]
 
     phases = [
@@ -169,11 +170,11 @@ def build_remediation_plan(cwd: Path, defect_results: list[dict], verdict: str) 
                 lines.append(f"**Diagnóstico:** {summary}")
                 lines.append("")
             if violations:
-                lines.append(f"**Evidencia observada:**")
+                lines.append("**Evidencia observada:**")
                 lines.append(violations)
                 lines.append("")
             if ears and ears.strip() != "N/A — No remediation required.":
-                lines.append(f"**Especificación de Requisito EARS:**")
+                lines.append("**Especificación de Requisito EARS:**")
                 lines.append("```ears")
                 lines.append(ears)
                 lines.append("```")
@@ -188,17 +189,17 @@ def build_strategic_proposal(cwd: Path, strategic_results: list[dict]) -> str:
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     lines = [
         f"# 🚀 Propuesta Estratégica y Hoja de Ruta Evolutiva — {cwd.name}",
-        f"",
+        "",
         f"> **Framework:** {FRAMEWORK_LABEL} — Auditoría de Valor, Innovación y Benchmarking (MAB-PC)  ",
         f"> **Fecha:** {now}  ",
-        f"> **Objetivo:** Propuesta de evolución arquitectónica, agilidad, GUI/UX, capacidades de dominio y benchmark competitivo.  ",
-        f"",
-        f"---",
-        f"",
-        f"## 📌 Matriz de Oportunidades Estratégicas",
-        f"",
-        f"| ID | Categoría | Dimensión de Valor | Foco Estratégico |",
-        f"| :---: | :--- | :--- | :--- |",
+        "> **Objetivo:** Propuesta de evolución arquitectónica, agilidad, GUI/UX, capacidades de dominio y benchmark competitivo.  ",
+        "",
+        "---",
+        "",
+        "## 📌 Matriz de Oportunidades Estratégicas",
+        "",
+        "| ID | Categoría | Dimensión de Valor | Foco Estratégico |",
+        "| :---: | :--- | :--- | :--- |",
     ]
 
     for r in strategic_results:
@@ -207,11 +208,11 @@ def build_strategic_proposal(cwd: Path, strategic_results: list[dict]) -> str:
         )
 
     lines += [
-        f"",
-        f"---",
-        f"",
-        f"## 🚀 Desglose de Propuestas de Evolución",
-        f"",
+        "",
+        "---",
+        "",
+        "## 🚀 Desglose de Propuestas de Evolución",
+        "",
     ]
 
     for r in strategic_results:
@@ -226,19 +227,19 @@ def build_strategic_proposal(cwd: Path, strategic_results: list[dict]) -> str:
         lines.append("")
 
         if summary:
-            lines.append(f"#### 🎯 Resumen Ejecutivo")
+            lines.append("#### 🎯 Resumen Ejecutivo")
             lines.append(summary)
             lines.append("")
         if bottlenecks:
-            lines.append(f"#### ⚠️ Diagnóstico y Cuellos de Botella Actuales")
+            lines.append("#### ⚠️ Diagnóstico y Cuellos de Botella Actuales")
             lines.append(bottlenecks)
             lines.append("")
         if arch:
-            lines.append(f"#### 💡 Arquitectura Propuesta y Estrategia de Solución")
+            lines.append("#### 💡 Arquitectura Propuesta y Estrategia de Solución")
             lines.append(arch)
             lines.append("")
         if impact:
-            lines.append(f"#### 📈 Impacto Esperado y Beneficios")
+            lines.append("#### 📈 Impacto Esperado y Beneficios")
             lines.append(impact)
             lines.append("")
 
@@ -248,22 +249,7 @@ def build_strategic_proposal(cwd: Path, strategic_results: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Path,
-                    root_copies: bool = False) -> int:
-    print(
-        f"\n[q-agent] Generating Complete Audit Suite (Reports, Remediation & Strategy)\n"
-        f"  Project: {cwd.resolve()}\n"
-        f"  Level: {level}\n"
-        f"  Output: {output_path}\n"
-    )
-
-    all_items = load_manifest(manifest_path)
-    active_items = [item for item in all_items if item.get("level", 0) <= level]
-
-    if not active_items:
-        print("[WARNING] No active items found for this level.")
-        return 1
-
+def _load_results(cwd: Path, active_items: list[dict]) -> list[dict]:
     results = []
     for item in active_items:
         item_path = cwd / item["output"]
@@ -286,10 +272,10 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
             "status": fm.get("status", "unknown"),
             "body": body,
         })
+    return results
 
-    defect_results = [r for r in results if not r["id"].startswith("E")]
-    strategic_results = [r for r in results if r["id"].startswith("E")]
 
+def _classify(defect_results: list[dict], strategic_results: list[dict]) -> dict:
     # Unassessed findings cannot quietly disappear into a clean verdict.
     assessed = [r for r in defect_results
                 if r["status"] == "complete" and r["severity"] in SEVERITY_RANK]
@@ -309,20 +295,36 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
 
     tally = {s: sum(1 for r in defect_results if r["severity"] == s) for s in SEVERITY_RANK}
     tally["missing"] = sum(1 for r in defect_results if r["severity"] == "missing")
+    return {
+        "assessed": assessed,
+        "unusable": unusable,
+        "mandatory_unassessed": mandatory_unassessed,
+        "incomplete_strategic": incomplete_strategic,
+        "incomplete": incomplete,
+        "worst": worst,
+        "verdict": verdict,
+        "tally": tally,
+    }
 
+
+def _render_report(cwd: Path, level: int, results: list[dict], defect_results: list[dict],
+                   strategic_results: list[dict], c: dict) -> str:
+    assessed, unusable = c["assessed"], c["unusable"]
+    mandatory_unassessed, incomplete_strategic = c["mandatory_unassessed"], c["incomplete_strategic"]
+    incomplete, worst, verdict, tally = c["incomplete"], c["worst"], c["verdict"], c["tally"]
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     lines = [
         f"# AUDIT REPORT — {cwd.name}",
-        f"",
+        "",
         f"> **Framework:** {FRAMEWORK_LABEL} — Plan C Atomic Dispatch  ",
         f"> **Date:** {now}  ",
         f"> **Audit Level:** {level}  ",
         f"> **Defect Items Audited:** {len(defect_results)}  ",
         f"> **Strategic Items Audited:** {len(strategic_results)}  ",
         f"> **Overall Verdict:** `{verdict}` (worst severity: {worst.upper()})  ",
-        f"> **Plan de Remediación (Defectos):** [`PLAN_DE_MEJORA.md`](./PLAN_DE_MEJORA.md)  ",
-        f"> **Propuesta Estratégica (Evolución & Valor):** [`PROPUESTA_EVOLUTIVA.md`](./PROPUESTA_EVOLUTIVA.md)  ",
-        f"",
+        "> **Plan de Remediación (Defectos):** [`PLAN_DE_MEJORA.md`](./PLAN_DE_MEJORA.md)  ",
+        "> **Propuesta Estratégica (Evolución & Valor):** [`PROPUESTA_EVOLUTIVA.md`](./PROPUESTA_EVOLUTIVA.md)  ",
+        "",
     ]
     if incomplete:
         lines.append("> **Audit incomplete: this is not a pass.**")
@@ -333,12 +335,12 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
             lines.append("> - No defect item was assessed.")
         lines.append("")
     lines += [
-        f"---",
-        f"",
-        f"## Compliance Matrix (Defect & Security Verification)",
-        f"",
-        f"| ID | Category | Slug | Severity | Status |",
-        f"| :- | :------- | :--- | :------: | :----: |",
+        "---",
+        "",
+        "## Compliance Matrix (Defect & Security Verification)",
+        "",
+        "| ID | Category | Slug | Severity | Status |",
+        "| :- | :------- | :--- | :------: | :----: |",
     ]
 
     for r in sorted(defect_results, key=lambda x: SEVERITY_RANK.get(x["severity"], 99)):
@@ -349,7 +351,7 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
         )
 
     lines += [
-        f"",
+        "",
         f"**Summary:** "
         f"{tally.get('critical', 0)} critical · "
         f"{tally.get('high', 0)} high · "
@@ -357,17 +359,17 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
         f"{tally.get('low', 0)} low · "
         f"{tally.get('none', 0)} pass · "
         f"{tally.get('missing', 0)} missing",
-        f"",
-        f"---",
-        f"",
+        "",
+        "---",
+        "",
     ]
 
     if strategic_results:
         lines += [
-            f"## Strategic Evolution Matrix (MAB-PC Opportunities)",
-            f"",
-            f"| ID | Category | Dimension | Status |",
-            f"| :- | :------- | :-------- | :----: |",
+            "## Strategic Evolution Matrix (MAB-PC Opportunities)",
+            "",
+            "| ID | Category | Dimension | Status |",
+            "| :- | :------- | :-------- | :----: |",
         ]
         for r in strategic_results:
             lines.append(
@@ -387,12 +389,11 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
         lines.append("")
         lines.append("---")
         lines.append("")
+    return "\n".join(lines)
 
-    # 1. Write AUDIT_REPORT.md
-    report_content = "\n".join(lines)
-    output_path.write_text(report_content, encoding="utf-8")
-    print(f"Report written: {output_path} (Verdict: {verdict})")
 
+def _write_companion_docs(cwd: Path, output_path: Path, defect_results: list[dict],
+                          strategic_results: list[dict], verdict: str, root_copies: bool) -> None:
     # 2. Write audit/PLAN_DE_MEJORA.md & audit/REMEDIATION_ISSUES.md
     remediation_content = build_remediation_plan(cwd, defect_results, verdict)
     plan_path = output_path.parent / "PLAN_DE_MEJORA.md"
@@ -419,6 +420,11 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
             root_propuesta_path.write_text(strategic_content, encoding="utf-8")
             print(f"Root Strategic Evolution Proposal updated: {root_propuesta_path}")
 
+
+def _write_gaps(cwd: Path, defect_results: list[dict], c: dict) -> None:
+    unusable, mandatory_unassessed = c["unusable"], c["mandatory_unassessed"]
+    incomplete_strategic, incomplete = c["incomplete_strategic"], c["incomplete"]
+    worst, verdict = c["worst"], c["verdict"]
     # 4. Update AUDIT_GAPS.json for orchestrator retry loop
     blocked = [r for r in defect_results if r["severity"] in ("critical", "high")
                or r in unusable or r in mandatory_unassessed]
@@ -443,7 +449,36 @@ def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Pat
     elif gaps_path.exists():
         gaps_path.unlink()
 
-    return 0 if not incomplete and worst in ("none", "low") else 1
+
+def generate_report(cwd: Path, manifest_path: Path, level: int, output_path: Path,
+                    root_copies: bool = False) -> int:
+    print(
+        f"\n[q-agent] Generating Complete Audit Suite (Reports, Remediation & Strategy)\n"
+        f"  Project: {cwd.resolve()}\n"
+        f"  Level: {level}\n"
+        f"  Output: {output_path}\n"
+    )
+
+    all_items = load_manifest(manifest_path)
+    active_items = [item for item in all_items if item.get("level", 0) <= level]
+
+    if not active_items:
+        print("[WARNING] No active items found for this level.")
+        return 1
+
+    results = _load_results(cwd, active_items)
+    defect_results = [r for r in results if not r["id"].startswith("E")]
+    strategic_results = [r for r in results if r["id"].startswith("E")]
+    c = _classify(defect_results, strategic_results)
+
+    # 1. Write AUDIT_REPORT.md
+    output_path.write_text(_render_report(cwd, level, results, defect_results, strategic_results, c), encoding="utf-8")
+    print(f"Report written: {output_path} (Verdict: {c['verdict']})")
+
+    _write_companion_docs(cwd, output_path, defect_results, strategic_results, c["verdict"], root_copies)
+    _write_gaps(cwd, defect_results, c)
+
+    return 0 if not c["incomplete"] and c["worst"] in ("none", "low") else 1
 
 
 def main():

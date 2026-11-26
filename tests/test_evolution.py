@@ -231,6 +231,24 @@ class EvolutionTests(unittest.TestCase):
             self.assertEqual(index["manifest_sha256"], hashlib.sha256(manifest.read_bytes()).hexdigest())
             self.assertEqual(index["items"][0]["sha256"], hashlib.sha256(item.read_bytes()).hexdigest())
 
+    def test_benchmark_context_measures_ast_skeleton(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            module = Path(tmp) / "mod.py"
+            module.write_text(
+                'import os\n\n\ndef work(x: int) -> int:\n    """Double x."""\n'
+                + "".join(f"    x = x + {i}\n" for i in range(50))
+                + "    return x\n",
+                encoding="utf-8",
+            )
+            (Path(tmp) / "broken.py").write_text("def (:\n", encoding="utf-8")
+            ctx = _benchmark.measure_context(Path(tmp))
+        self.assertEqual((ctx["python_files"], ctx["skipped_files"]), (1, 1))
+        self.assertLess(ctx["skeleton_tokens_est"], ctx["full_tokens_est"])
+        self.assertGreater(ctx["reduction_pct"], 50)
+        skeleton = _benchmark.python_skeleton("def work(x: int) -> int:\n    return x\n")
+        self.assertIn("def work(x: int) -> int:", skeleton)
+        self.assertNotIn("return x", skeleton)
+
     def test_benchmark_returns_machine_readable_metrics(self):
         report = run_benchmark(ROOT, iterations=1)
         self.assertEqual(report["iterations"], 1)

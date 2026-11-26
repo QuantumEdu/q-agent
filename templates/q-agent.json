@@ -30,6 +30,23 @@
     "ast_skeleton_first": true,
     "max_consecutive_failures_before_rollback": 3
   },
+  "merge_gate": {
+    "max_loc": 500,
+    "content_scan": true,
+    "replace_defaults": false,
+    "patterns": {
+      "money": [],
+      "auth": [],
+      "schema": []
+    },
+    "content_patterns": {
+      "money": [],
+      "auth": [],
+      "schema": []
+    },
+    "content_exclude": [],
+    "notes": "Regexes extend the q-merge-gate defaults (path patterns match lower-cased paths; content patterns match changed lines outside tests/docs). Add the project's domain vocabulary, e.g. money: [\"(?<![a-z])ventas?(?![a-z])\"]. Set replace_defaults to true to use only these lists."
+  },
   "models": {
     "tier1_frontier": null,
     "tier2_local": null

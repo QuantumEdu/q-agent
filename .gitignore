@@ -9,6 +9,8 @@ __pycache__/
 .q-worktrees/
 .q-agent/
 .cache/
+.mypy_cache/
+.ruff_cache/
 *.tmp*
 
 # q-fuzz generated runtime state (seed inputs stay tracked)
@@ -22,3 +24,4 @@ tests/fuzz/repro/*
 Thumbs.db
 *.swp
 *.swo
+.coverage

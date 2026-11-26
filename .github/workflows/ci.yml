@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -31,23 +31,16 @@ jobs:
 
       - name: Verify Python syntax (py_compile)
         run: |
-          python -m py_compile tools/q-cockpit/q_cockpit.py
-          python -m py_compile tools/q-cockpit/q_cockpit_plus.py
-          python -m py_compile tools/q-cockpit/cockpit_services.py
-          python -m py_compile tools/q-cockpit/recovery.py
-          python -m py_compile tools/q-checklist/q_checklist.py
-          python -m py_compile tools/q-audit-validator/validate_audit.py
-          python -m py_compile tools/q-audit-aggregator/generate_report.py
-          python -m py_compile tools/q-audit-runner/run_audit.py
-          python -m py_compile tools/q-audit-evidence/evidence.py
-          python -m py_compile tools/q-audit-lifecycle/audit_lifecycle.py
-          python -m py_compile tools/q-benchmark/benchmark.py
-          python -m py_compile tools/q-tasks/process_guard.py tools/q-tasks/workflow.py tools/q-tasks/operations.py tools/q-tasks/snapshots.py
-          python -m py_compile tools/q-tasks/q_tasks.py
-          python -m py_compile tools/q-tasks/runtime_support.py
-          python -m py_compile tools/q-tasks/capabilities.py
-          python -m py_compile tools/q-cockpit/task_ledger.py
-          python -m py_compile tests/*.py
+          python -m compileall -q tools tests examples evals
+
+      - name: Install lint and type-check tools
+        run: python -m pip install "ruff==0.8.6" "mypy==1.14.1"
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Type check (mypy)
+        run: mypy --config-file mypy.ini tools
 
       - name: Run unit & regression test suite
         run: |

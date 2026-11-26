@@ -141,6 +141,61 @@ class TestAuditValidator(unittest.TestCase):
             code = validate_audit.validate_technical(tmp_path, strict=True)
             self.assertEqual(code, 0)
 
+    def _write_minimal_ci(self, tmp_path, workflow):
+        (tmp_path / ".gitignore").write_text(".env\n", encoding="utf-8")
+        wf_dir = tmp_path / ".github" / "workflows"
+        wf_dir.mkdir(parents=True)
+        (wf_dir / "ci.yml").write_text(workflow, encoding="utf-8")
+
+    def test_keywords_in_job_names_and_comments_do_not_pass(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            self._write_minimal_ci(tmp_path, (
+                "name: test\non:\n  push:\njobs:\n  test:\n    steps:\n"
+                "      # TODO: add rollback and backup steps\n"
+                "      # - run: pytest\n"
+                "      - name: lint later\n"
+                "        run: echo hello\n"
+            ))
+            (tmp_path / "Dockerfile").write_text("FROM alpine\n# HEALTHCHECK CMD curl -f http://localhost/health\n", encoding="utf-8")
+            report = validate_audit.audit_technical_contracts(tmp_path)
+            checks = {c["id"]: c for contract in report["contracts"].values() for c in contract["checks"]}
+            self.assertEqual(checks["A03-TEST-LINT"]["status"], "WARN")
+            self.assertEqual(checks["A17-ROLLBACK"]["status"], "WARN")
+            self.assertEqual(checks["A17-BACKUP"]["status"], "WARN")
+            self.assertEqual(checks["A17-HEALTHCHECK"]["status"], "WARN")
+
+    def test_run_block_commands_are_verified_with_line_evidence(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            self._write_minimal_ci(tmp_path, (
+                "on: [push]\njobs:\n  ci:\n    steps:\n      - run: |\n          pip install .\n          pytest -q\n"
+            ))
+            report = validate_audit.audit_technical_contracts(tmp_path)
+            check = next(c for c in report["contracts"]["A03_github_ci_integrity"]["checks"] if c["id"] == "A03-TEST-LINT")
+            self.assertEqual(check["status"], "PASS")
+            self.assertEqual(check["evidence_level"], "VERIFIED")
+            self.assertEqual(check["evidence"], [".github/workflows/ci.yml:7"])
+
+    def test_require_verified_downgrades_keyword_only_passes(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            self._write_minimal_ci(tmp_path, "on: [push]\njobs:\n  ci:\n    steps:\n      - run: npm test\n")
+            src = tmp_path / "src"
+            src.mkdir()
+            (src / "app.js").write_text("app.get('/health', ok);\n", encoding="utf-8")
+            report = validate_audit.audit_technical_contracts(tmp_path)
+            health = next(c for c in report["contracts"]["A17_disaster_recovery"]["checks"] if c["id"] == "A17-HEALTHCHECK")
+            self.assertEqual((health["status"], health["evidence_level"]), ("PASS", "DETECTED"))
+            self.assertEqual(health["evidence"], ["src/app.js:1"])
+
+            strict = validate_audit.audit_technical_contracts(tmp_path, require_verified=True)
+            health = next(c for c in strict["contracts"]["A17_disaster_recovery"]["checks"] if c["id"] == "A17-HEALTHCHECK")
+            self.assertEqual(health["status"], "WARN")
+            self.assertTrue(health["message"].startswith("Unverified"))
+            test_lint = next(c for c in strict["contracts"]["A03_github_ci_integrity"]["checks"] if c["id"] == "A03-TEST-LINT")
+            self.assertEqual(test_lint["status"], "PASS")
+
     def test_technical_mode_cli_invocation(self):
         res = subprocess.run(
             [sys.executable, str(VALIDATOR_PATH), "--mode", "technical", "--cwd", str(ROOT_DIR)],

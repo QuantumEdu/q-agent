@@ -98,7 +98,7 @@ def prompt_choice(category_key: str) -> tuple:
     data = DECISION_OPTIONS[category_key]
     print(f"\n[?] {data['title']}:")
     default_idx = 1
-    for idx, (opt_id, opt_desc, is_default) in enumerate(data["options"], start=1):
+    for idx, (_opt_id, opt_desc, is_default) in enumerate(data["options"], start=1):
         def_tag = " (Recomendado / Por defecto)" if is_default else ""
         if is_default:
             default_idx = idx
@@ -108,10 +108,10 @@ def prompt_choice(category_key: str) -> tuple:
         try:
             choice = input(f"    Selecciona [1-{len(data['options'])}] (default: {default_idx}): ").strip()
             if not choice:
-                return data["options"][default_idx - 1]
+                return tuple(data["options"][default_idx - 1])
             val = int(choice)
             if 1 <= val <= len(data["options"]):
-                return data["options"][val - 1]
+                return tuple(data["options"][val - 1])
             print(f"    Por favor ingresa un número entre 1 y {len(data['options'])}.")
         except ValueError:
             print("    Entrada inválida. Ingresa un número.")

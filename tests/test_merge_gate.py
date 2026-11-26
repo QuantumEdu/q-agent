@@ -2,7 +2,7 @@
 Unit tests for tools/q-merge-gate/q_merge_gate.py
 """
 
-import os
+import json
 import sys
 import tempfile
 from pathlib import Path
@@ -99,6 +99,103 @@ class TestQMergeGate(unittest.TestCase):
         self.assertIsNone(err)
         self.assertEqual(report["exit_code"], 7)
         self.assertEqual(report["status"], "HUMAN_APPROVAL_REQUIRED")
+
+
+    def _commit_on_branch(self, branch, files):
+        q_merge_gate.run_git(["checkout", "-b", branch], cwd=self.repo_dir)
+        for rel, content in files.items():
+            target = self.repo_dir / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(content, encoding="utf-8")
+            q_merge_gate.run_git(["add", rel], cwd=self.repo_dir)
+        q_merge_gate.run_git(["commit", "-m", f"feat: {branch}"], cwd=self.repo_dir)
+        report, err = q_merge_gate.analyze_diff(base="main", head="HEAD", max_loc=500, cwd=self.repo_dir)
+        self.assertIsNone(err)
+        return report
+
+    def test_ddl_outside_migration_paths_requires_human_action(self):
+        report = self._commit_on_branch("feat/ddl", {
+            "app/storage.py": 'conn.execute("ALTER TABLE orders ADD COLUMN note TEXT")\n',
+        })
+        self.assertEqual(report["exit_code"], 8)
+        self.assertEqual(report["content_findings"]["schema"], ["app/storage.py"])
+        self.assertEqual(report["path_findings"]["schema"], [])
+
+    def test_money_logic_in_neutral_path_requires_approval(self):
+        report = self._commit_on_branch("feat/orders", {
+            "app/services/orders.py": "total = Decimal(line.unit_price) * qty\n",
+        })
+        self.assertEqual(report["exit_code"], 7)
+        self.assertIn("app/services/orders.py", report["findings"]["money"])
+
+    def test_sales_and_cash_paths_are_money_domain(self):
+        report = self._commit_on_branch("feat/sales", {
+            "app/sale_service.py": "def close():\n    return None\n",
+            "app/cash_sessions.py": "def open_shift():\n    return None\n",
+        })
+        self.assertEqual(report["exit_code"], 7)
+        self.assertEqual(report["findings"]["money"], ["app/cash_sessions.py", "app/sale_service.py"])
+
+    def test_author_and_tokenizer_paths_are_not_auth(self):
+        report = self._commit_on_branch("docs/authors", {
+            "AUTHORS.md": "Jane Doe\n",
+            "nlp/tokenizer.py": "def split(text):\n    return text.split()\n",
+        })
+        self.assertEqual(report["exit_code"], 0, report)
+
+    def test_tests_and_docs_are_excluded_from_content_scan(self):
+        report = self._commit_on_branch("test/fixtures", {
+            "tests/test_storage.py": 'conn.execute("CREATE TABLE t (price NUMERIC)")\n',
+            "docs/guide.md": "Run CREATE TABLE before setting the password.\n",
+        })
+        self.assertEqual(report["exit_code"], 0, report)
+
+    def test_project_config_extends_patterns(self):
+        (self.repo_dir / ".q-agent.json").write_text(json.dumps({
+            "merge_gate": {"patterns": {"money": ["orden"]}, "content_patterns": {"auth": ["\\bpin_code\\b"]}}
+        }), encoding="utf-8")
+        report = self._commit_on_branch("feat/orden", {
+            "app/orden_service.py": "def build():\n    return None\n",
+            "app/kiosk.py": "pin_code = read()\n",
+        })
+        self.assertEqual(report["exit_code"], 7)
+        self.assertEqual(report["findings"]["money"], ["app/orden_service.py"])
+        self.assertEqual(report["findings"]["auth"], ["app/kiosk.py"])
+        self.assertTrue(report["config"].endswith(".q-agent.json"))
+
+    def test_replace_defaults_and_disable_content_scan(self):
+        (self.repo_dir / ".q-agent.json").write_text(json.dumps({
+            "merge_gate": {"replace_defaults": True, "content_scan": False, "max_loc": 1000}
+        }), encoding="utf-8")
+        report = self._commit_on_branch("feat/payments", {
+            "payments/stripe_payment.py": "amount = Decimal('1.00')\n",
+        })
+        self.assertEqual(report["exit_code"], 0, report)
+        self.assertFalse(report["content_scan"])
+        self.assertEqual(report["max_loc_threshold"], 500)
+
+    def test_invalid_config_regex_is_an_error(self):
+        (self.repo_dir / ".q-agent.json").write_text(json.dumps({
+            "merge_gate": {"patterns": {"auth": ["("]}}
+        }), encoding="utf-8")
+        report, err = q_merge_gate.analyze_diff(base="main", head="HEAD", cwd=self.repo_dir)
+        self.assertIsNone(report)
+        self.assertIn("Invalid regex", err)
+
+    def test_unknown_base_is_an_error(self):
+        report, err = q_merge_gate.analyze_diff(base="does-not-exist", head="HEAD", cwd=self.repo_dir)
+        self.assertIsNone(report)
+        self.assertIn("failed", err)
+
+    def test_parse_unified_diff_tracks_renames_and_deletions(self):
+        diff = (
+            "diff --git a/old.sql b/old.sql\n--- a/old.sql\n+++ /dev/null\n@@ -1 +0,0 @@\n-DROP TABLE x;\n"
+            "diff --git a/a.py b/b.py\n--- a/a.py\n+++ b/b.py\n@@ -1 +1 @@\n-x = 1\n+x = 2\n"
+        )
+        self.assertEqual(q_merge_gate.parse_unified_diff(diff), {
+            "old.sql": ["DROP TABLE x;"],
+            "b.py": ["x = 1", "x = 2"],
+        })
 
 
 if __name__ == "__main__":

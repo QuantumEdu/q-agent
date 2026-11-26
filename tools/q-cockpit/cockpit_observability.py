@@ -77,7 +77,7 @@ def public_event(record: Any) -> dict | None:
     raw = raw if isinstance(raw, dict) else {}
     emitter = raw.get("emitter")
     emitter = emitter if isinstance(emitter, dict) else {}
-    provenance = {key: _label(raw.get(key)) for key in
+    provenance: dict[str, Any] = {key: _label(raw.get(key)) for key in
                   ("workflow", "executor", "host", "orchestrator", "phase")}
     kind = emitter.get("kind")
     provenance["emitter"] = {"kind": kind if kind in
@@ -127,7 +127,7 @@ def framework_version() -> str | None:
 
 def communication_snapshot(session: Path | None) -> dict:
     """Read at most 256 KiB/40 complete records; never create or follow links."""
-    result = {"status": "absent", "framework_version": framework_version(),
+    result: dict[str, Any] = {"status": "absent", "framework_version": framework_version(),
               "events": [], "truncated": False}
     if session is None:
         return result

@@ -57,7 +57,7 @@ def load_config(cwd: Path) -> dict:
     try:
         return json.loads(path.read_text())
     except json.JSONDecodeError as exc:
-        raise SystemExit(f"refused: {path} is not valid JSON ({exc})")
+        raise SystemExit(f"refused: {path} is not valid JSON ({exc})") from exc
 
 
 def source_config(config: dict) -> dict:
@@ -124,16 +124,16 @@ def gh(args: list[str], *, timeout: int = 25) -> object:
         out = subprocess.run(
             ["gh", *args], capture_output=True, text=True, timeout=timeout, check=False
         )
-    except FileNotFoundError:
-        raise SystemExit("refused: gh CLI not found on PATH")
-    except subprocess.TimeoutExpired:
-        raise SystemExit(f"refused: gh {' '.join(args)} timed out after {timeout}s")
+    except FileNotFoundError as exc:
+        raise SystemExit("refused: gh CLI not found on PATH") from exc
+    except subprocess.TimeoutExpired as exc:
+        raise SystemExit(f"refused: gh {' '.join(args)} timed out after {timeout}s") from exc
     if out.returncode != 0:
         raise SystemExit(f"refused: gh {' '.join(args)} failed: {out.stderr.strip()[:300]}")
     try:
         return json.loads(out.stdout)
-    except json.JSONDecodeError:
-        raise SystemExit("refused: gh returned non-JSON output")
+    except json.JSONDecodeError as exc:
+        raise SystemExit("refused: gh returned non-JSON output") from exc
 
 
 def fetch_events(repo: str, limit: int) -> list[dict]:

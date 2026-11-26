@@ -1,9 +1,9 @@
 # q-agent — Master Project Orchestrator
-> **Hermetic deployment package v2.15.0 (Dual Engine, Vertical Slices & Wave Execution)** · Tool-agnostic · Greenfield · Brownfield · Fast-Track · Audit
+> **Hermetic deployment package v2.16.0 (Dual Engine, Vertical Slices & Wave Execution)** · Tool-agnostic · Greenfield · Brownfield · Fast-Track · Audit
 
 [![CI Pipeline](https://github.com/QuantumEdu/q-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/QuantumEdu/q-agent/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.15.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.16.0-green.svg)](CHANGELOG.md)
 
 ---
 
@@ -38,12 +38,12 @@ Los frameworks contemporáneos de agentes autónomos fallan en producción debid
 
 ### Matriz Comparativa de Capacidades
 
-| Capacidad | GitHub Spec-Kit | OpenSpec | BMAD Method | Superpowers | **q-agent v2.15.0** |
+| Capacidad | GitHub Spec-Kit | OpenSpec | BMAD Method | Superpowers | **q-agent v2.16.0** |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Arquitectura de Ejecución** | Cascada BDUF (Riesgo alto de *Context Rot*) | Modular, sin compuertas deterministas | Enjambre conversacional (3x–5x costo tokens) | Prompt chain estático, soporte débil Brownfield | **Director Tier-1 + Workers Tier-2 acotados** |
 | **Aislamiento de Espacio** | Árbol de trabajo local (colisión de ramas) | Checkout manual | Dependiente del harness | Checkout manual | **Git Worktrees Mandatorios (`.q-worktrees/task-<ID>`)** |
 | **Garantía de Código** | Confianza basada en prompt (`/converge`) | Diff review subjetivo | Consenso inter-agente | Ejecución directa | **TDD Reproduction-First (RED obligatorio antes de GREEN)** |
-| **Higiene de Contexto** | Vuelca specs Markdown completas | Inyecta archivos de spec completos | Alto consumo conversacional | Inyección rígida de templates | **Poda AST (Ahorro >70% tokens en repos grandes)** |
+| **Higiene de Contexto** | Vuelca specs Markdown completas | Inyecta archivos de spec completos | Alto consumo conversacional | Inyección rígida de templates | **Esqueleto AST (−87% tokens medido en este repo con `q-benchmark --context`)** |
 | **Human-in-the-Loop** | Agente toma control total | Agente toma control total | Diálogos opacos entre bots | Agente toma control total | **Compuertas Supervisadas (P03, P04, P08 Gate) + Modo Mentor** |
 | **Gobernanza de Fusión** | Merge ciego por pull request | Revisión manual | Voto de agentes | Merge local directo | **Deterministic Merge Policy Gate (`q-merge-gate` Exit 0, 7, 8)** |
 | **Revisión Continua** | Difusa en cada turno | No persistente | Discusión en bucle | No disponible | **Review Remembers Protocol (`skills/q-adversarial-review`)** |
@@ -231,7 +231,7 @@ python3 tools/q-inspect/q_inspect.py report.docx balance.xlsx handler.go
 python3 tools/q-inspect/q_inspect.py --json spec.md data.csv
 ```
 - **Integridad de Ofimática OpenXML:** Inspecciona documentos `.docx` y hojas de cálculo `.xlsx` sin dependencias de terceros (utilizando la librería estándar de Python vía `zipfile` y `xml.etree.ElementTree`).
-- **Detección de Defectos Estructurales:** Alerta ante cuerpos vacíos, hojas de cálculo sin filas, fórmulas rotas (`#REF!`, `#N/A`, `#VALUE!`, `#DIV/0!`) y sentinelas de relleno (`TODO`, `NaN`, `undefined`, `[Insert]`).
+- **Detección de Defectos Estructurales:** Alerta ante cuerpos vacíos, hojas de cálculo sin filas, fórmulas rotas (`#REF!`, `#N/A`, `#VALUE!`, `#DIV/0!`) y sentinelas de relleno (`TODO`, `NaN`, `undefined`, `[Insert]`). En código fuente (`.py/.js/.ts/.go`) `undefined` y `NaN` son tokens válidos y no se reportan.
 
 ### 3. `tools/q-merge-gate/` (Compuerta Determinista de Políticas de Merge)
 ```bash
@@ -240,6 +240,8 @@ python3 tools/q-merge-gate/q_merge_gate.py --base main --head HEAD --max-loc 500
 - **Exit 0 (`PROCEED`):** Rebanada limpia dentro del umbral de LOC (≤500) y sin disparadores de riesgo.
 - **Exit 7 (`HUMAN_APPROVAL_REQUIRED`):** Modificaciones en lógica financiera/pagos (`money`), autenticación/seguridad (`auth`) o exceso de líneas.
 - **Exit 8 (`HUMAN_ACTION_REQUIRED`):** Modificaciones destructivas en esquemas de base de datos o migraciones DDL.
+- **Rutas y contenido:** además de los nombres de archivo, revisa las líneas cambiadas (DDL como `ALTER TABLE`/`op.add_column`, `Decimal(`/`price`, `jwt`/`bcrypt`), excluyendo tests y docs. `--no-content` vuelve al modo solo-rutas.
+- **Vocabulario por proyecto:** la sección `merge_gate` de `.q-agent.json` (ver `templates/q-agent.json`) agrega o reemplaza patrones (`patterns`, `content_patterns`, `content_exclude`, `max_loc`). Las palabras clave son heurísticas: el gate pide revisión humana, no prueba que un cambio sea seguro.
 
 ### 4. `skills/q-adversarial-review/` (Revisión Adversarial con *Review Remembers*)
 Audita el código con un agente con contexto limpio e implementa el protocolo **Review Remembers**: asigna identificadores persistentes (`R-01`, `R-02`...) a cada hallazgo y exige evaluar una matriz de estado (`[FIXED]`, `[NOT_FIXED]`, `[NO_LONGER_APPLIES]`) antes de autorizar la entrega, eliminando discusiones circulares.
@@ -256,7 +258,9 @@ python3 tools/q-cockpit/q_cockpit_plus.py restore --archive sessions.zip --desti
 ```bash
 python3 tools/q-audit-validator/validate_audit.py --mode manifest --level 2
 python3 tools/q-audit-aggregator/generate_report.py
+python3 tools/q-audit-validator/validate_audit.py --mode technical --require-verified
 ```
+El modo `technical` etiqueta cada PASS como `VERIFIED` (hecho estructural: archivo presente, comando ejecutado en un step `run:` de CI, `HEALTHCHECK`/probe declarativo) o `DETECTED` (palabra clave encontrada fuera de comentarios), con evidencia `archivo:línea`. `--require-verified` convierte los `DETECTED` en advertencias.
 Implementa el principio: *"La completitud es una propiedad del sistema de archivos, no del texto generado por el LLM"*. Despacha 17 ítems forenses atómicos en paralelo (`audit/A01-A17.md`) y genera el reporte final de forma determinista con Python, con 0 tokens quemados en resúmenes.
 
 ### 7. `tools/q-tickets/` (Ticket Store Durable)
@@ -363,7 +367,7 @@ q-agent/
 │   └── plan-c-audit.md               # Protocolo MAB-PC / CAB-RP 2.0 Forense
 ├── examples/                         # Implementaciones y demos de referencia
 │   └── support-tickets/              # Caso real: Sistema de tickets y SLAs E2E
-├── tests/                            # Suite oficial de regresión (139 tests unitarios y E2E)
+├── tests/                            # Suite oficial de regresión (tests unitarios y E2E)
 ├── evals/                            # Suites de evaluación formal y benchmarks (Harness² local prototype)
 │   └── harness2/                     # Evaluación contrastiva: Base, Stress y Context Recovery
 ├── tools/                            # Herramientas de gobernanza CLI
@@ -384,8 +388,10 @@ q-agent/
 ### Certificación de Calidad y Tests
 Toda evolución en `q-agent` debe mantener la suite 100% verde con evidencia terminal estricta:
 ```bash
+ruff check .                          # lint (config en ruff.toml)
+mypy --config-file mypy.ini tools     # tipos
 python3 -m unittest discover -s tests -v
-# 139 tests pasando en < 16s sin mocks
+# 274 tests; sin mocks de lógica de dominio (solo dobles de PATH/entorno)
 ```
 
 ### Suite de Evaluación Contrastiva Harness² (`evals/harness2/`)
