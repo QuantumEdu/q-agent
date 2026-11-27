@@ -870,7 +870,7 @@ def _audit_disaster_recovery(report: dict, target_dir: Path, self_path: Path, wo
     # Declarative probes (Docker HEALTHCHECK, compose healthcheck, k8s probes) are VERIFIED;
     # a route string in source code is only DETECTED.
     health_patterns = [
-        (re.compile(r"^\s*HEALTHCHECK\b(?!\s+NONE\b)", re.I), "VERIFIED"),
+        (re.compile(r"^\s*HEALTHCHECK\s+(?:--\S+\s+)*CMD\b", re.I), "VERIFIED"),
         (re.compile(r"^\s*healthcheck\s*:"), "VERIFIED"),
         (re.compile(r"\b(readinessProbe|livenessProbe)\s*:"), "VERIFIED"),
         (re.compile(r"['\"]/(?:health|healthz|ping|livez|readyz)['\"]", re.I), "DETECTED"),
