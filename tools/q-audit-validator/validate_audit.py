@@ -545,14 +545,26 @@ VERIFIED_BY_PRESENCE = {"A03-GITIGNORE", "A03-WORKFLOWS", "A03-TRIGGERS", "A03-D
 
 
 def strip_install_commands(command: str) -> str:
-    """Drop install segments from a shell line (``pip install x && pytest`` -> ``pytest``)."""
+    """Drop install segments from a shell line (``pip install x && pytest`` -> ``pytest``).
+
+    Commands are split on ``;``, ``&&``, ``||`` and ``&``; in a pipeline only the first
+    command counts (``pip install x | tee pytest.log`` runs no tests). A ``#`` starts a
+    comment only after whitespace, so URL fragments such as ``#egg=`` are kept.
+    """
+    command = re.sub(r"(?:^|\s)#.*$", "", command.rstrip().removesuffix("\\"))
     lexer = shlex.shlex(command, posix=True, punctuation_chars=";&|")
+    lexer.whitespace_split = True
+    lexer.commenters = ""
     segments: list[list[str]] = [[]]
+    in_pipeline = False
     try:
         for token in lexer:
-            if token and set(token) <= set(";&|"):
+            if token == "|":
+                in_pipeline = True
+            elif token and set(token) <= set(";&|"):
                 segments.append([])
-            else:
+                in_pipeline = False
+            elif not in_pipeline:
                 segments[-1].append(token)
     except ValueError:
         segments = [command.split()]
@@ -586,6 +598,8 @@ def workflow_run_lines(content: str):
         if rest[:1] in ("|", ">"):
             block_indent = len(match.group(1))
         elif rest and not rest.startswith("#"):
+            if len(rest) > 1 and rest[0] == rest[-1] and rest[0] in "'\"":
+                rest = rest[1:-1]
             yield number, rest
 
 

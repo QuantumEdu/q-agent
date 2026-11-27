@@ -246,6 +246,23 @@ class TestAuditValidator(unittest.TestCase):
             "pytest -q",
         )
 
+    def test_install_stripping_handles_urls_continuations_and_pipelines(self):
+        strip = validate_audit.strip_install_commands
+        self.assertEqual(strip("pip install git+https://host/x.git#egg=x && pytest"), "pytest")
+        self.assertEqual(strip("pip install x && pytest \\"), "pytest")
+        self.assertEqual(strip("pip install x | tee pytest-install.log"), "")
+        self.assertEqual(strip("pytest -q | tee out.log"), "pytest -q")
+
+    def test_quoted_inline_run_step_is_verified(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            self._write_minimal_ci(tmp_path, (
+                'on: [push]\njobs:\n  ci:\n    steps:\n      - run: "pip install -r requirements.txt && pytest"\n'
+            ))
+            report = validate_audit.audit_technical_contracts(tmp_path)
+            check = next(c for c in report["contracts"]["A03_github_ci_integrity"]["checks"] if c["id"] == "A03-TEST-LINT")
+            self.assertEqual((check["status"], check["evidence_level"]), ("PASS", "VERIFIED"))
+
     def test_require_verified_downgrades_keyword_only_passes(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = Path(tmpdir)
