@@ -1180,8 +1180,8 @@ def audit_technical_contracts(cwd: Path, require_verified: bool = False) -> dict
         },
     }
 
-    # Application source code files (avoiding self and documentation)
-    audit_script_names = {"validate_audit.py"}
+    # Application source code files (avoiding self, sibling audit script, and documentation)
+    audit_script_names = {"audit_api_contracts.js", "validate_audit.py"}
     code_files = find_files(
         target_dir,
         lambda name, path: path.resolve() != self_path
