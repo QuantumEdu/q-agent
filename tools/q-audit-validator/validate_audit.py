@@ -543,6 +543,12 @@ INSTALL_COMMAND = re.compile(
 VERIFIED_BY_PRESENCE = {"A03-GITIGNORE", "A03-WORKFLOWS", "A03-TRIGGERS", "A03-DEPENDABOT"}
 
 
+def strip_install_commands(command: str) -> str:
+    """Drop install segments from a shell line (``pip install x && pytest`` -> ``pytest``)."""
+    segments = re.split(r"\s*(?:&&|\|\||;)\s*", command)
+    return " && ".join(seg for seg in segments if seg and not INSTALL_COMMAND.match(seg))
+
+
 def code_lines(content: str):
     """Yield (line_number, line) for lines that are not comments."""
     for number, line in enumerate(content.splitlines(), start=1):
@@ -701,7 +707,9 @@ def _audit_ci_integrity(report: dict, target_dir: Path, workflow_files: list[Pat
             workflow_files,
             target_dir,
             test_lint_pat,
-            lines_fn=lambda content: ((n, c) for n, c in workflow_run_lines(content) if not INSTALL_COMMAND.match(c)),
+            lines_fn=lambda content: (
+                (n, c) for n, c in ((n, strip_install_commands(c)) for n, c in workflow_run_lines(content)) if c
+            ),
         )
         if test_lint_evidence:
             a03["checks"].append({

@@ -207,6 +207,16 @@ class TestAuditValidator(unittest.TestCase):
             self.assertEqual((health["status"], health["evidence_level"]), ("PASS", "VERIFIED"))
             self.assertEqual(health["evidence"], ["deploy.yaml:4"])
 
+    def test_chained_install_and_test_command_is_verified(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            self._write_minimal_ci(tmp_path, (
+                "on: [push]\njobs:\n  ci:\n    steps:\n      - run: pip install -r requirements.txt && pytest\n"
+            ))
+            report = validate_audit.audit_technical_contracts(tmp_path)
+            check = next(c for c in report["contracts"]["A03_github_ci_integrity"]["checks"] if c["id"] == "A03-TEST-LINT")
+            self.assertEqual((check["status"], check["evidence_level"]), ("PASS", "VERIFIED"))
+
     def test_require_verified_downgrades_keyword_only_passes(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = Path(tmpdir)
