@@ -548,7 +548,7 @@ def strip_install_commands(command: str) -> str:
     """Drop install segments from a shell line (``pip install x && pytest`` -> ``pytest``).
 
     Commands are split on ``;``, ``&&``, ``||`` and ``&``; in a pipeline only the first
-    command (``pip install x | tee pytest.log`` runs no tests). As in the shell, ``#``
+    command counts (``pip install x | tee pytest.log`` runs no tests). As in the shell, ``#``
     starts a comment only at a word start and outside quotes; URL fragments are kept.
     """
     command = command.rstrip().removesuffix("\\")
