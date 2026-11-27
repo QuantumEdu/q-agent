@@ -89,7 +89,8 @@ def measure_context(root: Path) -> dict[str, Any]:
 def run_benchmark(root: Path, *, iterations: int = 3, context: bool = False) -> dict[str, Any]:
     root = Path(root).resolve()
     iterations = max(1, int(iterations))
-    cockpit_dir = root / "tools" / "q-cockpit"
+    # Load the cockpit shipped with this benchmark, never code from the measured project.
+    cockpit_dir = Path(__file__).resolve().parents[1] / "q-cockpit"
     if str(cockpit_dir) not in sys.path:
         sys.path.insert(0, str(cockpit_dir))
     spec = importlib.util.spec_from_file_location("q_cockpit_benchmark", cockpit_dir / "q_cockpit.py")
