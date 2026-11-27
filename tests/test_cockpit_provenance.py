@@ -1,5 +1,6 @@
 """Real legacy/enhanced HTTP projection and safe UI integration checks."""
 import json
+import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -15,6 +16,7 @@ import test_local_dashboard as dashboard
 
 
 class CockpitProvenanceTests(unittest.TestCase):
+    @unittest.skipUnless(shutil.which("node"), "node is required to execute the cockpit renderer")
     def test_actual_renderer_displays_host_and_orchestrator_as_separate_text(self):
         # Execute the shipped renderer and translations, not a parallel formatter.
         # This text-only DOM harness is not a substitute for the parent's browser probe.

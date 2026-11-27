@@ -31,6 +31,15 @@ El **Protocolo de Poda de Contexto y Esqueletos AST** de `q-agent` define cómo 
 
 ---
 
+### Medición reproducible
+
+`python3 tools/q-benchmark/benchmark.py --project <repo> --context` compara el tamaño de
+cada archivo Python completo con su esqueleto AST (imports, firmas y docstrings; tokens
+estimados como caracteres/4). Sobre el propio repositorio de q-agent (85 archivos, ~182k
+tokens) el esqueleto es ~23k tokens: **87% menos**. La cifra mide el tamaño del Nivel 1
+frente al Nivel 3, no el ahorro de una sesión completa, que depende de cuántos archivos
+terminan leyéndose enteros. Otros lenguajes dependen de `codegraph`/`ast-grep` y no se miden aquí.
+
 ## 3. Ejemplo de Esqueleto AST vs Archivo Completo
 
 ### ❌ Inyección Pesada (Archivo Completo — 120 líneas / ~1,200 tokens):

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import importlib.util
 import json
 import os
@@ -24,10 +25,72 @@ def _measure(callable_fn: Any, iterations: int) -> list[float]:
     return values
 
 
-def run_benchmark(root: Path, *, iterations: int = 3) -> dict[str, Any]:
+SKIP_DIRS = {".git", ".venv", "venv", "node_modules", "__pycache__", ".mypy_cache", ".ruff_cache",
+             ".q-worktrees", ".q-agent", ".q-cockpit", "dist", "build"}
+
+
+def python_skeleton(source: str) -> str:
+    """Return imports, class/function signatures and docstrings, without bodies."""
+    tree = ast.parse(source)
+    lines: list[str] = []
+
+    def visit(nodes: list[ast.stmt], depth: int) -> None:
+        pad = "    " * depth
+        for node in nodes:
+            if isinstance(node, (ast.Import, ast.ImportFrom)):
+                lines.append(pad + ast.unparse(node))
+            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                header = ast.unparse(node).splitlines()
+                decorators = [f"{pad}@{ast.unparse(d)}" for d in node.decorator_list]
+                signature = next(line for line in header if not line.lstrip().startswith("@"))
+                lines.extend(decorators + [pad + signature.strip()])
+                doc = ast.get_docstring(node)
+                if doc:
+                    lines.append(f'{pad}    """{doc}"""')
+                if isinstance(node, ast.ClassDef):
+                    visit(node.body, depth + 1)
+                else:
+                    lines.append(pad + "    ...")
+
+    module_doc = ast.get_docstring(tree)
+    if module_doc:
+        lines.append(f'"""{module_doc}"""')
+    visit(tree.body, 0)
+    return "\n".join(lines) + "\n"
+
+
+def measure_context(root: Path) -> dict[str, Any]:
+    """Compare full Python sources with their AST skeletons (tokens estimated as chars / 4)."""
+    root = Path(root).resolve()
+    full_chars = skeleton_chars = files = skipped = 0
+    for path in sorted(root.rglob("*.py")):
+        if SKIP_DIRS.intersection(path.relative_to(root).parts):
+            continue
+        try:
+            source = path.read_text(encoding="utf-8")
+            skeleton = python_skeleton(source)
+        except (OSError, UnicodeDecodeError, SyntaxError):
+            skipped += 1
+            continue
+        files += 1
+        full_chars += len(source)
+        skeleton_chars += len(skeleton)
+    reduction = (1 - skeleton_chars / full_chars) * 100 if full_chars else 0.0
+    return {
+        "method": "python-ast-skeleton; tokens estimated as chars/4",
+        "python_files": files,
+        "skipped_files": skipped,
+        "full_tokens_est": full_chars // 4,
+        "skeleton_tokens_est": skeleton_chars // 4,
+        "reduction_pct": round(reduction, 1),
+    }
+
+
+def run_benchmark(root: Path, *, iterations: int = 3, context: bool = False) -> dict[str, Any]:
     root = Path(root).resolve()
     iterations = max(1, int(iterations))
-    cockpit_dir = root / "tools" / "q-cockpit"
+    # Load the cockpit shipped with this benchmark, never code from the measured project.
+    cockpit_dir = Path(__file__).resolve().parents[1] / "q-cockpit"
     if str(cockpit_dir) not in sys.path:
         sys.path.insert(0, str(cockpit_dir))
     spec = importlib.util.spec_from_file_location("q_cockpit_benchmark", cockpit_dir / "q_cockpit.py")
@@ -52,7 +115,7 @@ def run_benchmark(root: Path, *, iterations: int = 3) -> dict[str, Any]:
         ),
         iterations,
     )
-    return {
+    report: dict[str, Any] = {
         "format": "q-agent-benchmark-v1",
         "project": str(root),
         "iterations": iterations,
@@ -70,6 +133,9 @@ def run_benchmark(root: Path, *, iterations: int = 3) -> dict[str, Any]:
             "cockpit_help": [round(value, 3) for value in help_values],
         },
     }
+    if context:
+        report["context"] = measure_context(root)
+    return report
 
 
 def main() -> int:
@@ -77,14 +143,20 @@ def main() -> int:
     parser.add_argument("--project", default=".", help="Project root to scan")
     parser.add_argument("--iterations", type=int, default=3)
     parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON")
+    parser.add_argument("--context", action="store_true",
+                        help="Also measure full-file vs AST-skeleton context size for Python sources")
     args = parser.parse_args()
-    report = run_benchmark(Path(args.project), iterations=args.iterations)
+    report = run_benchmark(Path(args.project), iterations=args.iterations, context=args.context)
     if args.json:
         print(json.dumps(report, indent=2))
     else:
         print(f"q-agent benchmark: {report['project']}")
         for name, value in report["metrics"].items():
             print(f"  {name}: {value} ms")
+        if "context" in report:
+            ctx = report["context"]
+            print(f"  ast_skeleton: {ctx['python_files']} files, ~{ctx['full_tokens_est']} -> "
+                  f"~{ctx['skeleton_tokens_est']} tokens ({ctx['reduction_pct']}% smaller)")
     return 0
 
 

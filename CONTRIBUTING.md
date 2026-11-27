@@ -77,6 +77,11 @@ python3 -m py_compile tools/q-audit-validator/validate_audit.py
 python3 -m py_compile tools/q-audit-aggregator/generate_report.py
 python3 -m py_compile tests/*.py
 
+# 1b. Lint y tipos (los mismos que corre CI)
+python3 -m pip install "ruff==0.8.6" "mypy==1.14.1"
+ruff check .
+mypy --config-file mypy.ini tools
+
 # 2. Ejecutar la suite completa de tests unitarios
 python3 -m unittest discover -s tests -v
 

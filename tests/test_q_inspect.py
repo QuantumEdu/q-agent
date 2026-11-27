@@ -1,4 +1,3 @@
-import io
 import subprocess
 import sys
 import tempfile
@@ -19,6 +18,21 @@ class TestQInspect(unittest.TestCase):
             proc = subprocess.run([sys.executable, str(TOOL_PATH), tmp.name], capture_output=True, text=True)
             self.assertEqual(proc.returncode, 1)
             self.assertIn("empty or below", proc.stdout)
+
+    def test_undefined_and_nan_are_valid_tokens_in_source_code(self):
+        with tempfile.NamedTemporaryFile(suffix=".js", mode="w+") as tmp:
+            tmp.write("if (typeof x === 'undefined' || Number.isNaN(y)) { y = NaN; }\n")
+            tmp.flush()
+            proc = subprocess.run([sys.executable, str(TOOL_PATH), tmp.name], capture_output=True, text=True)
+            self.assertEqual(proc.returncode, 0, proc.stdout)
+
+    def test_undefined_is_still_a_placeholder_in_documents(self):
+        with tempfile.NamedTemporaryFile(suffix=".md", mode="w+") as tmp:
+            tmp.write("# Report\nRevenue: undefined\n")
+            tmp.flush()
+            proc = subprocess.run([sys.executable, str(TOOL_PATH), tmp.name], capture_output=True, text=True)
+            self.assertEqual(proc.returncode, 1)
+            self.assertIn("undefined", proc.stdout)
 
     def test_placeholder_detected(self):
         with tempfile.NamedTemporaryFile(suffix=".md", mode="w+") as tmp:

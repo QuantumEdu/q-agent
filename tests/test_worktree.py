@@ -2,9 +2,7 @@
 Unit tests for tools/q-worktree/q_worktree.py
 """
 
-import json
 import os
-import subprocess
 import sys
 import tempfile
 from pathlib import Path

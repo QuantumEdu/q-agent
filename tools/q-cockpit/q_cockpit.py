@@ -22,7 +22,6 @@ import re
 import socketserver
 import subprocess
 import sys
-import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -36,9 +35,10 @@ DEFAULT_PORT = 4242
 COCKPIT_HOME = Path(os.environ.get("Q_COCKPIT_HOME") or os.environ.get("GRILL_HOME") or (Path.home() / ".q-cockpit"))
 
 # Keep one module/ContextVar instance across direct-file and enhanced entrypoints.
-_observability = sys.modules.get("cockpit_observability")
+_observability: Any = sys.modules.get("cockpit_observability")
 if _observability is None:
     _spec = importlib.util.spec_from_file_location("cockpit_observability", HERE / "cockpit_observability.py")
+    assert _spec is not None and _spec.loader is not None
     _observability = importlib.util.module_from_spec(_spec)
     sys.modules[_spec.name] = _observability
     _spec.loader.exec_module(_observability)
@@ -234,7 +234,7 @@ class ProjectScanner:
 
         if found_file:
             content = found_file.read_text(encoding="utf-8")
-            
+
             # 1. Parse Terminal Evidence Table if present
             # | Wave | Tarea ID | Comando Ejecutado en Terminal | Código de Salida (Exit Code) | Resultado Observado / Evidencia | Estado |
             evidence_map = {}
@@ -258,7 +258,7 @@ class ProjectScanner:
                     mark = match.group(1).lower()
                     text = match.group(2)
                     status = "done" if mark == "x" else ("in_progress" if mark == "~" else "todo")
-                    
+
                     # Extract wave metadata if present (e.g. [Wave 1], [W1], Wave 1)
                     wave = None
                     wave_match = re.search(r"\[(Wave\s*\d+|W\d+)\]|\b(Wave\s*\d+)\b", text, re.IGNORECASE)
@@ -1464,11 +1464,11 @@ def run_server(port: int = DEFAULT_PORT, project_dir: Optional[Path] = None, ses
     CockpitHTTPHandler.session_manager = manager
     CockpitHTTPHandler.active_session_dir = active_session
 
-    print(f"\n🚀 [q-cockpit] Cockpit Web Server running at:")
+    print("\n🚀 [q-cockpit] Cockpit Web Server running at:")
     print(f"   ➜ http://{host}:{port}")
     print(f"   📁 Project: {root}")
     print(f"   🏷️  Session: {active_session.name if active_session else 'Default'}")
-    print(f"   💡 Zero Node.js / Pure Python 3 runtime.\n")
+    print("   💡 Zero Node.js / Pure Python 3 runtime.\n")
 
     with ThreadedTCPServer((host, port), CockpitHTTPHandler) as httpd:
         try:
@@ -1513,7 +1513,7 @@ def cli_main() -> None:
         try:
             import q_cockpit_tui
         except ImportError:
-            from tools.q_cockpit import q_cockpit_tui
+            from tools.q_cockpit import q_cockpit_tui  # type: ignore[no-redef]
         sys.exit(q_cockpit_tui.main(project_dir=getattr(args, "project", None)))
 
     if not args.command:

@@ -27,7 +27,7 @@ def _load_legacy():
     return module
 
 
-legacy = _load_legacy()
+legacy: Any = _load_legacy()
 
 
 def _load_local(module_name: str, filename: str):
@@ -79,7 +79,8 @@ class EnhancedSessionManager(legacy.SessionManager):
 
 
 class EnhancedHandler(legacy.CockpitHTTPHandler):
-    snapshot_worker: ProjectSnapshotWorker | None = None
+    snapshot_worker: Any = None
+    active_session_dir: Path | None = None
     request_id: str | None = None
 
     def do_GET(self) -> None:

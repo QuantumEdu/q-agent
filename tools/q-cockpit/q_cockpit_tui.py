@@ -52,7 +52,7 @@ if str(HERE) not in sys.path:
 try:
     from q_cockpit import ProjectScanner, SessionManager, get_git_root
 except ImportError:
-    from tools.q_cockpit.q_cockpit import ProjectScanner, SessionManager, get_git_root
+    from tools.q_cockpit.q_cockpit import ProjectScanner, SessionManager, get_git_root  # type: ignore[no-redef]
 
 # ANSI Escape Sequences
 CLEAR_SCREEN = "\033[2J\033[H"
@@ -94,7 +94,7 @@ def get_key() -> str:
             import msvcrt
             ch = msvcrt.getch()
             if ch in (b"\x00", b"\xe0"):
-                ch2 = msvcrt.getch()
+                msvcrt.getch()
                 return "arrow"
             return ch.decode("utf-8", errors="ignore").lower()
         except Exception:
@@ -189,7 +189,7 @@ class CockpitTUI:
         status_badge = f"{C_BR_GREEN}🟢 ACTIVE{RESET}" if status == "ACTIVE" else f"{C_BR_BLACK}⚪ IDLE{RESET}"
 
         line1 = f" {C_BR_CYAN}{BOLD}⚡ Q-COCKPIT TUI{RESET} · {BOLD}{name}{RESET} {C_BR_BLACK}{ver}{RESET}  │  Branch: {C_BR_WHITE}{branch}{RESET}  │  Status: {status_badge}  │  Slice: {slice_col}"
-        
+
         # Tabs bar
         tabs = [
             ("[1] Dashboard", 1),

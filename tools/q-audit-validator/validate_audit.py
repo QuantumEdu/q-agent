@@ -9,7 +9,7 @@ Zero external dependencies. Two operating modes:
   --mode technical: deterministic zero-dependency gate validating CI, DR, Observability, and API contracts
 
 Usage:
-  python validate_audit.py [--cwd PATH] [--mode legacy|manifest|technical|contracts] [--manifest PATH] [--level 0|1|2] [--strict] [--json]
+  python validate_audit.py [--cwd PATH] [--mode legacy|manifest|technical|contracts] [--manifest PATH] [--level 0|1|2] [--strict] [--require-verified] [--json]
 """
 
 from datetime import datetime, timezone
@@ -18,6 +18,7 @@ import os
 import sys
 import re
 import json
+import shlex
 from pathlib import Path
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -113,11 +114,11 @@ def parse_manifest_items(content: str) -> list[dict]:
 
 def parse_frontmatter(content: str) -> dict:
     """Extract YAML-like frontmatter from markdown between --- delimiters."""
-    fm = {}
+    fm: dict = {}
     lines = content.splitlines()
     if not lines or lines[0].strip() != "---":
         return fm
-    for i, line in enumerate(lines[1:], start=1):
+    for line in lines[1:]:
         if line.strip() == "---":
             break
         if ":" in line:
@@ -144,7 +145,7 @@ def item_sections(content: str) -> tuple[str, dict[str, str]]:
     """Ignore template comments and fenced examples when finding real headings."""
     body = re.sub(r"\A---\s*\n.*?\n---[^\n]*\n?", "", content, count=1, flags=re.DOTALL)
     body = re.sub(r"<!--.*?-->", "", body, flags=re.DOTALL)
-    sections = {}
+    sections: dict = {}
     heading = None
     fence = None
     visible = []
@@ -464,6 +465,8 @@ def validate_manifest(cwd: Path, manifest_path: Path, level: int) -> int:
 
 BASE_IGNORED_DIRS = {
     ".git",
+    ".mypy_cache",
+    ".ruff_cache",
     "node_modules",
     "__pycache__",
     ".venv",
@@ -529,55 +532,134 @@ def safe_read(file_path: Path, max_bytes: int = 131072) -> str:
         return ""
 
 
-def audit_technical_contracts(cwd: Path) -> dict:
-    target_dir = cwd.resolve()
-    self_path = Path(__file__).resolve()
+COMMENT_LINE = re.compile(r"^\s*(?:#|//|--|;|/?\*)")
+INSTALL_COMMAND = re.compile(
+    r"^\s*(?:sudo\s+)?(?:pip3?|python3?\s+-m\s+pip|uv\s+pip|npm|yarn|pnpm|apt(?:-get)?|brew|gem|go|cargo)\s+"
+    r"(?:install|add|i|get)\b",
+    re.I,
+)
 
-    report = {
-        "target": str(target_dir),
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "contracts": {
-            "A03_github_ci_integrity": {
-                "id": "A03",
-                "name": "GitHub & CI Integrity",
-                "checks": [],
-            },
-            "A17_disaster_recovery": {
-                "id": "A17",
-                "name": "Disaster Recovery Contract",
-                "checks": [],
-            },
-            "A14_observability_telemetry": {
-                "id": "A14",
-                "name": "Observability & Telemetry",
-                "checks": [],
-            },
-            "A06_api_contracts": {
-                "id": "A06",
-                "name": "API Contracts Catalog",
-                "checks": [],
-            },
-        },
-        "summary": {
-            "total": 0,
-            "passed": 0,
-            "warnings": 0,
-            "critical": 0,
-            "verdict": "PASSED",
-        },
-    }
+# Checks whose PASS rests on a structural fact (file presence, declarative config,
+# executed CI command) rather than a keyword appearing somewhere in the tree.
+VERIFIED_BY_PRESENCE = {"A03-GITIGNORE", "A03-WORKFLOWS", "A03-TRIGGERS", "A03-DEPENDABOT"}
 
-    # Application source code files (avoiding self, sibling audit script, and documentation)
-    audit_script_names = {"audit_api_contracts.js", "validate_audit.py"}
-    code_files = find_files(
-        target_dir,
-        lambda name, path: path.resolve() != self_path
-        and name not in audit_script_names
-        and bool(re.search(r"\.(py|js|ts|jsx|tsx|go|rs|php|rb|java|cs)$", name, re.I)),
-        max_depth=5,
-        ignored_dirs=DOC_IGNORED_DIRS,
-    )
 
+def _strip_shell_comment(command: str) -> str:
+    """Cut a ``#`` comment that starts a word outside quotes (``a #b`` yes, ``x#egg`` no)."""
+    quote = ""
+    for index, char in enumerate(command):
+        if quote:
+            if char == quote:
+                quote = ""
+        elif char in "'\"":
+            quote = char
+        elif char == "#" and (index == 0 or command[index - 1] in " \t;&|"):
+            return command[:index]
+    return command
+
+
+def strip_install_commands(command: str) -> str:
+    """Drop install segments from a shell line (``pip install x && pytest`` -> ``pytest``).
+
+    Commands are split on ``;``, ``&&``, ``||`` and ``&``; in a pipeline only the first
+    command counts (``pip install x | tee pytest.log`` runs no tests). As in the shell, ``#``
+    starts a comment only at a word start and outside quotes; URL fragments are kept.
+    """
+    command = _strip_shell_comment(command.rstrip().removesuffix("\\"))
+    lexer = shlex.shlex(command, posix=True, punctuation_chars=";&|")
+    lexer.whitespace_split = True
+    lexer.commenters = ""
+    segments: list[list[str]] = [[]]
+    in_pipeline = False
+    try:
+        for token in lexer:
+            if token == "|":
+                in_pipeline = True
+            elif token and set(token) <= set(";&|"):
+                segments.append([])
+                in_pipeline = False
+            elif not in_pipeline:
+                segments[-1].append(token)
+    except ValueError:
+        segments = [command.split()]
+    # Output-only commands (echo "install pytest") run nothing.
+    commands = (" ".join(seg) for seg in segments if seg and seg[0] not in ("echo", "printf"))
+    return " && ".join(cmd for cmd in commands if not INSTALL_COMMAND.match(cmd))
+
+
+def code_lines(content: str):
+    """Yield (line_number, line) for lines that are not comments."""
+    for number, line in enumerate(content.splitlines(), start=1):
+        if line.strip() and not COMMENT_LINE.match(line):
+            yield number, line
+
+
+def workflow_run_lines(content: str):
+    """Yield (line_number, command) for commands inside GitHub Actions ``run:`` steps."""
+    block_indent = None
+    for number, line in enumerate(content.splitlines(), start=1):
+        stripped = line.strip()
+        indent = len(line) - len(line.lstrip())
+        if block_indent is not None:
+            if not stripped or indent > block_indent:
+                if stripped and not stripped.startswith("#"):
+                    yield number, stripped
+                continue
+            block_indent = None
+        match = re.match(r"^(\s*)(?:-\s+)?run:\s*(.*)$", line)
+        if not match:
+            continue
+        rest = match.group(2).strip()
+        if rest[:1] in ("|", ">"):
+            block_indent = len(match.group(1))
+        elif rest and not rest.startswith("#"):
+            if len(rest) > 1 and rest[0] == rest[-1] and rest[0] in "'\"":
+                rest = rest[1:-1]
+            yield number, rest
+
+
+def line_evidence(files: list[Path], target_dir: Path, regex: re.Pattern, lines_fn=code_lines, limit: int = 3) -> list[str]:
+    """Return up to ``limit`` ``path:line`` references where ``regex`` matches a non-comment line."""
+    hits: list[str] = []
+    for f in files:
+        for number, line in lines_fn(safe_read(f)):
+            if regex.search(line):
+                hits.append(f"{f.relative_to(target_dir)}:{number}")
+                break
+        if len(hits) >= limit:
+            break
+    return hits
+
+
+def annotate_evidence_levels(report: dict, require_verified: bool = False) -> None:
+    """Label each PASS as VERIFIED (structural fact) or DETECTED (heuristic keyword match).
+
+    With ``require_verified`` a DETECTED pass is downgraded to a warning, so strict runs
+    only certify contracts backed by structural evidence.
+    """
+    for contract in report["contracts"].values():
+        for check in contract["checks"]:
+            if check["status"] != "PASS":
+                continue
+            level = check.get("evidence_level") or (
+                "VERIFIED" if check["id"] in VERIFIED_BY_PRESENCE else "DETECTED"
+            )
+            check["evidence_level"] = level
+            check.setdefault("evidence", [])
+            if require_verified and level == "DETECTED":
+                check["status"] = "WARN"
+                check["severity"] = "WARNING"
+                check["message"] = f"Unverified (keyword heuristic only): {check['message']}"
+
+
+def list_workflow_files(target_dir: Path) -> list[Path]:
+    workflows_dir = target_dir / ".github" / "workflows"
+    if not workflows_dir.is_dir():
+        return []
+    return [f for f in workflows_dir.iterdir() if f.is_file() and f.suffix.lower() in (".yml", ".yaml")]
+
+
+def _audit_ci_integrity(report: dict, target_dir: Path, workflow_files: list[Path]) -> None:
     # ── CONTRACT A03: GitHub & CI Integrity ──────────────────────────────────
     a03 = report["contracts"]["A03_github_ci_integrity"]
 
@@ -601,13 +683,6 @@ def audit_technical_contracts(cwd: Path) -> dict:
         })
 
     # 2. CI workflows (.github/workflows/*.yml | *.yaml)
-    workflows_dir = target_dir / ".github" / "workflows"
-    workflow_files = []
-    if workflows_dir.exists() and workflows_dir.is_dir():
-        workflow_files = [
-            f for f in workflows_dir.iterdir()
-            if f.is_file() and f.suffix.lower() in (".yml", ".yaml")
-        ]
 
     if workflow_files:
         rel_names = ", ".join(str(f.relative_to(target_dir)) for f in workflow_files)
@@ -663,19 +738,28 @@ def audit_technical_contracts(cwd: Path) -> dict:
                 "message": "No push or pull_request triggers found in workflow definitions",
             })
 
-        # 4. Test / Lint job steps
+        # 4. Test / Lint commands executed by workflow run steps (not job names or comments)
         test_lint_pat = re.compile(
-            r"\b(test|lint|py_compile|unittest|pytest|eslint|jest|vitest|npm\s+(?:run\s+)?test|cargo\s+test|go\s+test|mvn\s+test|flake8|mypy|ruff)\b",
+            r"\b(test|lint|py_compile|compileall|unittest|pytest|eslint|jest|vitest|npm\s+(?:run\s+)?test|cargo\s+test|go\s+test|mvn\s+test|flake8|mypy|ruff)\b",
             re.I,
         )
-        has_test_lint = any(test_lint_pat.search(safe_read(wf)) for wf in workflow_files)
-        if has_test_lint:
+        test_lint_evidence = line_evidence(
+            workflow_files,
+            target_dir,
+            test_lint_pat,
+            lines_fn=lambda content: (
+                (n, c) for n, c in ((n, strip_install_commands(c)) for n, c in workflow_run_lines(content)) if c
+            ),
+        )
+        if test_lint_evidence:
             a03["checks"].append({
                 "id": "A03-TEST-LINT",
                 "name": "Automated Test/Lint Gates",
                 "status": "PASS",
                 "severity": "PASS",
-                "message": "Automated test and/or lint steps detected in CI workflows",
+                "message": "Test/lint commands executed by CI run steps",
+                "evidence": test_lint_evidence,
+                "evidence_level": "VERIFIED",
             })
         else:
             a03["checks"].append({
@@ -683,7 +767,7 @@ def audit_technical_contracts(cwd: Path) -> dict:
                 "name": "Automated Test/Lint Gates",
                 "status": "WARN",
                 "severity": "WARNING",
-                "message": "No automated test or lint steps identified in CI workflows",
+                "message": "No CI run step executes a test or lint command (job names and comments do not count)",
             })
     else:
         a03["checks"].append({
@@ -739,6 +823,8 @@ def audit_technical_contracts(cwd: Path) -> dict:
             "message": "No Dependabot (.github/dependabot.yml) or Renovate configuration found",
         })
 
+
+def _audit_disaster_recovery(report: dict, target_dir: Path, self_path: Path, workflow_files: list[Path]) -> None:
     # ── CONTRACT A17: Disaster Recovery Contract ─────────────────────────────
     a17 = report["contracts"]["A17_disaster_recovery"]
 
@@ -760,16 +846,18 @@ def audit_technical_contracts(cwd: Path) -> dict:
         ignored_dirs=BASE_IGNORED_DIRS,
     )
 
-    backup_in_workflows = any(backup_regex.search(safe_read(wf)) for wf in workflow_files)
+    backup_files = [f for f in backup_files if safe_read(f).strip()]
+    backup_workflow_evidence = line_evidence(workflow_files, target_dir, backup_regex, lines_fn=workflow_run_lines)
 
-    if backup_files or backup_in_workflows:
-        detail = ", ".join(str(f.relative_to(target_dir)) for f in backup_files[:3]) if backup_files else "CI workflow steps"
+    if backup_files or backup_workflow_evidence:
+        evidence = [str(f.relative_to(target_dir)) for f in backup_files[:3]] + backup_workflow_evidence
         a17["checks"].append({
             "id": "A17-BACKUP",
             "name": "Backup Strategy & Runbooks",
             "status": "PASS",
             "severity": "PASS",
-            "message": f"Disaster recovery / backup artifacts detected: {detail}",
+            "message": f"Disaster recovery / backup artifacts detected: {', '.join(evidence)}",
+            "evidence": evidence,
         })
     else:
         a17["checks"].append({
@@ -797,22 +885,17 @@ def audit_technical_contracts(cwd: Path) -> dict:
         ignored_dirs=DOC_IGNORED_DIRS,
     )
 
-    rollback_found = False
-    rollback_location = ""
-    for f in list(workflow_files) + deploy_candidates:
-        content = safe_read(f)
-        if rollback_regex.search(content):
-            rollback_found = True
-            rollback_location = str(f.relative_to(target_dir))
-            break
+    rollback_evidence = line_evidence(workflow_files, target_dir, rollback_regex, lines_fn=workflow_run_lines)
+    rollback_evidence += line_evidence(deploy_candidates, target_dir, rollback_regex)
 
-    if rollback_found:
+    if rollback_evidence:
         a17["checks"].append({
             "id": "A17-ROLLBACK",
             "name": "Rollback & Resilience Capabilities",
             "status": "PASS",
             "severity": "PASS",
-            "message": f"Rollback or canary deployment mechanisms identified ({rollback_location})",
+            "message": f"Rollback or canary deployment mechanisms identified ({', '.join(rollback_evidence[:3])})",
+            "evidence": rollback_evidence[:3],
         })
     else:
         a17["checks"].append({
@@ -824,12 +907,14 @@ def audit_technical_contracts(cwd: Path) -> dict:
         })
 
     # 3. Healthcheck definition
+    # Declarative probes (Docker HEALTHCHECK, compose healthcheck, k8s probes) are VERIFIED;
+    # a route string in source code is only DETECTED.
     health_patterns = [
-        re.compile(r"(?:^|\n)\s*HEALTHCHECK\b", re.M),
-        re.compile(r"(?:^|\n)\s*healthcheck\s*:", re.M),
-        re.compile(r"\b(readinessProbe|livenessProbe)\s*:", re.M),
-        re.compile(r"['\"]/(?:health|healthz|ping|livez|readyz)['\"]", re.I),
-        re.compile(r"path\s*==\s*['\"]/(?:health|healthz|ping)['\"]", re.I),
+        (re.compile(r"^\s*HEALTHCHECK\s+(?:--\S+\s+)*(?:CMD\b|\\\s*$)", re.I), "VERIFIED"),
+        (re.compile(r"^\s*healthcheck\s*:"), "VERIFIED"),
+        (re.compile(r"\b(readinessProbe|livenessProbe)\s*:"), "VERIFIED"),
+        (re.compile(r"['\"]/(?:health|healthz|ping|livez|readyz)['\"]", re.I), "DETECTED"),
+        (re.compile(r"path\s*==\s*['\"]/(?:health|healthz|ping)['\"]", re.I), "DETECTED"),
     ]
 
     server_candidates = find_files(
@@ -842,25 +927,29 @@ def audit_technical_contracts(cwd: Path) -> dict:
         ignored_dirs=DOC_IGNORED_DIRS,
     )
 
-    healthcheck_found = False
-    healthcheck_location = ""
+    health_hits: dict[str, list[str]] = {"VERIFIED": [], "DETECTED": []}
     for f in server_candidates:
-        content = safe_read(f)
-        for pat in health_patterns:
-            if pat.search(content):
-                healthcheck_found = True
-                healthcheck_location = str(f.relative_to(target_dir))
+        found: dict[str, str] = {}
+        for number, line in code_lines(safe_read(f)):
+            level = next((lvl for pat, lvl in health_patterns if pat.search(line)), None)
+            if level and level not in found:
+                found[level] = f"{f.relative_to(target_dir)}:{number}"
+            if "VERIFIED" in found:
                 break
-        if healthcheck_found:
-            break
+        for level, ref in found.items():
+            health_hits[level].append(ref)
+    health_level = "VERIFIED" if health_hits["VERIFIED"] else "DETECTED"
+    health_evidence = health_hits[health_level][:3]
 
-    if healthcheck_found:
+    if health_evidence:
         a17["checks"].append({
             "id": "A17-HEALTHCHECK",
             "name": "Healthcheck Endpoint",
             "status": "PASS",
             "severity": "PASS",
-            "message": f"Healthcheck definition detected ({healthcheck_location})",
+            "message": f"Healthcheck definition detected ({', '.join(health_evidence)})",
+            "evidence": health_evidence,
+            "evidence_level": health_level,
         })
     else:
         a17["checks"].append({
@@ -871,6 +960,8 @@ def audit_technical_contracts(cwd: Path) -> dict:
             "message": "No healthcheck definition (/health, /healthz, /ping, or Docker HEALTHCHECK) found",
         })
 
+
+def _audit_observability(report: dict, target_dir: Path, code_files: list[Path]) -> None:
     # ── CONTRACT A14: Observability & Telemetry ──────────────────────────────
     a14 = report["contracts"]["A14_observability_telemetry"]
 
@@ -955,6 +1046,8 @@ def audit_technical_contracts(cwd: Path) -> dict:
             "message": "No request correlation (x-request-id / correlation_id) or tracing middleware detected",
         })
 
+
+def _audit_api_contracts(report: dict, target_dir: Path, self_path: Path, code_files: list[Path]) -> None:
     # ── CONTRACT A06: API Contracts Catalog ──────────────────────────────────
     a06 = report["contracts"]["A06_api_contracts"]
 
@@ -1048,6 +1141,64 @@ def audit_technical_contracts(cwd: Path) -> dict:
             "message": "No route definitions, controller directories, or API endpoints detected",
         })
 
+
+def audit_technical_contracts(cwd: Path, require_verified: bool = False) -> dict:
+    target_dir = cwd.resolve()
+    self_path = Path(__file__).resolve()
+
+    report: dict = {
+        "target": str(target_dir),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "contracts": {
+            "A03_github_ci_integrity": {
+                "id": "A03",
+                "name": "GitHub & CI Integrity",
+                "checks": [],
+            },
+            "A17_disaster_recovery": {
+                "id": "A17",
+                "name": "Disaster Recovery Contract",
+                "checks": [],
+            },
+            "A14_observability_telemetry": {
+                "id": "A14",
+                "name": "Observability & Telemetry",
+                "checks": [],
+            },
+            "A06_api_contracts": {
+                "id": "A06",
+                "name": "API Contracts Catalog",
+                "checks": [],
+            },
+        },
+        "summary": {
+            "total": 0,
+            "passed": 0,
+            "warnings": 0,
+            "critical": 0,
+            "verdict": "PASSED",
+        },
+    }
+
+    # Application source code files (avoiding self, sibling audit script, and documentation)
+    audit_script_names = {"audit_api_contracts.js", "validate_audit.py"}
+    code_files = find_files(
+        target_dir,
+        lambda name, path: path.resolve() != self_path
+        and name not in audit_script_names
+        and bool(re.search(r"\.(py|js|ts|jsx|tsx|go|rs|php|rb|java|cs)$", name, re.I)),
+        max_depth=5,
+        ignored_dirs=DOC_IGNORED_DIRS,
+    )
+
+    workflow_files = list_workflow_files(target_dir)
+    _audit_ci_integrity(report, target_dir, workflow_files)
+    _audit_disaster_recovery(report, target_dir, self_path, workflow_files)
+    _audit_observability(report, target_dir, code_files)
+    _audit_api_contracts(report, target_dir, self_path, code_files)
+
+    annotate_evidence_levels(report, require_verified=require_verified)
+
     # ── Summary Calculations ─────────────────────────────────────────────────
     total = 0
     passed = 0
@@ -1068,6 +1219,12 @@ def audit_technical_contracts(cwd: Path) -> dict:
     report["summary"]["passed"] = passed
     report["summary"]["warnings"] = warnings
     report["summary"]["critical"] = critical
+    report["summary"]["verified"] = sum(
+        1 for c in report["contracts"].values() for chk in c["checks"] if chk.get("evidence_level") == "VERIFIED"
+    )
+    report["summary"]["detected"] = sum(
+        1 for c in report["contracts"].values() for chk in c["checks"] if chk.get("evidence_level") == "DETECTED"
+    )
 
     return report
 
@@ -1090,14 +1247,17 @@ def render_terminal_report(report: dict, strict: bool = False) -> tuple[str, boo
             elif check["severity"] == "WARNING" or check["status"] == "WARN":
                 icon = "[WARN]"
             else:
-                icon = "[PASS]"
+                icon = f"[PASS:{check.get('evidence_level', 'DETECTED')}]"
             lines.append(f"  {icon} {check['name']}: {check['message']}")
         lines.append("")
 
     lines.append("================================================================================")
     lines.append(
-        f"Summary: {report['summary']['passed']} passed, {report['summary']['warnings']} warning(s), {report['summary']['critical']} critical failure(s)"
+        f"Summary: {report['summary']['passed']} passed ({report['summary']['verified']} verified, "
+        f"{report['summary']['detected']} keyword-detected), {report['summary']['warnings']} warning(s), "
+        f"{report['summary']['critical']} critical failure(s)"
     )
+    lines.append("DETECTED = heuristic keyword match, not proof the mechanism works; use --require-verified to fail on it.")
 
     passed_verdict = False
     if report["summary"]["critical"] > 0:
@@ -1114,8 +1274,8 @@ def render_terminal_report(report: dict, strict: bool = False) -> tuple[str, boo
     return "\n".join(lines), passed_verdict
 
 
-def validate_technical(cwd: Path, strict: bool = False, json_output: bool = False) -> int:
-    report = audit_technical_contracts(cwd)
+def validate_technical(cwd: Path, strict: bool = False, json_output: bool = False, require_verified: bool = False) -> int:
+    report = audit_technical_contracts(cwd, require_verified=require_verified)
     text, passed = render_terminal_report(report, strict=strict)
 
     if json_output:
@@ -1163,12 +1323,17 @@ def main():
         action="store_true",
         help="Output structured JSON in technical mode",
     )
+    parser.add_argument(
+        "--require-verified",
+        action="store_true",
+        help="Technical mode: downgrade keyword-only (DETECTED) passes to warnings",
+    )
 
     args = parser.parse_args()
     cwd = Path(args.cwd)
 
     if args.mode in ("technical", "contracts"):
-        sys.exit(validate_technical(cwd, strict=args.strict, json_output=args.json))
+        sys.exit(validate_technical(cwd, strict=args.strict, json_output=args.json, require_verified=args.require_verified))
     elif args.mode == "manifest":
         manifest_path = Path(args.manifest) if args.manifest else (
             Path(__file__).parent.parent.parent / "references" / "audit-manifest.yml"

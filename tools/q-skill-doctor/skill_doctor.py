@@ -23,9 +23,10 @@ import argparse
 import json
 import re
 import sqlite3
-from collections import Counter, defaultdict
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 SCHEMA_VERSION = 1
 
@@ -135,7 +136,7 @@ def read_lines(path: Path):
 def adapt_codex(path: Path) -> tuple[dict, list[dict]]:
     """Codex CLI rollout transcripts (JSONL)."""
     events: list[dict] = []
-    meta = {"session_id": path.stem, "source": "codex", "path": str(path)}
+    meta: dict = {"session_id": path.stem, "source": "codex", "path": str(path)}
     for record in read_lines(path):
         payload = record.get("payload") or {}
         if record.get("type") == "session_meta":
@@ -153,7 +154,7 @@ def adapt_codex(path: Path) -> tuple[dict, list[dict]]:
                 for item in payload.get("content") or []
                 if isinstance(item, dict)
             )
-            kind = {"user": "user_message", "assistant": "assistant_message"}.get(role, "tool_result")
+            kind = {"user": "user_message", "assistant": "assistant_message"}.get(role or "", "tool_result")
             if text:
                 events.append({"ts": ts, "kind": kind, "role": role, "text": text})
         elif ptype == "custom_tool_call":
@@ -288,7 +289,7 @@ def score_session(events: list[sqlite3.Row], available: list[str]) -> dict:
     tool_calls = [e for e in events if e["kind"] == "tool_call"]
     errors = [e for e in events if e["kind"] == "error" or e["status"] == "ERROR"]
 
-    signatures = Counter()
+    signatures: Counter = Counter()
     for call in tool_calls:
         signatures[((call["name"] or "?"), (call["text"] or "")[:400])] += 1
     duplicates = sum(count - 1 for count in signatures.values() if count > 1)
@@ -342,7 +343,7 @@ def rubric(score: dict) -> dict:
 def score_corpus(db: sqlite3.Connection, available: list[str]) -> dict:
     sessions = db.execute("SELECT * FROM sessions ORDER BY started_at").fetchall()
     per_session = []
-    usage = Counter()
+    usage: Counter = Counter()
     for session in sessions:
         events = load_events(db, session["session_id"])
         if not events:
@@ -385,7 +386,7 @@ def aggregate(per_session: list[dict]) -> dict:
 
 # --------------------------------------------------------------- proposals
 
-RULES = (
+RULES: tuple[dict[str, Any], ...] = (
     {
         "id": "duplicate-commands",
         "when": lambda agg, scored: agg["duplicate_calls"] >= 3,
@@ -506,7 +507,7 @@ def default_corpus(root: Path) -> Path:
 
 def ingest(root: Path, db: sqlite3.Connection, only: str, limit: int) -> dict:
     home = rel_home()
-    counts = Counter()
+    counts: Counter = Counter()
     if only in ("all", "codex"):
         for path in sorted(home.joinpath(".codex/sessions").rglob("*.jsonl"))[-limit:]:
             meta, events = adapt_codex(path)

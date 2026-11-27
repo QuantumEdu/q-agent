@@ -1,0 +1,11 @@
+target-version = "py310"
+extend-exclude = ["evals/harness2/*_fixture", "evals/harness2/*_fixtures", "evals/harness2/fixture", "evals/harness2/*runs"]
+
+[lint]
+select = ["E4", "E7", "E9", "F", "W", "B", "PLE"]
+
+[lint.per-file-ignores]
+# Tools and tests extend sys.path before importing sibling stdlib-only modules.
+"tests/*.py" = ["E402", "E702"]
+"tools/**/*.py" = ["E402"]
+"examples/**/*.py" = ["E402"]

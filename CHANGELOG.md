@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.16.0] - 2026-11-26
+
+### Added
+- **Lint and type gates in CI**: `ruff check .` (`ruff.toml`: pyflakes, pycodestyle errors, bugbear) and `mypy --config-file mypy.ini tools` run on every push/PR, pinned to ruff 0.8.6 / mypy 1.14.1. SKILL.md Paso 7 ("ejecutar linters oficiales") now applies to q-agent itself. CI also runs on Python 3.13 and compiles `tools`, `tests`, `examples` and `evals` with `compileall` instead of a hand-maintained file list.
+- **`q-merge-gate` content scan and project policy**: besides paths, the gate inspects changed lines (DDL such as `ALTER TABLE`/`op.add_column`/Django `migrations.AddField`; `Decimal(`, `price`, `amount`, `refund`; `jwt`, `bcrypt`, `argon2`, `set_cookie`), excluding tests, fixtures and docs. A `merge_gate` section in `.q-agent.json` (`patterns`, `content_patterns`, `content_exclude`, `content_scan`, `max_loc`, `replace_defaults`) extends or replaces the vocabulary; invalid regexes or unreadable config exit 1. Reports add `path_findings`, `content_findings`, `content_scan` and `config`. New flags: `--config`, `--no-content`.
+- **Evidence levels in `validate_audit --mode technical`**: every PASS is `VERIFIED` (file presence, a test/lint command inside a CI `run:` step, Docker `HEALTHCHECK`/compose healthcheck/k8s probe) or `DETECTED` (keyword in a non-comment line), with `path:line` evidence. `--require-verified` downgrades `DETECTED` passes to warnings. The summary reports both counts.
+- **`q-benchmark --context`**: measures full Python sources against their AST skeletons (imports, signatures, docstrings; tokens ≈ chars/4). On this repository: 85 files, ~182k → ~23k tokens (87% smaller). Replaces the unmeasured ">70%" README claim.
+- `docs/validation/discriminating-eval-design.md`: pending design for a harness eval where baseline and q-agent can actually differ.
+
+### Fixed
+- `q-merge-gate`: `auth` no longer matches `author`/`AUTHORS.md` and `token` no longer matches `tokenizer`; sales/cash/credit/refund/price paths (`sale_service.py`, `cash_sessions.py`) count as money domain. A failed `--shortstat` is an error instead of silently reporting 0 LOC.
+- `validate_audit` technical mode: keywords in job names or comments (`name: test`, `# TODO rollback`, `# HEALTHCHECK`) no longer pass A03-TEST-LINT, A17-ROLLBACK, A17-BACKUP or A17-HEALTHCHECK; empty backup files no longer count; `.mypy_cache`/`.ruff_cache` are ignored.
+- `q-inspect`: `undefined` and `NaN` are no longer reported as placeholders in `.py/.js/.ts/.go` sources.
+- `test_cockpit_provenance` skips the renderer test when `node` is not installed instead of erroring.
+
+### Changed
+- Complexity reduced without behavior changes: `audit_technical_contracts` (CC 82 → 15, split per contract), `generate_report` (63 → split into load/classify/render/write), `q_inspect.check_file` (60 → per-format inspectors), merge gate `analyze_diff`/`load_policy` (≤13).
+- README: test count no longer hard-coded at 139; "sin mocks" clarified (only PATH/environment doubles, no domain-logic mocks).
+
+### Known gaps
+- `scripts/audit_api_contracts.js` (Node twin of the technical audit) does not yet emit evidence levels.
+- Keyword vocabularies remain heuristics: the merge gate requests human review; it does not prove a change is safe.
+
 ## [2.15.0] - 2026-11-21
 
 ### Added
