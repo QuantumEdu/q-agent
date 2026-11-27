@@ -544,6 +544,20 @@ INSTALL_COMMAND = re.compile(
 VERIFIED_BY_PRESENCE = {"A03-GITIGNORE", "A03-WORKFLOWS", "A03-TRIGGERS", "A03-DEPENDABOT"}
 
 
+def _strip_shell_comment(command: str) -> str:
+    """Cut a ``#`` comment that starts a word outside quotes (``a #b`` yes, ``x#egg`` no)."""
+    quote = ""
+    for index, char in enumerate(command):
+        if quote:
+            if char == quote:
+                quote = ""
+        elif char in "'\"":
+            quote = char
+        elif char == "#" and (index == 0 or command[index - 1] in " \t;&|"):
+            return command[:index]
+    return command
+
+
 def strip_install_commands(command: str) -> str:
     """Drop install segments from a shell line (``pip install x && pytest`` -> ``pytest``).
 
@@ -551,9 +565,10 @@ def strip_install_commands(command: str) -> str:
     command counts (``pip install x | tee pytest.log`` runs no tests). As in the shell, ``#``
     starts a comment only at a word start and outside quotes; URL fragments are kept.
     """
-    command = command.rstrip().removesuffix("\\")
+    command = _strip_shell_comment(command.rstrip().removesuffix("\\"))
     lexer = shlex.shlex(command, posix=True, punctuation_chars=";&|")
     lexer.whitespace_split = True
+    lexer.commenters = ""
     segments: list[list[str]] = [[]]
     in_pipeline = False
     try:
