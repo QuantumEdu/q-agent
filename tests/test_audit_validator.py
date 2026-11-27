@@ -252,6 +252,8 @@ class TestAuditValidator(unittest.TestCase):
         self.assertEqual(strip("pip install x && pytest \\"), "pytest")
         self.assertEqual(strip("pip install x | tee pytest-install.log"), "")
         self.assertEqual(strip("pytest -q | tee out.log"), "pytest -q")
+        self.assertEqual(strip('echo "step #1"; pytest -q'), "echo step #1 && pytest -q")
+        self.assertEqual(strip("pip install x;# pytest"), "")
 
     def test_quoted_inline_run_step_is_verified(self):
         with tempfile.TemporaryDirectory() as tmpdir:

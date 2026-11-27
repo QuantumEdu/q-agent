@@ -548,13 +548,12 @@ def strip_install_commands(command: str) -> str:
     """Drop install segments from a shell line (``pip install x && pytest`` -> ``pytest``).
 
     Commands are split on ``;``, ``&&``, ``||`` and ``&``; in a pipeline only the first
-    command counts (``pip install x | tee pytest.log`` runs no tests). A ``#`` starts a
-    comment only after whitespace, so URL fragments such as ``#egg=`` are kept.
+    command (``pip install x | tee pytest.log`` runs no tests). As in the shell, ``#``
+    starts a comment only at a word start and outside quotes; URL fragments are kept.
     """
-    command = re.sub(r"(?:^|\s)#.*$", "", command.rstrip().removesuffix("\\"))
+    command = command.rstrip().removesuffix("\\")
     lexer = shlex.shlex(command, posix=True, punctuation_chars=";&|")
     lexer.whitespace_split = True
-    lexer.commenters = ""
     segments: list[list[str]] = [[]]
     in_pipeline = False
     try:
