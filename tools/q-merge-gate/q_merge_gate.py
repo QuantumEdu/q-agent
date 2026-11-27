@@ -37,7 +37,7 @@ PATTERNS = {
         r"(?<![a-z])prices?(?![a-z])", r"(?<![a-z])precios?(?![a-z])",
     ],
     "auth": [
-        r"auth(?!or)", r"login", r"password", r"passwd", r"jwt",
+        r"auth(?!or(?!i[sz]))", r"login", r"password", r"passwd", r"jwt",
         r"token(?!i[sz])", r"permission", r"session", r"credential", r"oauth", r"rbac",
         r"(?<![a-z])security(?![a-z])", r"(?<![a-z])csrf(?![a-z])",
     ],

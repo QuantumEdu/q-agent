@@ -143,6 +143,13 @@ class TestQMergeGate(unittest.TestCase):
         })
         self.assertEqual(report["exit_code"], 0, report)
 
+    def test_authorization_paths_are_auth(self):
+        report = self._commit_on_branch("feat/authz", {
+            "app/authorization.py": "def can(user):\n    return True\n",
+        })
+        self.assertEqual(report["exit_code"], 7)
+        self.assertEqual(report["findings"]["auth"], ["app/authorization.py"])
+
     def test_tests_and_docs_are_excluded_from_content_scan(self):
         report = self._commit_on_branch("test/fixtures", {
             "tests/test_storage.py": 'conn.execute("CREATE TABLE t (price NUMERIC)")\n',
