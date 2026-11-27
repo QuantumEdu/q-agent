@@ -545,7 +545,7 @@ VERIFIED_BY_PRESENCE = {"A03-GITIGNORE", "A03-WORKFLOWS", "A03-TRIGGERS", "A03-D
 
 def strip_install_commands(command: str) -> str:
     """Drop install segments from a shell line (``pip install x && pytest`` -> ``pytest``)."""
-    segments = re.split(r"\s*(?:&&|\|\||;)\s*", command)
+    segments = [seg.strip() for seg in re.split(r"""&&|\|\||;(?=(?:[^'"]|'[^']*'|"[^"]*")*$)""", command)]
     return " && ".join(seg for seg in segments if seg and not INSTALL_COMMAND.match(seg))
 
 

@@ -225,6 +225,13 @@ class TestAuditValidator(unittest.TestCase):
             check = next(c for c in report["contracts"]["A03_github_ci_integrity"]["checks"] if c["id"] == "A03-TEST-LINT")
             self.assertEqual((check["status"], check["evidence_level"]), ("PASS", "VERIFIED"))
 
+    def test_quoted_semicolon_in_install_is_not_a_command_separator(self):
+        self.assertEqual(
+            validate_audit.strip_install_commands("""pip install 'requests; python_version < "3.12"' pytest"""),
+            "",
+        )
+        self.assertEqual(validate_audit.strip_install_commands("pip install x; pytest -q"), "pytest -q")
+
     def test_require_verified_downgrades_keyword_only_passes(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = Path(tmpdir)
