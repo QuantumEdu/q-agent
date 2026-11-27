@@ -143,6 +143,14 @@ class TestQMergeGate(unittest.TestCase):
         })
         self.assertEqual(report["exit_code"], 0, report)
 
+    def test_content_scan_ignores_diff_noprefix_config(self):
+        q_merge_gate.run_git(["config", "diff.noprefix", "true"], cwd=self.repo_dir)
+        report = self._commit_on_branch("feat/noprefix", {
+            "app/storage.py": 'conn.execute("DROP TABLE orders")\n',
+        })
+        self.assertEqual(report["exit_code"], 8)
+        self.assertEqual(report["content_findings"]["schema"], ["app/storage.py"])
+
     def test_authorization_paths_are_auth(self):
         report = self._commit_on_branch("feat/authz", {
             "app/authorization.py": "def can(user):\n    return True\n",

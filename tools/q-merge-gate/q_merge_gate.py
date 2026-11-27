@@ -308,7 +308,9 @@ def analyze_diff(base="main", head="HEAD", max_loc=500, cwd=None, config_path=No
     path_findings = match_paths(changed_files, policy["patterns"])
     content_findings = {category: [] for category in CATEGORIES}
     if scan:
-        code, diff_text, err = _git_diff(["-U0", "--no-color", "--no-ext-diff"], base, head, cwd)
+        code, diff_text, err = _git_diff(
+            ["-U0", "--no-color", "--no-ext-diff", "--src-prefix=a/", "--dst-prefix=b/"], base, head, cwd
+        )
         if code != 0:
             return None, f"Git diff content failed: {err}"
         content_findings = scan_content(
