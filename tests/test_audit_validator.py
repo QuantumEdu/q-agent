@@ -241,6 +241,10 @@ class TestAuditValidator(unittest.TestCase):
             "",
         )
         self.assertEqual(validate_audit.strip_install_commands("pip install x; pytest -q"), "pytest -q")
+        self.assertEqual(
+            validate_audit.strip_install_commands("pip install -r requirements.txt; pytest -q # Don't run coverage"),
+            "pytest -q",
+        )
 
     def test_require_verified_downgrades_keyword_only_passes(self):
         with tempfile.TemporaryDirectory() as tmpdir:

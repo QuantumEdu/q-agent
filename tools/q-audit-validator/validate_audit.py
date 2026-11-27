@@ -18,6 +18,7 @@ import os
 import sys
 import re
 import json
+import shlex
 from pathlib import Path
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -545,8 +546,18 @@ VERIFIED_BY_PRESENCE = {"A03-GITIGNORE", "A03-WORKFLOWS", "A03-TRIGGERS", "A03-D
 
 def strip_install_commands(command: str) -> str:
     """Drop install segments from a shell line (``pip install x && pytest`` -> ``pytest``)."""
-    segments = [seg.strip() for seg in re.split(r"""&&|\|\||;(?=(?:[^'"]|'[^']*'|"[^"]*")*$)""", command)]
-    return " && ".join(seg for seg in segments if seg and not INSTALL_COMMAND.match(seg))
+    lexer = shlex.shlex(command, posix=True, punctuation_chars=";&|")
+    segments: list[list[str]] = [[]]
+    try:
+        for token in lexer:
+            if token and set(token) <= set(";&|"):
+                segments.append([])
+            else:
+                segments[-1].append(token)
+    except ValueError:
+        segments = [command.split()]
+    commands = (" ".join(seg) for seg in segments if seg)
+    return " && ".join(cmd for cmd in commands if not INSTALL_COMMAND.match(cmd))
 
 
 def code_lines(content: str):
