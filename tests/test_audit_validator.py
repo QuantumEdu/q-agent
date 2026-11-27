@@ -203,6 +203,16 @@ class TestAuditValidator(unittest.TestCase):
             health = next(c for c in report["contracts"]["A17_disaster_recovery"]["checks"] if c["id"] == "A17-HEALTHCHECK")
             self.assertEqual(health["status"], "WARN")
 
+    def test_multiline_docker_healthcheck_is_verified(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            (tmp_path / "Dockerfile").write_text(
+                "FROM alpine\nHEALTHCHECK --interval=30s \\\n  CMD curl -f http://localhost/ || exit 1\n", encoding="utf-8"
+            )
+            report = validate_audit.audit_technical_contracts(tmp_path)
+            health = next(c for c in report["contracts"]["A17_disaster_recovery"]["checks"] if c["id"] == "A17-HEALTHCHECK")
+            self.assertEqual((health["status"], health["evidence_level"]), ("PASS", "VERIFIED"))
+
     def test_declared_probe_after_route_string_is_verified(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = Path(tmpdir)
