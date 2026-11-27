@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- `scripts/audit_api_contracts.js`: the Node copy of the technical audit was not called by `just audit-contracts`, SKILL.md or the README, and still passed contracts on keywords alone. `tools/q-audit-validator/validate_audit.py --mode technical` is now the only implementation.
+
 ## [2.16.0] - 2026-11-26
 
 ### Added
@@ -27,7 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README: test count no longer hard-coded at 139; "sin mocks" clarified (only PATH/environment doubles, no domain-logic mocks).
 
 ### Known gaps
-- `scripts/audit_api_contracts.js` (Node twin of the technical audit) does not yet emit evidence levels.
 - Keyword vocabularies remain heuristics: the merge gate requests human review; it does not prove a change is safe.
 
 ## [2.15.0] - 2026-11-21

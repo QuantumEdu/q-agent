@@ -5,7 +5,6 @@ Test suite for q-audit-validator manifest loading and validation logic.
 import importlib.util
 import json
 from pathlib import Path
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -305,36 +304,6 @@ class TestAuditValidator(unittest.TestCase):
         data = json.loads(res.stdout)
         self.assertIn("contracts", data)
         self.assertIn("summary", data)
-        self.assertEqual(data["summary"]["critical"], 0)
-        self.assertEqual(data["summary"]["verdict"], "PASSED")
-
-    def test_node_contracts_script_invocation(self):
-        script_path = ROOT_DIR / "scripts" / "audit_api_contracts.js"
-        self.assertTrue(script_path.exists(), "scripts/audit_api_contracts.js must exist")
-
-        node_bin = shutil.which("node")
-        if not node_bin:
-            self.skipTest("node binary not found on PATH")
-
-        # Test terminal report
-        res = subprocess.run(
-            [node_bin, str(script_path), "--cwd", str(ROOT_DIR)],
-            capture_output=True,
-            text=True,
-        )
-        self.assertEqual(res.returncode, 0, f"audit_api_contracts.js failed: {res.stderr}")
-        self.assertIn("TECHNICAL CONTRACTS AUDIT REPORT", res.stdout)
-        self.assertIn("Result: PASSED", res.stdout)
-
-        # Test JSON report
-        res_json = subprocess.run(
-            [node_bin, str(script_path), "--cwd", str(ROOT_DIR), "--json"],
-            capture_output=True,
-            text=True,
-        )
-        self.assertEqual(res_json.returncode, 0, f"audit_api_contracts.js --json failed: {res_json.stderr}")
-        data = json.loads(res_json.stdout)
-        self.assertIn("contracts", data)
         self.assertEqual(data["summary"]["critical"], 0)
         self.assertEqual(data["summary"]["verdict"], "PASSED")
 
