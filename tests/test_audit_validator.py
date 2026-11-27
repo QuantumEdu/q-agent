@@ -177,6 +177,16 @@ class TestAuditValidator(unittest.TestCase):
             self.assertEqual(check["evidence_level"], "VERIFIED")
             self.assertEqual(check["evidence"], [".github/workflows/ci.yml:7"])
 
+    def test_installing_a_test_tool_is_not_running_tests(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            self._write_minimal_ci(tmp_path, (
+                "on: [push]\njobs:\n  ci:\n    steps:\n      - run: pip install pytest ruff\n      - run: npm install jest\n"
+            ))
+            report = validate_audit.audit_technical_contracts(tmp_path)
+            check = next(c for c in report["contracts"]["A03_github_ci_integrity"]["checks"] if c["id"] == "A03-TEST-LINT")
+            self.assertEqual(check["status"], "WARN")
+
     def test_require_verified_downgrades_keyword_only_passes(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = Path(tmpdir)

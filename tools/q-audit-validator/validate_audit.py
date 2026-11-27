@@ -532,6 +532,11 @@ def safe_read(file_path: Path, max_bytes: int = 131072) -> str:
 
 
 COMMENT_LINE = re.compile(r"^\s*(?:#|//|--|;|/?\*)")
+INSTALL_COMMAND = re.compile(
+    r"^\s*(?:sudo\s+)?(?:pip3?|python3?\s+-m\s+pip|uv\s+pip|npm|yarn|pnpm|apt(?:-get)?|brew|gem|go|cargo)\s+"
+    r"(?:install|add|i|get)\b",
+    re.I,
+)
 
 # Checks whose PASS rests on a structural fact (file presence, declarative config,
 # executed CI command) rather than a keyword appearing somewhere in the tree.
@@ -692,7 +697,12 @@ def _audit_ci_integrity(report: dict, target_dir: Path, workflow_files: list[Pat
             r"\b(test|lint|py_compile|compileall|unittest|pytest|eslint|jest|vitest|npm\s+(?:run\s+)?test|cargo\s+test|go\s+test|mvn\s+test|flake8|mypy|ruff)\b",
             re.I,
         )
-        test_lint_evidence = line_evidence(workflow_files, target_dir, test_lint_pat, lines_fn=workflow_run_lines)
+        test_lint_evidence = line_evidence(
+            workflow_files,
+            target_dir,
+            test_lint_pat,
+            lines_fn=lambda content: ((n, c) for n, c in workflow_run_lines(content) if not INSTALL_COMMAND.match(c)),
+        )
         if test_lint_evidence:
             a03["checks"].append({
                 "id": "A03-TEST-LINT",
