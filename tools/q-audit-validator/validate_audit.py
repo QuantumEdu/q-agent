@@ -582,7 +582,8 @@ def strip_install_commands(command: str) -> str:
                 segments[-1].append(token)
     except ValueError:
         segments = [command.split()]
-    commands = (" ".join(seg) for seg in segments if seg)
+    # Output-only commands (echo "install pytest") run nothing.
+    commands = (" ".join(seg) for seg in segments if seg and seg[0] not in ("echo", "printf"))
     return " && ".join(cmd for cmd in commands if not INSTALL_COMMAND.match(cmd))
 
 
