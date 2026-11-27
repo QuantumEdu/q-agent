@@ -187,6 +187,26 @@ class TestAuditValidator(unittest.TestCase):
             check = next(c for c in report["contracts"]["A03_github_ci_integrity"]["checks"] if c["id"] == "A03-TEST-LINT")
             self.assertEqual(check["status"], "WARN")
 
+    def test_healthcheck_none_is_not_a_probe(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            (tmp_path / "Dockerfile").write_text("FROM alpine\nHEALTHCHECK NONE\n", encoding="utf-8")
+            report = validate_audit.audit_technical_contracts(tmp_path)
+            health = next(c for c in report["contracts"]["A17_disaster_recovery"]["checks"] if c["id"] == "A17-HEALTHCHECK")
+            self.assertEqual(health["status"], "WARN")
+
+    def test_declared_probe_after_route_string_is_verified(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            (tmp_path / "deploy.yaml").write_text(
+                "# probes\nenv:\n  HEALTH_PATH: \"/health\"\nlivenessProbe:\n  httpGet:\n    path: /health\n",
+                encoding="utf-8",
+            )
+            report = validate_audit.audit_technical_contracts(tmp_path, require_verified=True)
+            health = next(c for c in report["contracts"]["A17_disaster_recovery"]["checks"] if c["id"] == "A17-HEALTHCHECK")
+            self.assertEqual((health["status"], health["evidence_level"]), ("PASS", "VERIFIED"))
+            self.assertEqual(health["evidence"], ["deploy.yaml:4"])
+
     def test_require_verified_downgrades_keyword_only_passes(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = Path(tmpdir)

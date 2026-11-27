@@ -862,7 +862,7 @@ def _audit_disaster_recovery(report: dict, target_dir: Path, self_path: Path, wo
     # Declarative probes (Docker HEALTHCHECK, compose healthcheck, k8s probes) are VERIFIED;
     # a route string in source code is only DETECTED.
     health_patterns = [
-        (re.compile(r"^\s*HEALTHCHECK\b"), "VERIFIED"),
+        (re.compile(r"^\s*HEALTHCHECK\b(?!\s+NONE\b)", re.I), "VERIFIED"),
         (re.compile(r"^\s*healthcheck\s*:"), "VERIFIED"),
         (re.compile(r"\b(readinessProbe|livenessProbe)\s*:"), "VERIFIED"),
         (re.compile(r"['\"]/(?:health|healthz|ping|livez|readyz)['\"]", re.I), "DETECTED"),
@@ -881,11 +881,15 @@ def _audit_disaster_recovery(report: dict, target_dir: Path, self_path: Path, wo
 
     health_hits: dict[str, list[str]] = {"VERIFIED": [], "DETECTED": []}
     for f in server_candidates:
+        found: dict[str, str] = {}
         for number, line in code_lines(safe_read(f)):
             level = next((lvl for pat, lvl in health_patterns if pat.search(line)), None)
-            if level:
-                health_hits[level].append(f"{f.relative_to(target_dir)}:{number}")
+            if level and level not in found:
+                found[level] = f"{f.relative_to(target_dir)}:{number}"
+            if "VERIFIED" in found:
                 break
+        for level, ref in found.items():
+            health_hits[level].append(ref)
     health_level = "VERIFIED" if health_hits["VERIFIED"] else "DETECTED"
     health_evidence = health_hits[health_level][:3]
 
